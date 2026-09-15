@@ -2,13 +2,16 @@
 #include <iostream>
 using namespace std;
 
+void inputSkills(vector<Skill>& skills);
+void inputCertificate(vector<Certificate>& certificates);
+
 Candidate::Candidate() 
     : User(), IDcandidate(0)  {
     professional.GPA = 0;
 }
 
 Candidate::Candidate(int id, string email, string password)
-    : User(email, password), IDcandidate(id) {
+    : User(id, email, password, "CANDIDATE"), IDcandidate(id) {
     professional.GPA = 0;
 }
 
