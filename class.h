@@ -5,11 +5,13 @@
 #include <vector>
 using namespace std;
 
+
 class User {
         int IDuser;
         string email;
         string password;
         string role;
+
     public:
         User() {
             IDuser = 0;
@@ -17,14 +19,17 @@ class User {
             password = "";
             role = "";
         }
+
         User(int id, string e, string p, string r) {
             IDuser = id;
             email = e;
             password = p;
             role = r;
         }
+
         // login()
 };
+
 
 struct PersonalInfo {
     string fullName;
@@ -34,37 +39,80 @@ struct PersonalInfo {
     string addressCandidate;
 };
 
+
 struct Skill {
     string name;
     int level;
 };
+
 
 struct Certificate {
     string name;
     string organization;
 };
 
+
+class Experience {
+        int IDexperience;
+        string companyName;
+        string position;
+        string description;
+        string startDate;
+        string endDate;
+
+    public:
+        Experience() {
+            IDexperience = 0;
+            companyName = "";
+            position = "";
+            description = "";
+            startDate = "";
+            endDate = "";
+        }
+
+        Experience(int id, string company, string pos,
+                   string des, string start, string end) {
+            IDexperience = id;
+            companyName = company;
+            position = pos;
+            description = des;
+            startDate = start;
+            endDate = end;
+        }
+
+        void inputExperience();
+        void displayExperience();
+};
+
+
 struct ProfessionalInfo {
     string major;
+    string school;
+    string educationLevel;
     float GPA;
-    string experience;
+
     vector<Skill> skills;
     vector<Certificate> certificates;
 };
+
 
 class Candidate : public User {
         int IDcandidate;
         PersonalInfo personal;
         ProfessionalInfo professional;
-    public :
+
+        vector<Experience> experiences;
+
+    public:
         Candidate();
+
         Candidate(int id, string email, string password);
 
         void inputCandidate();
         void displayCandidate();
 
-        //updateCV();
-        //applyJob();
+        // updateCV();
+        // applyJob();
 };
 
 class Job {
