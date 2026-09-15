@@ -6,16 +6,22 @@
 using namespace std;
 
 class User {
+        int IDuser;
         string email;
         string password;
+        string role;
     public:
         User() {
+            IDuser = 0;
             email = "";
             password = "";
+            role = "";
         }
-        User(string e, string p) {
+        User(int id, string e, string p, string r) {
+            IDuser = id;
             email = e;
             password = p;
+            role = r;
         }
         // login()
 };
@@ -61,32 +67,49 @@ class Candidate : public User {
         //applyJob();
 };
 
-class Recruiter : public User {
+class Job {
+        int IDjob;
+        int IDcompany;
+        string title;
+        string description;
+        string location;
+        float minGPA;
+        int minExperience;
+        string deadline;
+        int salary;
+        bool status;
+        //string nameMajor;
+        // requiredSkill;
+        // requiredCertificate;
+    public :
+        Job();
+        void inputJob(int companyID);
+        void displayJob();
+
+        //displayJob();
+        //updateJob();
+        //closeJob();
+        //checkStatus();
+};
+
+class Company : public User {
         int IDcompany;
         string nameCompany;
         string phoneCompany;
         string addressCompany;
         string description;
+        string website;
+        vector<Job> jobs;
     public :
-        //createJob();
+        Company();
+        Company(int id, string email, string password);
+
+        void inputCompany();
+        void displayCompany();
+
+        void createJob();
         //updateJob();
         //updateCompany();
-};
-
-class Job {
-        int IDjob;
-        string nameMajor;
-        // requiredSkill;
-        string requiredExperience;
-        float requiredGPA;
-        // requiredCertificate;
-        int salary;
-        bool status;
-    public :
-        //displayJob();
-        //updateJob();
-        //closeJob();
-        //checkStatus();
 };
 
 class Application {
