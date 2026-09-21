@@ -126,18 +126,18 @@ class Job {
         string deadline;
         int salary;
         bool status;
-        //string nameMajor;
-        // requiredSkill;
-        // requiredCertificate;
+        string nameMajor;
+        vector<Skill> requiredSkills;
+        //vector<Certificate> requiredCertificates;
+
     public :
         Job();
         void inputJob(int companyID);
         void displayJob();
-
-        //displayJob();
-        //updateJob();
-        //closeJob();
-        //checkStatus();
+        void updateJob();
+        bool checkStatus();
+        int getIDjob() const;
+        void setStatus(bool s);
 };
 
 class Company : public User {
@@ -148,16 +148,18 @@ class Company : public User {
         string description;
         string website;
         vector<Job> jobs;
+
     public :
         Company();
         Company(int id, string email, string password);
-
         void inputCompany();
         void displayCompany();
-
+        void updateCompany();
         void createJob();
-        //updateJob();
-        //updateCompany();
+        void displayJobs();
+        void updateJob();
+        void deleteJob();
+        void closeJob();
 };
 
 class Application {
@@ -165,8 +167,9 @@ class Application {
         int IDcandidate;
         int IDJob;
         float appropriateLevel;
+
     public :
-        //submic();
+        //submit();
         //updateStatus();
 };
 
