@@ -142,10 +142,11 @@ class Job {
         bool status;
         string nameMajor;
         vector<Skill> requiredSkills;
-        //vector<Certificate> requiredCertificates;
+        vector<Certificate> requiredCertificates;
 
     public :
         Job();
+        void inputRequiredSkills();
         void inputJob(int companyID);
         void displayJob();
         void updateJob();

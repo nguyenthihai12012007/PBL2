@@ -7,22 +7,53 @@ Job::Job()
       minGPA(0), minExperience(0), status(true) {
 }
 
+void Job::inputRequiredSkills() {
+    int n;
+
+    cout << "Nhap so ky nang yeu cau: ";
+    cin >> n;
+    cin.ignore();
+
+    for (int i = 0; i < n; i++) {
+        Skill s;
+
+        cout << "Nhap ten ky nang: ";
+        getline(cin, s.name);
+
+        cout << "Nhap level toi thieu: ";
+        cin >> s.level;
+        cin.ignore();
+
+        requiredSkills.push_back(s);
+    }
+}
+
 void Job::inputJob(int companyID) {
     IDcompany = companyID;
+
     cout << "Nhap ten cong viec: ";
     getline(cin, title);
+
+    cout << "Nhap chuyen nganh yeu cau: ";
+    getline(cin, nameMajor);
+
     cout << "Nhap mo ta cong viec: ";
     getline(cin, description);
+
     cout << "Nhap muc luong: ";
     cin >> salary;
     cin.ignore();
+
     cout << "Nhap dia diem: ";
     getline(cin, location);
+
     cout << "Nhap GPA toi thieu: ";
     cin >> minGPA;
+
     cout << "Nhap so nam kinh nghiem toi thieu: ";
     cin >> minExperience;
     cin.ignore();
+
     cout << "Nhap han nop ho so: ";
     getline(cin, deadline);
     status = true;
@@ -33,7 +64,22 @@ void Job::displayJob() {
     cout << "ID cong viec: " << IDjob << endl;
     cout << "ID cong ty: " << IDcompany << endl;
     cout << "Ten cong viec: " << title << endl;
+    cout << "Chuyen nganh yeu cau: " << nameMajor << endl;
     cout << "Mo ta: " << description << endl;
+    cout << "\nKy nang yeu cau:\n";
+
+    if (requiredSkills.empty()) {
+        cout << "Khong yeu cau ky nang cu the.\n";
+    } else {
+        for (int i = 0; i < requiredSkills.size(); i++) {
+            cout << i + 1 << ". "
+                << requiredSkills[i].name
+                << " - Level toi thieu: "
+                << requiredSkills[i].level
+                << endl;
+        }
+    }
+
     cout << "Luong: " << salary << endl;
     cout << "Dia diem: " << location << endl;
     cout << "GPA toi thieu: " << minGPA << endl;
