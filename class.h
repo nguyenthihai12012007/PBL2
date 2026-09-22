@@ -49,6 +49,7 @@ struct Skill {
 struct Certificate {
     string name;
     string organization;
+    string levelOrScore;
 };
 
 
@@ -110,6 +111,19 @@ class Candidate : public User {
 
         void inputCandidate();
         void displayCandidate();
+        void updateCandidate();
+        
+        void addSkill();
+        void updateSkill();
+        void deleteSkill();
+
+        void addCertificate();
+        void updateCertificate();
+        void deleteCertificate();
+
+        void addExperience();
+        void updateExperience();
+        void deleteExperience();
 
         // updateCV();
         // applyJob();

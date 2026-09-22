@@ -1,4 +1,5 @@
 #include "class.h"
+#include "menuCandidate.h"
 #include <iostream>
 using namespace std;
 
@@ -97,6 +98,9 @@ void inputCertificate(vector<Certificate>& certificates) {
         cout << "To chuc cap: ";
         getline(cin, c.organization);
 
+        cout << "Nhap diem hoac cap: ";
+        getline(cin, c.levelOrScore);
+
         certificates.push_back(c);
     }
 }
@@ -192,7 +196,7 @@ void Candidate::displayCandidate() {
             cout << i + 1 << ". "
                  << professional.certificates[i].name
                  << " - "
-                 << professional.certificates[i].organization
+                 << professional.certificates[i].levelOrScore
                  << endl;
         }
     }
@@ -210,3 +214,312 @@ void Candidate::displayCandidate() {
         }
     }
 }
+
+void Candidate::updateCandidate() {
+    int choice;
+
+    do {
+        menuUpdateCandidate();
+
+        cout << "Lua chon: ";
+        cin >> choice;
+        cin.ignore();
+
+        switch (choice) {
+            case 1:
+                cout << "Nhap ho ten moi: ";
+                getline(cin, personal.fullName);
+                break;
+
+            case 2:
+                cout << "Nhap ngay sinh moi: ";
+                getline(cin, personal.birthday);
+                break;
+
+            case 3:
+                cout << "Nhap gioi tinh moi: ";
+                getline(cin, personal.gender);
+                break;
+
+            case 4:
+                cout << "Nhap so dien thoai moi: ";
+                getline(cin, personal.phoneCandidate);
+                break;
+
+            case 5:
+                cout << "Nhap dia chi moi: ";
+                getline(cin, personal.addressCandidate);
+                break;
+
+            case 6:
+                cout << "Nhap chuyen nganh moi: ";
+                getline(cin, professional.major);
+                break;
+
+            case 7:
+                cout << "Nhap truong moi: ";
+                getline(cin, professional.school);
+                break;
+
+            case 8:
+                cout << "Nhap trinh do hoc van moi: ";
+                getline(cin, professional.educationLevel);
+                break;
+
+            case 9:
+                cout << "Nhap GPA moi: ";
+                cin >> professional.GPA;
+                cin.ignore();
+                break;
+
+            case 0:
+                cout << "Hoan tat cap nhat!\n";
+                break;
+
+            default:
+                cout << "Lua chon khong hop le!\n";
+        }
+
+    } while (choice != 0);
+}
+
+void Candidate::addSkill() {
+    Skill s;
+
+    cout << "Nhap ten ky nang: ";
+    getline(cin, s.name);
+
+    cout << "Nhap level: ";
+    cin >> s.level;
+    cin.ignore();
+
+    professional.skills.push_back(s);
+}
+
+void Candidate::updateSkill() {
+    if (professional.skills.empty()) {
+        cout << "Chua co ky nang nao!\n";
+        return;
+    }
+
+    cout << "\n===== DANH SACH KY NANG =====\n";
+    for (int i = 0; i < professional.skills.size(); i++) {
+        cout << i + 1 << ". "
+             << professional.skills[i].name
+             << " - Level: "
+             << professional.skills[i].level << endl;
+    }
+
+    int choice;
+    cout << "Chon ky nang can sua: ";
+    cin >> choice;
+    cin.ignore();
+
+    if (choice < 1 || choice > professional.skills.size()) {
+        cout << "Lua chon khong hop le!\n";
+        return;
+    }
+
+    int index = choice - 1;
+
+    cout << "Nhap ten ky nang moi: ";
+    getline(cin, professional.skills[index].name);
+
+    cout << "Nhap level moi: ";
+    cin >> professional.skills[index].level;
+    cin.ignore();
+
+    cout << "Cap nhat ky nang thanh cong!\n";
+}
+
+void Candidate::deleteSkill() {
+    if (professional.skills.empty()) {
+        cout << "Chua co ky nang nao!\n";
+        return;
+    }
+
+    cout << "\n===== DANH SACH KY NANG =====\n";
+    for (int i = 0; i < professional.skills.size(); i++) {
+        cout << i + 1 << ". "
+             << professional.skills[i].name
+             << " - Level: "
+             << professional.skills[i].level << endl;
+    }
+
+    int choice;
+    cout << "Chon ky nang can xoa: ";
+    cin >> choice;
+
+    if (choice < 1 || choice > professional.skills.size()) {
+        cout << "Lua chon khong hop le!\n";
+        return;
+    }
+
+    professional.skills.erase(
+        professional.skills.begin() + choice - 1
+    );
+
+    cout << "Xoa ky nang thanh cong!\n";
+}
+
+void Candidate::addCertificate() {
+    Certificate c;
+
+    cout << "Nhap ten chung chi: ";
+    getline(cin, c.name);
+
+    cout << "Nhap to chuc cap: ";
+    getline(cin, c.organization);
+
+    cout << "Nhap diem hoac cap: ";
+    getline(cin, c.levelOrScore);
+
+    professional.certificates.push_back(c);
+
+    cout << "Them chung chi thanh cong!\n";
+}
+
+void Candidate::updateCertificate() {
+    if (professional.certificates.empty()) {
+        cout << "Chua co chung chi nao!\n";
+        return;
+    }
+
+    cout << "\n===== DANH SACH CHUNG CHI =====\n";
+
+    for (int i = 0; i < professional.certificates.size(); i++) {
+        cout << i + 1 << ". "
+             << professional.certificates[i].name
+             << " - "
+             << professional.certificates[i].organization
+             << " - "
+             << professional.certificates[i].levelOrScore
+             << endl;
+    }
+
+    int choice;
+    cout << "Chon chung chi can sua: ";
+    cin >> choice;
+    cin.ignore();
+
+    if (choice < 1 || choice > professional.certificates.size()) {
+        cout << "Lua chon khong hop le!\n";
+        return;
+    }
+
+    int index = choice - 1;
+
+    cout << "Nhap ten chung chi moi: ";
+    getline(cin, professional.certificates[index].name);
+
+    cout << "Nhap to chuc cap moi: ";
+    getline(cin, professional.certificates[index].organization);
+
+    cout << "Nhap diem hoac cap moi: ";
+    getline(cin, professional.certificates[index].levelOrScore);
+
+    cout << "Cap nhat chung chi thanh cong!\n";
+}
+
+void Candidate::deleteCertificate() {
+    if (professional.certificates.empty()) {
+        cout << "Chua co chung chi nao!\n";
+        return;
+    }
+
+    cout << "\n===== DANH SACH CHUNG CHI =====\n";
+
+    for (int i = 0; i < professional.certificates.size(); i++) {
+        cout << i + 1 << ". "
+             << professional.certificates[i].name
+             << " - "
+             << professional.certificates[i].organization
+             << " - "
+             << professional.certificates[i].levelOrScore
+             << endl;
+    }
+
+    int choice;
+    cout << "Chon chung chi can xoa: ";
+    cin >> choice;
+
+    if (choice < 1 || choice > professional.certificates.size()) {
+        cout << "Lua chon khong hop le!\n";
+        return;
+    }
+
+    professional.certificates.erase(
+        professional.certificates.begin() + choice - 1
+    );
+
+    cout << "Xoa chung chi thanh cong!\n";
+}
+
+void Candidate::addExperience() {
+    Experience e;
+
+    e.inputExperience();
+    experiences.push_back(e);
+
+    cout << "Them kinh nghiem thanh cong!\n";
+}
+
+void Candidate::updateExperience() {
+    if (experiences.empty()) {
+        cout << "Chua co kinh nghiem nao!\n";
+        return;
+    }
+
+    cout << "\n===== DANH SACH KINH NGHIEM =====\n";
+
+    for (int i = 0; i < experiences.size(); i++) {
+        cout << "\n" << i + 1 << ".\n";
+        experiences[i].displayExperience();
+    }
+
+    int choice;
+
+    cout << "Chon kinh nghiem can sua: ";
+    cin >> choice;
+    cin.ignore();
+
+    if (choice < 1 || choice > experiences.size()) {
+        cout << "Lua chon khong hop le!\n";
+        return;
+    }
+
+    experiences[choice - 1].inputExperience();
+
+    cout << "Cap nhat kinh nghiem thanh cong!\n";
+}
+
+void Candidate::deleteExperience() {
+    if (experiences.empty()) {
+        cout << "Chua co kinh nghiem nao!\n";
+        return;
+    }
+
+    cout << "\n===== DANH SACH KINH NGHIEM =====\n";
+
+    for (int i = 0; i < experiences.size(); i++) {
+        cout << "\n" << i + 1 << ".\n";
+        experiences[i].displayExperience();
+    }
+
+    int choice;
+
+    cout << "Chon kinh nghiem can xoa: ";
+    cin >> choice;
+
+    if (choice < 1 || choice > experiences.size()) {
+        cout << "Lua chon khong hop le!\n";
+        return;
+    }
+
+    experiences.erase(
+        experiences.begin() + choice - 1
+    );
+
+    cout << "Xoa kinh nghiem thanh cong!\n";
+}
+
