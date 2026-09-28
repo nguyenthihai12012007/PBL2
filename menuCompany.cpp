@@ -58,7 +58,7 @@ void companyJobMenu(Company& company) {
                 break;
 
             case 3:
-                //company.displayJobDetail();
+                company.displayJobDetail();
                 break;
 
             case 4:
