@@ -151,6 +151,7 @@ class Job {
         void displayJob();
         void updateJob();
         bool checkStatus();
+        void setIDjob(int id);
         int getIDjob() const;
         void setStatus(bool s);
 };
@@ -172,6 +173,7 @@ class Company : public User {
         void updateCompany();
         void createJob();
         void displayJobs();
+        void displayJobDetail();
         void updateJob();
         void deleteJob();
         void closeJob();

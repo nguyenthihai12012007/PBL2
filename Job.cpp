@@ -166,6 +166,10 @@ bool Job::checkStatus() {
     return status;
 }
 
+void Job::setIDjob(int id) {
+    IDjob = id;
+}
+
 int Job::getIDjob() const {
     return IDjob;
 }

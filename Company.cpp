@@ -94,7 +94,7 @@ void Company::createJob() {
 
 void Company::displayJobs() {
     if (jobs.empty()) {
-        cout << "nCong ty hien khong co cong viec nao!\n";
+        cout << "\nCong ty hien khong co cong viec nao!\n";
         return;
     }
     cout << "\n===== DANH SACH CONG VIEC =====\n";
@@ -102,6 +102,24 @@ void Company::displayJobs() {
         cout << "\n----- Cong viec " << i+1 << "-----\n";
         jobs[i].displayJob();
     }
+}
+
+void Company::displayJobDetail() {
+    if (jobs.empty()) {
+        cout << "\nCong ty hien khong co cong viec nao!\n";
+        return;
+    }
+    int id;
+    cout << "Nhap id cong viec can xem chi tiet: ";
+    cin >> id;
+    for (int i = 0; i < jobs.size(); i++) {
+        if (jobs[i].getIDjob() == id) {
+            cout << "\n===== CHI TIET CONG VIEC =====\n";
+            jobs[i].displayJob();
+            return;
+        }
+    }
+    cout << "\nKhong tim thay cong viec co ID " << id << "!\n";
 }
 
 void Company::updateJob() {
