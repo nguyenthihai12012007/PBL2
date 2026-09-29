@@ -84,10 +84,16 @@ void Company::updateCompany() {
 }
 
 void Company::createJob() {
+    static int nextJobID = 1;
+
     Job job;
+
     cout << "\n===== TAO CONG VIEC MOI =====\n";
+
+    job.setIDjob(nextJobID++);
     job.inputJob(IDcompany);
     jobs.push_back(job);
+    
     cout << "\nTao cong viec thanh cong!\n";
     job.displayJob();
 }

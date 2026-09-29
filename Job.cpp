@@ -56,6 +56,10 @@ void Job::inputJob(int companyID) {
 
     cout << "Nhap han nop ho so: ";
     getline(cin, deadline);
+
+    requiredSkills.clear();
+    inputRequiredSkills();
+
     status = true;
 }
 
@@ -104,6 +108,7 @@ void Job::updateJob() {
         cout << "6. Cap nhat kinh nghiem toi thieu\n";
         cout << "7. Cap nhat han tuyen dung\n";
         cout << "8. Cap nhat chuyen nganh\n";
+        cout << "9. Cap nhat ky nang yeu cau\n";
         cout << "0. Hoan tat\n";
         cout << "Lua chon: ";
         cin >> choice;
@@ -150,6 +155,12 @@ void Job::updateJob() {
             case 8:
                 cout << "Nhap chuyen nganh moi: ";
                 getline(cin, nameMajor);
+                break;
+
+            case 9:
+                cout << "Nhap ky nang yeu cau moi: ";
+                requiredSkills.clear();
+                inputRequiredSkills();
                 break;
 
             case 0:

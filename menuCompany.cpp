@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 #include "class.h"
 
 void companyInfoMenu(Company& company) {
@@ -101,7 +102,7 @@ void companyCandidateMenu() {
                 //viewCandidateList();
                 break;
 
-            case2:
+            case 2:
                 //searchCandidateList();
                 break;
 
