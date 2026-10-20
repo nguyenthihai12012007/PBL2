@@ -1,60 +1,10 @@
 #include "class.h"
 #include <iostream>
-#include <algorithm>
-#include <limits>
 using namespace std;
 
 Job::Job()
     : IDjob(0), IDcompany(0), salary(0), 
       minGPA(0), minExperience(0), status(true) {
-}
-
-void Job::inputAcceptedMajors() {
-    acceptedMajorIDs.clear();
-
-    cout << "\n===== NGANH UU TIEN =====\n";
-    cout << "1. Cong nghe thong tin\n";
-    cout << "2. Ky thuat phan mem\n";
-    cout << "3. Khoa hoc may tinh\n";
-    cout << "4. Tri tue nhan tao\n";
-    cout << "5. Khoa hoc du lieu\n";
-    cout << "6. An toan thong tin\n";
-    cout << "0. Hoan tat\n";
-    cout << "Nhap 0 ngay neu khong gioi han nganh.\n";
-
-    while (true) {
-        int id;
-        cout << "Chon ID nganh: ";
-
-        if (!(cin >> id)) {
-            if (cin.eof()) {
-                return;
-            }
-
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Vui long nhap so!\n";
-            continue;
-        }
-
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        if (id == 0) {
-            break;
-        }
-
-        if (id < 1 || id > 6) {
-            cout << "ID khong hop le!\n";
-            continue;
-        }
-
-        if (find(acceptedMajorIDs.begin(),acceptedMajorIDs.end(),id) == acceptedMajorIDs.end()) {
-            acceptedMajorIDs.push_back(id);
-            cout << "Da them nganh!\n";
-        } else {
-            cout << "Nganh nay da duoc chon!\n";
-        }
-    }
 }
 
 void Job::inputRequiredSkills() {
@@ -83,9 +33,6 @@ void Job::inputJob(int companyID) {
 
     cout << "Nhap ten cong viec: ";
     getline(cin, title);
-
-    cout << "Nhap chuyen nganh yeu cau: ";
-    inputAcceptedMajors();
 
     cout << "Nhap mo ta cong viec: ";
     getline(cin, description);
@@ -208,7 +155,7 @@ void Job::updateJob() {
 
             case 8:
                 cout << "Nhap chuyen nganh moi: ";
-                //getline(cin, nameMajor);
+                getline(cin, nameMajor);
                 break;
 
             case 9:
@@ -227,29 +174,10 @@ void Job::updateJob() {
     } while (choice != 0);
 }
 
-bool Job::checkStatus() {
-    return status;
-}
-
-void Job::setIDjob(int id) {
-    IDjob = id;
-}
-
-int Job::getIDjob() const {
-    return IDjob;
-}
-
-void Job::setStatus(bool s) {
-    status = s;
-}
 const vector<Skill>& Job::getRequiredSkill() const {
     return requiredSkills;
 }
 
 const vector<CertificateRequirementGroup>& Job::getCertificateGroups() const {
     return certificateGroups;
-}
-
-const int Job::getMinExperience() const {
-    return minExperience;
 }
