@@ -1,5 +1,4 @@
 #include <iostream>
-#include <limits>
 #include "class.h"
 
 void companyInfoMenu(Company& company) {
@@ -84,42 +83,6 @@ void companyJobMenu(Company& company) {
     } while(choice != 0);
 }
 
-void companyCandidateMenu() {
-    int choice;
-    do {
-        cout << "\n====================================\n";
-        cout << "          QUAN LY UNG VIEN\n";
-        cout << "====================================\n";
-        cout << "1. Xem danh sach ung vien\n";
-        cout << "2. Tim kiem ung vien\n";
-        cout << "3. Xem ho so ung vien\n";
-        cout << "0. Quay lai\n";
-        cout << "------------------------------------\n";
-        cout << "Lua chon: ";
-        cin >> choice;
-        switch (choice) {
-            case 1:
-                //viewCandidateList();
-                break;
-
-            case 2:
-                //searchCandidateList();
-                break;
-
-            case 3:
-                //viewCandidateProfile();
-                break;
-
-            case 0:
-                cout << "Quay lai.\n";
-                break;
-
-            default:
-                cout << "Lua chon khong hop le!\n";
-        }
-    } while(choice != 0);
-}
-
 void companyApplicationMenu() {
     int choice;
     do {
@@ -134,10 +97,12 @@ void companyApplicationMenu() {
         cin >> choice;
         switch (choice) {
             case 1:
+                cout << "Dang cap nhat!";
                 //viewApplicationList();
                 break;
             
             case 2:
+                cout << "Dang cap nhat!";
                 //viewApplicationDetails();
                 break;
 
@@ -159,8 +124,7 @@ void companyMenu(Company& company) {
         cout << "====================================\n";
         cout << "1. Quan ly thong tin cong ty\n";
         cout << "2. Quan ly cong viec\n";
-        cout << "3. Quan ly ung vien\n";
-        cout << "4. Quan ly don ung tuyen\n";
+        cout << "3. Quan ly don ung tuyen\n";
         cout << "0. Dang xuat\n";
         cout << "------------------------------------\n";
         cout << "Lua chon: ";
@@ -175,10 +139,6 @@ void companyMenu(Company& company) {
                 break;
 
             case 3:
-                companyCandidateMenu();
-                break;
-
-            case 4:
                 companyApplicationMenu();
                 break;
 
