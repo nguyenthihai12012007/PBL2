@@ -5,7 +5,6 @@
 
 void companyInfoMenu(Company& company);
 void companyJobMenu(Company& company);
-void companyCandidateMenu();
 void companyApplicationMenu();
 void companyMenu(Company& company);
 #endif
