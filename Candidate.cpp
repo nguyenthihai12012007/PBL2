@@ -92,14 +92,16 @@ void inputCertificate(vector<Certificate>& certificates) {
     for (int i = 0; i < n; i++) {
         Certificate c;
 
-        cout << "Ten chung chi: ";
-        getline(cin, c.name);
+        cout << "ID chung chi (1: IELTS, 2: TOEIC L&R, 3: HSK): ";
+        cin >> c.certificateTypeID;
+        cin.ignore();
 
         cout << "To chuc cap: ";
         getline(cin, c.organization);
 
         cout << "Nhap diem hoac cap: ";
-        getline(cin, c.levelOrScore);
+        cin >> c.value;
+        cin.ignore();
 
         certificates.push_back(c);
     }
@@ -194,9 +196,9 @@ void Candidate::displayCandidate() {
     else {
         for (int i = 0; i < professional.certificates.size(); i++) {
             cout << i + 1 << ". "
-                 << professional.certificates[i].name
+                 << professional.certificates[i].certificateTypeID
                  << " - "
-                 << professional.certificates[i].levelOrScore
+                 << professional.certificates[i].value
                  << endl;
         }
     }
@@ -365,14 +367,16 @@ void Candidate::deleteSkill() {
 void Candidate::addCertificate() {
     Certificate c;
 
-    cout << "Nhap ten chung chi: ";
-    getline(cin, c.name);
+    cout << "Nhap ID chung chi (1: IELTS, 2: TOEIC L&R, 3: HSK): ";
+    cin >> c.certificateTypeID;
+    cin.ignore();
 
     cout << "Nhap to chuc cap: ";
     getline(cin, c.organization);
 
     cout << "Nhap diem hoac cap: ";
-    getline(cin, c.levelOrScore);
+    cin >> c.value;
+    cin.ignore();
 
     professional.certificates.push_back(c);
 
@@ -389,11 +393,11 @@ void Candidate::updateCertificate() {
 
     for (int i = 0; i < professional.certificates.size(); i++) {
         cout << i + 1 << ". "
-             << professional.certificates[i].name
+             << professional.certificates[i].certificateTypeID
              << " - "
              << professional.certificates[i].organization
              << " - "
-             << professional.certificates[i].levelOrScore
+             << professional.certificates[i].value
              << endl;
     }
 
@@ -409,14 +413,16 @@ void Candidate::updateCertificate() {
 
     int index = choice - 1;
 
-    cout << "Nhap ten chung chi moi: ";
-    getline(cin, professional.certificates[index].name);
+    cout << "Nhap ID chung chi moi (1: IELTS, 2: TOEIC L&R, 3: HSK): ";
+    cin >> professional.certificates[index].certificateTypeID;
+    cin.ignore();
 
     cout << "Nhap to chuc cap moi: ";
     getline(cin, professional.certificates[index].organization);
 
     cout << "Nhap diem hoac cap moi: ";
-    getline(cin, professional.certificates[index].levelOrScore);
+    cin >> professional.certificates[index].value;
+    cin.ignore();
 
     cout << "Cap nhat chung chi thanh cong!\n";
 }
@@ -431,11 +437,11 @@ void Candidate::deleteCertificate() {
 
     for (int i = 0; i < professional.certificates.size(); i++) {
         cout << i + 1 << ". "
-             << professional.certificates[i].name
+             << professional.certificates[i].certificateTypeID
              << " - "
              << professional.certificates[i].organization
              << " - "
-             << professional.certificates[i].levelOrScore
+             << professional.certificates[i].value
              << endl;
     }
 
@@ -523,3 +529,31 @@ void Candidate::deleteExperience() {
     cout << "Xoa kinh nghiem thanh cong!\n";
 }
 
+const vector<Skill>& Candidate::getSkill() const {
+    return professional.skills;
+}
+
+const vector<Certificate>& Candidate::getCertificate() const {
+    return professional.certificates;
+}
+
+int calculateMonths(const string& start, const string& end) {
+    int startMonth = stoi(start.substr(0, 2));
+    int startYear  = stoi(start.substr(3, 4));
+
+    int endMonth = stoi(end.substr(0, 2));
+    int endYear  = stoi(end.substr(3, 4));
+
+    return (endYear - startYear) * 12 + (endMonth - startMonth);
+}
+
+int Candidate::getTimeExperience() const {
+    int totalTime = 0;
+
+    for(const Experience& experience : experiences) {
+        string start = experience.getStartDate();
+        string end = experience.getEndDate();
+        totalTime += calculateMonths(start, end);
+    }
+    return totalTime;
+}

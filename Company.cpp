@@ -11,7 +11,6 @@ Company::Company(int id, string email, string password)
 }
 
 void Company::inputCompany() {
-    cin.ignore();
     cout << "Nhap ten cong ty: ";
     getline(cin, nameCompany);
     cout << "Nhap mo ta cong ty: ";

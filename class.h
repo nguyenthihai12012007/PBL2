@@ -45,11 +45,20 @@ struct Skill {
     int level;
 };
 
+struct CertificateRequirement {
+    int certificateTypeID;
+    double minValue;
+};
 
 struct Certificate {
-    string name;
+    int certificateTypeID;
     string organization;
-    string levelOrScore;
+    double value; 
+};
+
+struct CertificateRequirementGroup {
+    vector<CertificateRequirement> alternatives;
+    bool isRequired;
 };
 
 
@@ -83,7 +92,18 @@ class Experience {
 
         void inputExperience();
         void displayExperience();
+
+        string getStartDate() const;
+        string getEndDate() const;
 };
+
+string Experience::getStartDate() const {
+    return startDate;
+}
+
+string Experience::getEndDate() const {
+    return endDate;
+}
 
 
 struct ProfessionalInfo {
@@ -125,6 +145,10 @@ class Candidate : public User {
         void updateExperience();
         void deleteExperience();
 
+        const vector<Skill>& getSkill() const;
+        const vector<Certificate>& getCertificate() const;
+        int getTimeExperience() const;
+
         // updateCV();
         // applyJob();
 };
@@ -140,9 +164,9 @@ class Job {
         string deadline;
         int salary;
         bool status;
-        string nameMajor;
+        vector<int> acceptedMajorIDs;
         vector<Skill> requiredSkills;
-        vector<Certificate> requiredCertificates;
+        vector<CertificateRequirementGroup> certificateGroups;
 
     public :
         Job();
@@ -154,6 +178,13 @@ class Job {
         void setIDjob(int id);
         int getIDjob() const;
         void setStatus(bool s);
+
+        void inputAcceptedMajors();
+        const vector<int>& getAcceptedMajorIDs() const;
+
+        const vector<Skill>& getRequiredSkill() const;
+        const vector<CertificateRequirementGroup>& getCertificateGroups() const;
+        const int Job::getMinExperience() const;
 };
 
 class Company : public User {
@@ -168,15 +199,19 @@ class Company : public User {
     public :
         Company();
         Company(int id, string email, string password);
+
         void inputCompany();
         void displayCompany();
         void updateCompany();
+
         void createJob();
         void displayJobs();
         void displayJobDetail();
+
         void updateJob();
         void deleteJob();
         void closeJob();
+
 };
 
 class Application {
