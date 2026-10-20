@@ -5,8 +5,10 @@
 #include <vector>
 using namespace std;
 
+class Database;
 
 class User {
+        friend class Database;
         int IDuser;
         string email;
         string password;
@@ -27,7 +29,17 @@ class User {
             role = r;
         }
 
-        // login()
+        int getIDuser() const { return IDuser; }
+        string getEmail() const { return email; }
+        string getRole() const { return role; }
+        string getPassword() const { return password; }
+
+        void setIDuser(int id) { IDuser = id; }
+        void setEmail(const string& e) { email = e; }
+        void setPassword(const string& p) { password = p; }
+        void setRole(const string& r) { role = r; }
+
+        bool login(Database& db, const string& email, const string& password);
 };
 
 
@@ -39,8 +51,8 @@ struct PersonalInfo {
     string addressCandidate;
 };
 
-
 struct Skill {
+    int IDskill;
     string name;
     int level;
 };
@@ -60,7 +72,6 @@ struct CertificateRequirementGroup {
     vector<CertificateRequirement> alternatives;
     bool isRequired;
 };
-
 
 class Experience {
         int IDexperience;
@@ -93,18 +104,10 @@ class Experience {
         void inputExperience();
         void displayExperience();
 
-        string getStartDate() const;
-        string getEndDate() const;
+        string getStartDate() const { return startDate; }
+        string getEndDate() const { return endDate; }
+        int getIDexperience() const { return IDexperience; }
 };
-
-string Experience::getStartDate() const {
-    return startDate;
-}
-
-string Experience::getEndDate() const {
-    return endDate;
-}
-
 
 struct ProfessionalInfo {
     string major;
@@ -118,6 +121,7 @@ struct ProfessionalInfo {
 
 
 class Candidate : public User {
+        friend class Database;
         int IDcandidate;
         PersonalInfo personal;
         ProfessionalInfo professional;
@@ -150,10 +154,22 @@ class Candidate : public User {
         int getTimeExperience() const;
 
         // updateCV();
-        // applyJob();
+        //bool loadCandidate(int candidateID);
+        //bool applyJob(Database& db, int jobID);
+
+        int getIDcandidate() const { return IDcandidate; }
+        PersonalInfo getPersonalInfo() const { return personal; }
+        ProfessionalInfo getProfessionalInfo() const { return professional; }
+        vector<Experience> getExperiences() const { return experiences; }
+
+        void setIDcandidate(int id) { IDcandidate = id; }
+        void setPersonalInfo(const PersonalInfo& p) { personal = p; }
+        void setProfessionalInfo(const ProfessionalInfo& p) { professional = p; }
+        void setExperiences(const vector<Experience>& e) { experiences = e; }
 };
 
 class Job {
+        friend class Database;
         int IDjob;
         int IDcompany;
         string title;
@@ -164,30 +180,53 @@ class Job {
         string deadline;
         int salary;
         bool status;
-        vector<int> acceptedMajorIDs;
+        string nameMajor;
         vector<Skill> requiredSkills;
         vector<CertificateRequirementGroup> certificateGroups;
 
     public :
         Job();
+
         void inputRequiredSkills();
         void inputJob(int companyID);
         void displayJob();
         void updateJob();
-        bool checkStatus();
-        void setIDjob(int id);
-        int getIDjob() const;
-        void setStatus(bool s);
-
-        void inputAcceptedMajors();
-        const vector<int>& getAcceptedMajorIDs() const;
+        bool checkStatus() { return status; }
 
         const vector<Skill>& getRequiredSkill() const;
         const vector<CertificateRequirementGroup>& getCertificateGroups() const;
-        const int Job::getMinExperience() const;
+
+        int getIDjob() const { return IDjob; }
+        int getIDcompany() const { return IDcompany; }
+        string getTitle() const { return title; }
+        string getDescription() const { return description; }
+        string getLocation() const { return location; }
+        float getMinGPA() const { return minGPA; }
+        int getMinExperience() const { return minExperience; }
+        string getDeadline() const { return deadline; }
+        int getSalary() const { return salary; }
+        bool getStatus() const { return status; }
+        string getNameMajor() const { return nameMajor; }
+
+        void setIDjob(int id) { IDjob = id; }
+        void setIDcompany(int id) { IDcompany = id; }
+        void setTitle(const string& s) { title = s; }
+        void setDescription(const string& s) { description = s; }
+        void setLocation(const string& s) { location = s; }
+        void setMinGPA(float gpa) { minGPA = gpa; }
+        void setMinExperience(int exp) { minExperience = exp; }
+        void setDeadline(const string& d) { deadline = d; }
+        void setSalary(int s) { salary = s; }
+        void setStatus(bool s) { status = s; }
+        void setNameMajor(const string& major) { nameMajor = major; }
+
+        //bool loadJob(int jobID);
+        //bool isExpired() const;
+        //bool isEligible(const Candidate& candidate) const;
 };
 
 class Company : public User {
+        friend class Database;
         int IDcompany;
         string nameCompany;
         string phoneCompany;
@@ -212,17 +251,56 @@ class Company : public User {
         void deleteJob();
         void closeJob();
 
+        int getIDcompany() const { return IDcompany; }
+        string getNameCompany() const { return nameCompany; }
+        string getPhoneCompany() const { return phoneCompany; }
+        string getAddressCompany() const { return addressCompany; }
+        string getDescription() const { return description; }
+        string getWebsite() const { return website; }
+        vector<Job> getJobs() const { return jobs; }
+
+        void setIDcompany(int id) { IDcompany = id; }
+        void setNameCompany(string name) { nameCompany = name; }
+        void setPhoneCompany(string phone) { phoneCompany = phone; }
+        void setAddressCompany(string address) { addressCompany = address; }
+        void setDescription(string des) { description = des; }
+        void setWebsite(string web) { website = web; }
+
+        //bool loadCompany(int companyID);
+        //void displayApplications();
+        //void updateApplicationStatus(int applicationID);
 };
 
 class Application {
+        friend class Database;
         int IDappli;
         int IDcandidate;
-        int IDJob;
+        int IDjob;
         float appropriateLevel;
+        string status;
+        string appliedAt;
 
     public :
-        //submit();
-        //updateStatus();
+        Application() {
+            IDappli = 0;
+            IDcandidate = 0;
+            IDjob = 0;
+            appropriateLevel = 0.0f;
+            status = "";
+            appliedAt = "";
+        }
+
+        int getIDappli() const { return IDappli; }
+        int getIDcandidate() const { return IDcandidate; }
+        int getIDjob() const { return IDjob; }
+        float getAppropriateLevel() const { return appropriateLevel; }
+        string getStatus() const { return status; }
+        string getAppliedAt() const { return appliedAt; }
+        void setStatus(const string& status) { this->status = status; }
+
+        //bool submit(Database& db);
+        //bool updateStatus(Database& db);
+        //void displayApplication();
 };
 
 #endif
