@@ -28,11 +28,80 @@ void Job::inputRequiredSkills() {
     }
 }
 
+void Job::inputCertificateGroups() {
+    int n;
+
+    do {
+        cout << "Nhap so nhom chung chi (0: khong yeu cau): ";
+        cin >> n;
+        cin.ignore();
+    } while (n < 0);
+
+    certificateGroups.clear();
+
+    for (int i = 0; i < n; i++) {
+        CertificateRequirementGroup group;
+        int type;
+        int count;
+
+        cout << "\n===== NHOM CHUNG CHI " << i + 1 << " =====\n";
+
+        do {
+            cout << "1. Bat buoc\n";
+            cout << "0. Uu tien\n";
+            cout << "Chon loai nhom: ";
+            cin >> type;
+            cin.ignore();
+        } while (type != 0 && type != 1);
+
+        if (type == 1) {
+            group.isRequired = true;
+        } else {
+            group.isRequired = false;
+        }
+
+        do {
+            cout << "Nhap so lua chon trong nhom (it nhat 1): ";
+            cin >> count;
+            cin.ignore();
+        } while (count < 1);
+
+        for (int j = 0; j < count; j++) {
+            CertificateRequirement requirement;
+
+            cout << "\nLua chon " << j + 1 << ":\n";
+
+            do {
+                cout << "1. IELTS\n";
+                cout << "2. TOEIC L&R\n";
+                cout << "3. HSK\n";
+                cout << "Nhap ID chung chi: ";
+                cin >> requirement.certificateTypeID;
+                cin.ignore();
+            } while (requirement.certificateTypeID < 1
+                     || requirement.certificateTypeID > 3);
+
+            do {
+                cout << "Nhap diem hoac cap toi thieu: ";
+                cin >> requirement.minValue;
+                cin.ignore();
+            } while (requirement.minValue < 0);
+
+            group.alternatives.push_back(requirement);
+        }
+
+        certificateGroups.push_back(group);
+    }
+}
+
 void Job::inputJob(int companyID) {
     IDcompany = companyID;
 
     cout << "Nhap ten cong viec: ";
     getline(cin, title);
+
+    cout << "Nhap chuyen nganh: ";
+    getline(cin, nameMajor);
 
     cout << "Nhap mo ta cong viec: ";
     getline(cin, description);
@@ -47,7 +116,7 @@ void Job::inputJob(int companyID) {
     cout << "Nhap GPA toi thieu: ";
     cin >> minGPA;
 
-    cout << "Nhap so nam kinh nghiem toi thieu: ";
+    cout << "Nhap so thang kinh nghiem toi thieu: ";
     cin >> minExperience;
     cin.ignore();
 
@@ -88,7 +157,7 @@ void Job::displayJob() {
     cout << "Luong: " << salary << endl;
     cout << "Dia diem: " << location << endl;
     cout << "GPA toi thieu: " << minGPA << endl;
-    cout << "Kinh nghiem toi thieu: " << minExperience << " nam" << endl;
+    cout << "Kinh nghiem toi thieu: " << minExperience << " thang" << endl;
     cout << "Han nop ho so: " << deadline << endl;
     cout << "Trang thai: ";
     if (status) 

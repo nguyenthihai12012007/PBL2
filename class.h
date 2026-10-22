@@ -187,6 +187,7 @@ class Job {
         Job();
 
         void inputRequiredSkills();
+        void inputCertificateGroups();
         void inputJob(int companyID);
         void displayJob();
         void updateJob();

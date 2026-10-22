@@ -174,28 +174,36 @@ bool check (const Candidate& candidate, const Job& job) {
 }
 
 double calculatorTotal (const Candidate& candidate, const Job& job) {
-    double scoreSkill = 100.0;
-    double scoreExperience = 100.0;
-    double scoreCertificate = 100.0;
-    double scoreExtra = 100.0;
+
+    if (!check(candidate, job)) {
+        return -1.0;
+    }
+
+    double scoreTotal = 0.0;
+    double scoreWeight = 0.0;
 
     if (!job.getRequiredSkill().empty()) {
-        scoreSkill = calculaterSkillMath(candidate, job);
+        scoreTotal += calculaterSkillMath(candidate, job) * 0.5;
+        scoreWeight += 0.5;
     }
 
     CertificateMatchResult certificateResult = caculaterCertificateMath(candidate, job);
 
-    if (!job.getCertificateGroups().empty()) {
-        scoreCertificate = certificateResult.score;
+    if (certificateResult.hasPreferenceScore) {
+        scoreTotal += certificateResult.score * 0.1;
+        scoreWeight += 0.1;
     }
 
-    if (!job.getMinExperience() > 0) {
-        scoreExperience = caculaterExperience(candidate, job);
+    if (job.getMinExperience() > 0) {
+        scoreTotal += caculaterExperience(candidate, job) * 0.3;
+        scoreWeight += 0.3;
     }
 
     if (job.getMinGPA() > 0) {
-        scoreExtra = calculaterExtra(candidate, job);
+        scoreTotal += calculaterExtra(candidate, job) * 0.1;
+        scoreWeight += 0.1; 
     }
 
-    return scoreSkill * 0.5 + scoreExperience * 0.3 + scoreCertificate * 0.1 + scoreExtra * 0.1;
+    return scoreTotal / scoreWeight;
 }
+
