@@ -52,7 +52,7 @@ void Job::inputJob(int companyID) {
     cin.ignore();
 
     cout << "Nhap cac chung chi can thiet: ";
-    cin >> minExperience;
+    //cin >> minExperience;
     cin.ignore();
 
     cout << "Nhap han nop ho so: ";

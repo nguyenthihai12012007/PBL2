@@ -151,6 +151,7 @@ class Candidate : public User {
         const vector<Skill>& getSkill() const;
         const vector<Certificate>& getCertificate() const;
         int getTimeExperience() const;
+        double getGPACandidate() const { return professional.GPA ;}
 
         // updateCV();
         //bool loadCandidate(int candidateID);
