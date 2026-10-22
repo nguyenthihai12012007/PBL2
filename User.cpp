@@ -1,12 +1,11 @@
 #include "class.h"
-#include "Database.h"
 #include <iostream>
 using namespace std;
 
-bool User::login(Database& db, const string& email, const string& password) {
+bool User::login(Data& dt, const string& email, const string& password) {
     User account;
-    if (!db.getUserByEmail(email, account)) {
-        cout << "Khong tim thay tai khoan hoac loi truy van!\n";
+    if (!dt.findUserByEmail(email, account)) {
+        cout << "Email khong ton tai!\n";
         return false;
     }
     if (account.getPassword() != password) {
@@ -15,7 +14,9 @@ bool User::login(Database& db, const string& email, const string& password) {
     }
     setIDuser(account.getIDuser());
     setEmail(account.getEmail());
+    setPassword(account.getPassword());
     setRole(account.getRole());
-    cout << "Dang nhap thanh cong!\n";
+    cout << "\nDang nhap thanh cong!\n";
+    cout << "Vai tro: " << getRole() << endl;
     return true;
 }
