@@ -5,10 +5,9 @@
 #include <vector>
 using namespace std;
 
-class Database;
+class Data;
 
 class User {
-        friend class Database;
         int IDuser;
         string email;
         string password;
@@ -39,7 +38,7 @@ class User {
         void setPassword(const string& p) { password = p; }
         void setRole(const string& r) { role = r; }
 
-        bool login(Database& db, const string& email, const string& password);
+        bool login(Data& dt, const string& email, const string& password);
 };
 
 
@@ -63,6 +62,7 @@ struct CertificateRequirement {
 };
 
 struct Certificate {
+    int IDcertificate;
     int certificateTypeID;
     string organization;
     double value; 
@@ -121,11 +121,10 @@ struct ProfessionalInfo {
 
 
 class Candidate : public User {
-        friend class Database;
+        friend class Data;
         int IDcandidate;
         PersonalInfo personal;
         ProfessionalInfo professional;
-
         vector<Experience> experiences;
 
     public:
@@ -155,7 +154,7 @@ class Candidate : public User {
 
         // updateCV();
         //bool loadCandidate(int candidateID);
-        //bool applyJob(Database& db, int jobID);
+        //bool applyJob(Data& dt, int jobID);
 
         int getIDcandidate() const { return IDcandidate; }
         PersonalInfo getPersonalInfo() const { return personal; }
@@ -169,7 +168,6 @@ class Candidate : public User {
 };
 
 class Job {
-        friend class Database;
         int IDjob;
         int IDcompany;
         string title;
@@ -226,7 +224,7 @@ class Job {
 };
 
 class Company : public User {
-        friend class Database;
+        friend class Data;
         int IDcompany;
         string nameCompany;
         string phoneCompany;
@@ -272,7 +270,6 @@ class Company : public User {
 };
 
 class Application {
-        friend class Database;
         int IDappli;
         int IDcandidate;
         int IDjob;
@@ -298,9 +295,24 @@ class Application {
         string getAppliedAt() const { return appliedAt; }
         void setStatus(const string& status) { this->status = status; }
 
-        //bool submit(Database& db);
-        //bool updateStatus(Database& db);
+        //bool submit(Data& dt);
+        //bool updateStatus(Data& dt);
         //void displayApplication();
+};
+
+class Data {
+    public:
+        bool readFile(const string& filename, vector<string>& lines);
+        bool writeFile(const string& filename, vector<string>& lines);
+        int getNextID(const string& filename);
+
+        bool findUserByEmail(const string& email, User& user);
+        bool emailExists(const string& email);
+        bool registerUser(const User& user);
+
+        bool getCandidateByUserID(int userID, Candidate& candidate);
+
+        bool getCompanyByUserID(int userID, Company& company);
 };
 
 #endif
