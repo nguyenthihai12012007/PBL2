@@ -1,0 +1,16 @@
+# jobID|companyID|title|description|location|minGPA|minExperience|deadline|salary|status|nameMajor
+1|1|Thuc tap sinh Web Developer|Ho tro phat trien giao dien website|Da Nang|2.50|0|2027-01-31|4000000|1|Cong nghe thong tin
+2|1|Junior C++ Developer|Phat trien va bao tri ung dung C++|Da Nang|3.00|1|2027-02-15|10000000|1|Ky thuat phan mem
+3|2|Java Developer|Phat trien he thong backend Java|Da Nang|3.00|1|2027-02-28|12000000|1|Cong nghe thong tin
+4|2|Software Tester|Kiem thu phan mem va viet test case|Da Nang|2.70|0|2027-01-20|7000000|1|Cong nghe thong tin
+5|3|Data Analyst Intern|Phan tich du lieu va tao bao cao|Da Nang|3.20|0|2027-03-01|5000000|1|He thong thong tin
+6|4|Database Developer|Thiet ke va toi uu co so du lieu|Da Nang|3.00|1|2027-02-10|11000000|1|He thong thong tin
+7|5|AI Engineer Intern|Ho tro huan luyen va danh gia mo hinh AI|Da Nang|3.50|0|2027-03-15|6000000|1|Tri tue nhan tao
+8|5|Machine Learning Engineer|Xay dung mo hinh hoc may|Da Nang|3.60|2|2027-03-30|18000000|1|Tri tue nhan tao
+9|6|Backend Developer|Xay dung API va xu ly du lieu|Da Nang|3.00|1|2027-02-25|13000000|1|Cong nghe thong tin
+10|7|IT Support|Ho tro ky thuat va xu ly su co|Da Nang|2.50|0|2027-01-25|6500000|1|Mang may tinh
+11|8|Frontend Developer|Phat trien giao dien web|Da Nang|3.00|1|2027-03-05|12000000|1|Ky thuat phan mem
+12|3|System Analyst Intern|Phan tich yeu cau va mo hinh hoa he thong|Da Nang|3.00|0|2027-03-20|4500000|1|He thong thong tin
+13|4|C++ Intern|Ho tro lap trinh va kiem thu C++|Da Nang|2.80|0|2027-02-20|4000000|1|Ky thuat phan mem
+14|6|Data Engineer|Xay dung quy trinh xu ly du lieu|Da Nang|3.30|2|2027-04-01|16000000|1|Khoa hoc may tinh
+15|8|QA Engineer|Kiem thu chat luong phan mem|Da Nang|2.80|1|2027-03-10|9000000|0|Cong nghe thong tin

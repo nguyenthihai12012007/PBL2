@@ -1,0 +1,13 @@
+# candidateID|userID|fullName|birthday|gender|phone|address|major|school|educationLevel|GPA
+1|1|Nguyen Van An|2003-05-12|Nam|0905123001|Hai Chau, Da Nang|Cong nghe thong tin|Dai hoc Bach khoa Da Nang|Dai hoc|3.25
+2|2|Tran Thi Binh|2003-08-21|Nu|0905123002|Lien Chieu, Da Nang|Ky thuat phan mem|Dai hoc Bach khoa Da Nang|Dai hoc|3.60
+3|3|Le Quang Huy|2002-11-03|Nam|0905123003|Thanh Khe, Da Nang|Khoa hoc may tinh|Dai hoc Duy Tan|Dai hoc|3.40
+4|4|Pham Thi Lan|2003-02-17|Nu|0905123004|Son Tra, Da Nang|He thong thong tin|Dai hoc Kinh te Da Nang|Dai hoc|3.10
+5|5|Hoang Minh Tuan|2002-07-29|Nam|0905123005|Cam Le, Da Nang|Cong nghe thong tin|Dai hoc Bach khoa Da Nang|Dai hoc|3.75
+6|6|Vo Ngoc Mai|2003-09-14|Nu|0905123006|Ngu Hanh Son, Da Nang|Tri tue nhan tao|Dai hoc FPT Da Nang|Dai hoc|3.85
+7|7|Dang Thanh Nam|2002-04-08|Nam|0905123007|Hai Chau, Da Nang|Mang may tinh|Dai hoc Bach khoa Da Nang|Dai hoc|2.95
+8|8|Bui Thi Hoa|2003-12-25|Nu|0905123008|Lien Chieu, Da Nang|Ky thuat phan mem|Dai hoc Duy Tan|Dai hoc|3.50
+9|9|Do Minh Khang|2002-06-19|Nam|0905123009|Thanh Khe, Da Nang|An toan thong tin|Dai hoc Bach khoa Da Nang|Dai hoc|3.30
+10|10|Nguyen Thi Linh|2003-03-11|Nu|0905123010|Son Tra, Da Nang|Cong nghe thong tin|Dai hoc FPT Da Nang|Dai hoc|3.90
+11|11|Tran Quoc Bao|2002-10-30|Nam|0905123011|Cam Le, Da Nang|Khoa hoc may tinh|Dai hoc Bach khoa Da Nang|Dai hoc|3.15
+12|12|Phan Ngoc Tram|2003-01-22|Nu|0905123012|Ngu Hanh Son, Da Nang|He thong thong tin|Dai hoc Duy Tan|Dai hoc|3.65

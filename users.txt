@@ -1,0 +1,23 @@
+
+# userID|email|password|role
+1|nguyenvanan@gmail.com|123456|CANDIDATE
+2|tranthibinh@gmail.com|123456|CANDIDATE
+3|lequanghuy@gmail.com|123456|CANDIDATE
+4|phamthilan@gmail.com|123456|CANDIDATE
+5|hoanngminhtuan@gmail.com|123456|CANDIDATE
+6|vongocmai@gmail.com|123456|CANDIDATE
+7|dangthanhnam@gmail.com|123456|CANDIDATE
+8|buithihoa@gmail.com|123456|CANDIDATE
+9|dominhkhang@gmail.com|123456|CANDIDATE
+10|nguyenthilinh@gmail.com|123456|CANDIDATE
+11|tranquocbao@gmail.com|123456|CANDIDATE
+12|phanngoctram@gmail.com|123456|CANDIDATE
+13|hr@abctechnology.com|123456|COMPANY
+14|recruitment@xyzsoftware.com|123456|COMPANY
+15|contact@danangtech.vn|123456|COMPANY
+16|hr@vietsoft.com.vn|123456|COMPANY
+17|careers@nextgenai.vn|123456|COMPANY
+18|jobs@blueocean.vn|123456|COMPANY
+19|recruitment@sunriseit.vn|123456|COMPANY
+20|hr@greenfuture.vn|123456|COMPANY
+21|hb@gmail.com|102|COMPANY

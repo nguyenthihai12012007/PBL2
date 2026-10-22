@@ -1,0 +1,9 @@
+# companyID|userID|nameCompany|phoneCompany|addressCompany|description|website
+1|13|ABC Technology|02363880001|Hai Chau, Da Nang|Cong ty phat trien phan mem va ung dung web|https://example.com/abc
+2|14|XYZ Software|02363880002|Lien Chieu, Da Nang|Phat trien phan mem doanh nghiep|https://example.com/xyz
+3|15|Da Nang Tech|02363880003|Hai Chau, Da Nang|Giai phap cong nghe va chuyen doi so|https://example.com/danangtech
+4|16|VietSoft|02363880004|Thanh Khe, Da Nang|Phat trien he thong quan ly|https://example.com/vietsoft
+5|17|NextGen AI|02363880005|Ngu Hanh Son, Da Nang|Nghien cuu va ung dung tri tue nhan tao|https://example.com/nextgenai
+6|18|Blue Ocean|02363880006|Son Tra, Da Nang|Phat trien nen tang du lieu|https://example.com/blueocean
+7|19|Sunrise IT|02363880007|Cam Le, Da Nang|Dich vu cong nghe thong tin|https://example.com/sunriseit
+8|20|Green Future|02363880008|Lien Chieu, Da Nang|Giai phap cong nghe xanh|https://example.com/greenfuture
