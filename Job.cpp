@@ -73,7 +73,7 @@ void Job::inputCertificateGroups() {
 
             do {
                 cout << "1. IELTS\n";
-                cout << "2. TOEIC L&R\n";
+                cout << "2. TOEIC \n";
                 cout << "3. HSK\n";
                 cout << "Nhap ID chung chi: ";
                 cin >> requirement.certificateTypeID;
@@ -120,9 +120,7 @@ void Job::inputJob(int companyID) {
     cin >> minExperience;
     cin.ignore();
 
-    cout << "Nhap cac chung chi can thiet: ";
-    //cin >> minExperience;
-    cin.ignore();
+    inputCertificateGroups();
 
     cout << "Nhap han nop ho so: ";
     getline(cin, deadline);
@@ -133,12 +131,45 @@ void Job::inputJob(int companyID) {
     status = true;
 }
 
+void Job::displayCertificate() {
+    cout << "\nChung chi yeu cau:\n";
+
+    if (certificateGroups.empty()) {
+        cout << "Khong yeu cau chung chi.\n";
+    } else {
+        for (int i = 0; i < certificateGroups.size(); i++) {
+            cout << "Nhom:" << i + 1;
+            if (certificateGroups[i].isRequired) {
+                cout << "(Bat buoc):\n";
+            } else {
+                cout << "(Uu Tien):\n";
+            }
+
+            for (int j = 0; j < certificateGroups[i].alternatives.size(); j++) {
+                const CertificateRequirement& requirement = certificateGroups[i].alternatives[j];
+                if (requirement.certificateTypeID == 1) {
+                    cout << "IELTS";
+                } else if (requirement.certificateTypeID == 2) {
+                    cout << "TOEIC L&R";
+                } else if (requirement.certificateTypeID == 3) {
+                    cout << "HSK";
+                } else {
+                    cout << "Chung chi ID " << requirement.certificateTypeID;
+                }
+
+                cout << " >= " << requirement.minValue << endl;
+                cout <<"\n";
+            }
+        }
+    }
+}
+
 void Job::displayJob() {
     cout << "\n===== THONG TIN CONG VIEC ===== \n";
     cout << "ID cong viec: " << IDjob << endl;
     cout << "ID cong ty: " << IDcompany << endl;
     cout << "Ten cong viec: " << title << endl;
-    //cout << "Chuyen nganh yeu cau: " << nameMajor << endl;
+    cout << "Chuyen nganh yeu cau: " << nameMajor << endl;
     cout << "Mo ta: " << description << endl;
     cout << "\nKy nang yeu cau:\n";
 
@@ -154,6 +185,8 @@ void Job::displayJob() {
         }
     }
 
+    displayCertificate();
+    
     cout << "Luong: " << salary << endl;
     cout << "Dia diem: " << location << endl;
     cout << "GPA toi thieu: " << minGPA << endl;

@@ -189,6 +189,7 @@ class Job {
         void inputRequiredSkills();
         void inputCertificateGroups();
         void inputJob(int companyID);
+        void displayCertificate();
         void displayJob();
         void updateJob();
         bool checkStatus() { return status; }
