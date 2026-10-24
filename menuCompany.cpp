@@ -1,7 +1,7 @@
 #include <iostream>
 #include "class.h"
 
-void companyInfoMenu(Company& company) {
+void companyInfoMenu(Company& company, Data& dt) {
     int choice;
     do {
         cout << "\n====================================\n";
@@ -19,7 +19,7 @@ void companyInfoMenu(Company& company) {
                 break;
             
             case 2:
-                company.updateCompany();
+                company.updateCompany(dt);
                 break;
             
             case 0:
@@ -32,7 +32,7 @@ void companyInfoMenu(Company& company) {
     } while(choice != 0);
 }
 
-void companyJobMenu(Company& company) {
+void companyJobMenu(Company& company, Data& dt) {
     int choice;
     do {
         cout << "\n====================================\n";
@@ -50,27 +50,27 @@ void companyJobMenu(Company& company) {
         cin >> choice;
         switch (choice) {
             case 1:
-                company.createJob();
+                company.createJob(dt);
                 break;
 
             case 2:
-                company.displayJobs();
+                company.displayJobs(dt);
                 break;
 
             case 3:
-                company.displayJobDetail();
+                company.displayJobDetail(dt);
                 break;
 
             case 4:
-                company.updateJob();
+                company.updateJob(dt);
                 break;
 
             case 5:
-                company.closeJob();
+                company.closeJob(dt);
                 break;
             
             case 6:
-                company.deleteJob();
+                company.deleteJob(dt);
                 break;
 
             case 0:
@@ -83,7 +83,7 @@ void companyJobMenu(Company& company) {
     } while(choice != 0);
 }
 
-void companyApplicationMenu() {
+void companyApplicationMenu(Company& company, Data& dt) {
     int choice;
     do {
         cout << "\n====================================\n";
@@ -97,14 +97,20 @@ void companyApplicationMenu() {
         cin >> choice;
         switch (choice) {
             case 1:
-                cout << "Dang cap nhat!";
-                //viewApplicationList();
+                company.displayApplications(dt);
                 break;
             
-            case 2:
-                cout << "Dang cap nhat!";
-                //viewApplicationDetails();
+            case 2: {
+                int id;
+                cout << "Nhap ma don ung tuyen: ";
+                cin >> id;
+                Application application;
+                if (dt.getApplicationByID(id, application)) { 
+                    application.displayApplication();
+                } else 
+                    cout << "Khong tim thay don ung tuyen!\n";
                 break;
+            }
 
             case 0:
                 cout << "Quay lai.\n";
@@ -116,7 +122,7 @@ void companyApplicationMenu() {
     }while (choice != 0);
 }
 
-void companyMenu(Company& company) {
+void companyMenu(Company& company, Data& dt) {
     int choice;
     do {
         cout << "\n====================================\n";
@@ -131,15 +137,15 @@ void companyMenu(Company& company) {
         cin >> choice;
         switch (choice) {
             case 1:
-                companyInfoMenu(company);
+                companyInfoMenu(company, dt);
                 break;
             
             case 2:
-                companyJobMenu(company);
+                companyJobMenu(company, dt);
                 break;
 
             case 3:
-                companyApplicationMenu();
+                companyApplicationMenu(company, dt);
                 break;
 
             case 0:

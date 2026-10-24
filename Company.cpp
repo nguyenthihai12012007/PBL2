@@ -1,5 +1,7 @@
 #include "class.h"
+#include "Matching.h"
 #include <iostream>
+#include <limits>
 using namespace std;
 
 Company::Company() 
@@ -33,7 +35,7 @@ void Company::displayCompany() {
     cout << "Website: " << website << endl;
 }
 
-void Company::updateCompany() {
+void Company::updateCompany(Data& dt) {
     int choice;
     do {
         cout << "\n===== CAP NHAT THONG TIN CONG TY =====\n";
@@ -44,8 +46,14 @@ void Company::updateCompany() {
         cout << "5. Cap nhat website\n";
         cout << "0. Hoan tat\n";
         cout << "Lua chon: ";
-        cin >> choice;
-        cin.ignore();
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Lua chon khong hop le!\n";
+            continue;
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
         switch(choice) {
             case 1:
                 cout << "Nhap ten cong ty moi: ";
@@ -79,25 +87,37 @@ void Company::updateCompany() {
             default: 
                 cout << "Lua chon khong hop le!\n";
         }
+        if (choice >= 1 && choice <= 5) {
+            if (dt.saveCompany(*this)) {
+                cout << "Luu thong tin thanh cong!\n";
+            } else {
+                cout << "Luu thong tin that bai!\n";
+            }
+        }
     } while (choice != 0);
 }
 
-void Company::createJob() {
-    static int nextJobID = 1;
-
+void Company::createJob(Data& dt) {
     Job job;
 
     cout << "\n===== TAO CONG VIEC MOI =====\n";
 
-    job.setIDjob(nextJobID++);
+    job.setIDjob(dt.getNextID("jobs.txt"));
     job.inputJob(IDcompany);
-    jobs.push_back(job);
-    
-    cout << "\nTao cong viec thanh cong!\n";
-    job.displayJob();
+    if (dt.saveJob(job)) {
+        jobs.push_back(job);
+        cout << "\nTao cong viec thanh cong!\n";
+        job.displayJob();
+    } else {
+        cout << "\nTao cong viec that bai!\n";
+    }
 }
 
-void Company::displayJobs() {
+void Company::displayJobs(Data& dt) {
+    if (!dt.getJobsByCompanyID(IDcompany, jobs)) {
+        cout << "Khong doc duoc danh sach cong viec!\n";
+        return;
+    }
     if (jobs.empty()) {
         cout << "\nCong ty hien khong co cong viec nao!\n";
         return;
@@ -107,16 +127,26 @@ void Company::displayJobs() {
         cout << "\n----- Cong viec " << i+1 << "-----\n";
         jobs[i].displayJob();
     }
+    cout << endl;
 }
 
-void Company::displayJobDetail() {
+void Company::displayJobDetail(Data& dt) {
+    if (!dt.getJobsByCompanyID(IDcompany, jobs)) {
+        cout << "Khong doc duoc danh sach cong viec!\n";
+        return;
+    }
     if (jobs.empty()) {
         cout << "\nCong ty hien khong co cong viec nao!\n";
         return;
     }
     int id;
-    cout << "Nhap id cong viec can xem chi tiet: ";
-    cin >> id;
+    cout << "\nNhap ID cong viec can xem chi tiet: ";
+    if (!(cin >> id)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "ID khong hop le!\n";
+        return;
+    }
     for (int i = 0; i < jobs.size(); i++) {
         if (jobs[i].getIDjob() == id) {
             cout << "\n===== CHI TIET CONG VIEC =====\n";
@@ -127,42 +157,68 @@ void Company::displayJobDetail() {
     cout << "\nKhong tim thay cong viec co ID " << id << "!\n";
 }
 
-void Company::updateJob() {
+void Company::updateJob(Data& dt) {
+    if (!dt.getJobsByCompanyID(IDcompany, jobs)) {
+        cout << "Khong doc duoc danh sach cong viec!\n";
+        return;
+    }
     if (jobs.empty()) {
         cout << "\nCong ty hien khong co cong viec nao!\n";
         return;
     }
-    displayJobs();
+    displayJobs(dt);
     int id;
     cout << "Nhap ID cong viec can cap nhat: ";
-    cin >> id;
+    if (!(cin >> id)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "ID khong hop le!\n";
+        return;
+    }
     for (int i = 0; i < jobs.size(); i++) {
         if (jobs[i].getIDjob() == id) {
             jobs[i].updateJob();
-            cout << "Cap nhat thanh cong!\n";
+            if (dt.updateJob(jobs[i])) {
+                cout << "Cap nhat cong viec thanh cong!\n";
+            } else {
+                cout << "Luu thay doi that bai!\n";
+            }
             return;
         }
     }
     cout << "\nKhong tim thay cong viec co ID " << id << "!\n";
 }
 
-void Company::deleteJob() {
+void Company::deleteJob(Data& dt) {
+    if (!dt.getJobsByCompanyID(IDcompany, jobs)) {
+        cout << "Khong doc duoc danh sach cong viec!\n";
+        return;
+    }
     if (jobs.empty()) {
         cout << "\nCong ty hien khong co cong viec nao!\n";
         return;
     }
-    displayJobs();
+    displayJobs(dt);
     int id;
     cout << "Nhap ID cong viec can xoa: ";
-    cin >> id;
+    if (!(cin >> id)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "ID khong hop le!\n";
+        return;
+    }
     for (int i = 0; i < jobs.size(); i++) {
         if (jobs[i].getIDjob() == id) {
             char confirm;
             cout << "Ban co chac chan muon xoa cong viec nay? (y/n): ";
             cin >> confirm;
             if (confirm == 'y' || confirm == 'Y') {
-                jobs.erase(jobs.begin() + i);
-                cout << "Xoa thanh cong!\n";
+                if (dt.deleteJob(id, IDcompany)) {
+                    jobs.erase(jobs.begin() + i);
+                    cout << "Xoa cong viec thanh cong!\n";
+                } else {
+                    cout << "Xoa cong viec that bai!\n";
+                }
             } else {
                 cout << "Da huy thao tac xoa!\n";
             }
@@ -172,15 +228,24 @@ void Company::deleteJob() {
     cout << "Khong tim thay cong viec co ID " << id << "!\n";
 }
 
-void Company::closeJob() {
+void Company::closeJob(Data& dt) {
+    if (!dt.getJobsByCompanyID(IDcompany, jobs)) {
+        cout << "Khong doc duoc danh sach cong viec!\n";
+        return;
+    }
     if (jobs.empty()) {
         cout << "\nCong ty hien khong co cong viec nao!\n";
         return;
     }
-    displayJobs();
+    displayJobs(dt);
     int id;
-    cout << "\nNhap ID cong viec can dong: ";
-    cin >> id;
+    cout << "Nhap ID cong viec can dong: ";
+    if (!(cin >> id)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "ID khong hop le!\n";
+        return;
+    }
     for (int i = 0; i < jobs.size(); i++) {
         if (jobs[i].getIDjob() == id) {
             if (!jobs[i].checkStatus()) {
@@ -192,7 +257,12 @@ void Company::closeJob() {
             cin >> confirm;
             if (confirm == 'y' || confirm == 'Y') {
                 jobs[i].setStatus(false);
-                cout << "\nDong thanh cong!\n";
+                if (dt.updateJob(jobs[i])) {
+                    cout << "Dong cong viec thanh cong!\n";
+                } else {
+                    jobs[i].setStatus(true);
+                    cout << "Luu trang thai that bai!\n";
+                }
             } else {
                 cout << "\nDa huy thao tac dong!\n";
             }
@@ -200,4 +270,25 @@ void Company::closeJob() {
         }
     }
     cout << "\nKhong tim thay cong viec co ID " << id << "!\n";
+}
+
+void Company::displayApplications(Data& dt) {
+    vector<Application> applications;
+
+    if (!dt.getApplicationsByCompanyID(IDcompany, applications)) {
+        cout << "Khong the doc danh sach don ung tuyen!\n";
+        return;
+    }
+
+    if (applications.empty()) {
+        cout << "Cong ty chua co don ung tuyen nao!\n";
+        return;
+    }
+
+    cout << "\n===== DANH SACH DON UNG TUYEN =====\n";
+
+    for (const Application& application : applications) {
+        application.displayApplication();
+        cout << "----------------------------------\n";
+    }
 }

@@ -34,7 +34,7 @@ void loginMenu(Data& dt) {
             cout << "\n  Xin chao cong ty!\n";
             Company company;
             if (dt.getCompanyByUserID(user.getIDuser(), company)) {
-                companyMenu(company);
+                companyMenu(company, dt);
             }
             else {
                 cout << "Khong tim thay ho so cong ty!\n";

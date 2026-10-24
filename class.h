@@ -153,22 +153,18 @@ class Candidate : public User {
         int getTimeExperience() const;
         double getGPACandidate() const { return professional.GPA ;}
 
-        // updateCV();
-        //bool loadCandidate(int candidateID);
-        //bool applyJob(Data& dt, int jobID);
-
         int getIDcandidate() const { return IDcandidate; }
         PersonalInfo getPersonalInfo() const { return personal; }
         ProfessionalInfo getProfessionalInfo() const { return professional; }
         vector<Experience> getExperiences() const { return experiences; }
 
-        void setIDcandidate(int id) { IDcandidate = id; }
-        void setPersonalInfo(const PersonalInfo& p) { personal = p; }
-        void setProfessionalInfo(const ProfessionalInfo& p) { professional = p; }
-        void setExperiences(const vector<Experience>& e) { experiences = e; }
+        // updateCV();
+        //bool loadCandidate(int candidateID);
+        //bool applyJob(Data& dt, int jobID);
 };
 
 class Job {
+        friend class Data;
         int IDjob;
         int IDcompany;
         string title;
@@ -199,31 +195,17 @@ class Job {
 
         int getIDjob() const { return IDjob; }
         int getIDcompany() const { return IDcompany; }
-        string getTitle() const { return title; }
-        string getDescription() const { return description; }
-        string getLocation() const { return location; }
-        float getMinGPA() const { return minGPA; }
         int getMinExperience() const { return minExperience; }
-        string getDeadline() const { return deadline; }
-        int getSalary() const { return salary; }
+        float getMinGPA() const { return minGPA; }
         bool getStatus() const { return status; }
+        string getDeadline() const { return deadline; }
         string getNameMajor() const { return nameMajor; }
 
         void setIDjob(int id) { IDjob = id; }
-        void setIDcompany(int id) { IDcompany = id; }
-        void setTitle(const string& s) { title = s; }
-        void setDescription(const string& s) { description = s; }
-        void setLocation(const string& s) { location = s; }
-        void setMinGPA(float gpa) { minGPA = gpa; }
-        void setMinExperience(int exp) { minExperience = exp; }
-        void setDeadline(const string& d) { deadline = d; }
-        void setSalary(int s) { salary = s; }
         void setStatus(bool s) { status = s; }
-        void setNameMajor(const string& major) { nameMajor = major; }
 
-        //bool loadJob(int jobID);
-        //bool isExpired() const;
-        //bool isEligible(const Candidate& candidate) const;
+        bool isExpired() const;
+        bool isEligible(const Candidate& candidate) const;
 };
 
 class Company : public User {
@@ -242,37 +224,23 @@ class Company : public User {
 
         void inputCompany();
         void displayCompany();
-        void updateCompany();
+        void updateCompany(Data& dt);
 
-        void createJob();
-        void displayJobs();
-        void displayJobDetail();
+        void createJob(Data& dt);
+        void displayJobs(Data& dt);
+        void displayJobDetail(Data& dt);
 
-        void updateJob();
-        void deleteJob();
-        void closeJob();
+        void updateJob(Data& dt);
+        void deleteJob(Data& dt);
+        void closeJob(Data& dt);
 
         int getIDcompany() const { return IDcompany; }
-        string getNameCompany() const { return nameCompany; }
-        string getPhoneCompany() const { return phoneCompany; }
-        string getAddressCompany() const { return addressCompany; }
-        string getDescription() const { return description; }
-        string getWebsite() const { return website; }
-        vector<Job> getJobs() const { return jobs; }
-
         void setIDcompany(int id) { IDcompany = id; }
-        void setNameCompany(string name) { nameCompany = name; }
-        void setPhoneCompany(string phone) { phoneCompany = phone; }
-        void setAddressCompany(string address) { addressCompany = address; }
-        void setDescription(string des) { description = des; }
-        void setWebsite(string web) { website = web; }
-
-        //bool loadCompany(int companyID);
-        //void displayApplications();
-        //void updateApplicationStatus(int applicationID);
+        void displayApplications(Data& dt);
 };
 
 class Application {
+        friend class Data;
         int IDappli;
         int IDcandidate;
         int IDjob;
@@ -290,17 +258,18 @@ class Application {
             appliedAt = "";
         }
 
-        int getIDappli() const { return IDappli; }
-        int getIDcandidate() const { return IDcandidate; }
-        int getIDjob() const { return IDjob; }
-        float getAppropriateLevel() const { return appropriateLevel; }
-        string getStatus() const { return status; }
-        string getAppliedAt() const { return appliedAt; }
-        void setStatus(const string& status) { this->status = status; }
+        Application(int id, int candidateID, int jobID, float level, string status, string appliedAt) {
+            IDappli = id;
+            IDcandidate = candidateID;
+            IDjob = jobID;
+            appropriateLevel = level;
+            this->status = status;
+            this->appliedAt = appliedAt;
+        }
 
-        //bool submit(Data& dt);
-        //bool updateStatus(Data& dt);
-        //void displayApplication();
+        string getStatus() const { return status; }
+        void setStatus(const string& s) { status = s; }
+        void displayApplication() const;
 };
 
 class Data {
@@ -316,6 +285,19 @@ class Data {
         bool getCandidateByUserID(int userID, Candidate& candidate);
 
         bool getCompanyByUserID(int userID, Company& company);
+        bool saveCompany(const Company& company);
+
+        bool getJobsByCompanyID(int companyID, vector<Job>& jobs);
+        bool getJobByID(int jobID, Job& job);
+        bool saveJob(const Job& job);
+        bool updateJob(const Job& job);
+        bool closeJob(int jobID, int companyID);
+        bool deleteJob(int jobID, int companyID);
+
+        bool getApplicationsByCompanyID(int companyID, vector<Application>& applications);
+        bool getApplicationByID(int applicationID, Application& application);
+        bool updateApplicationStatus(int applicationID, const string& status);
+        bool saveApplication(const Application& application);
 };
 
 #endif

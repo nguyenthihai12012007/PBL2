@@ -1,5 +1,5 @@
 #include "class.h"
-#include "matching.h"
+#include "Matching.h"
 #include <unordered_map>
 #include <ctime>
 #include <iostream>
@@ -207,3 +207,12 @@ double calculatorTotal (const Candidate& candidate, const Job& job) {
     return scoreTotal / scoreWeight;
 }
 
+void Application::displayApplication() const {
+    cout << "\n===== CHI TIET DON UNG TUYEN =====\n";
+    cout << "Ma don ung tuyen: " << IDappli << endl;
+    cout << "Ma ung vien: " << IDcandidate << endl;
+    cout << "Ma cong viec: " << IDjob << endl;
+    cout << "Muc do phu hop: " << appropriateLevel << "%" << endl;
+    cout << "Trang thai: " << status << endl;
+    cout << "Ngay ung tuyen: " << appliedAt << endl;
+}

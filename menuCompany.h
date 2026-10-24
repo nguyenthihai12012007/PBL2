@@ -3,8 +3,8 @@
 
 #include "class.h"
 
-void companyInfoMenu(Company& company);
-void companyJobMenu(Company& company);
-void companyApplicationMenu();
-void companyMenu(Company& company);
+void companyInfoMenu(Company& company, Data& dt);
+void companyJobMenu(Company& company, Data& dt);
+void companyApplicationMenu(Company& company, Data& dt);
+void companyMenu(Company& company, Data& dt);
 #endif

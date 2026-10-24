@@ -6,7 +6,7 @@
 
 using namespace std;
 
-void companyMenu(Company& company);
+void companyMenu(Company& company, Data& dt);
 
 int main() {
     Data dt;
