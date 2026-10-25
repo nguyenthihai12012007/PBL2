@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 
 using namespace std;
 
@@ -177,6 +178,33 @@ bool Data::getCandidateByUserID(int userID, Candidate& candidate) {
     return false;
 }
 
+bool Data::getCandidateByID(int candidateID, Candidate& candidate) {
+    vector<string> lines;
+    if (!readFile("candidates.txt", lines))
+        return false;
+    for (const string& line : lines) {
+        if (line.empty() || line[0] == '#')
+            continue;
+        stringstream ss(line);
+        string candidateIDText, userIDText;
+        if (!getline(ss, candidateIDText, '|') ||
+            !getline(ss, userIDText, '|'))
+            continue;
+        try {
+            int savedCandidateID = stoi(candidateIDText);
+            int userID = stoi(userIDText);
+
+            if (savedCandidateID == candidateID) {
+                return getCandidateByUserID(userID, candidate);
+            }
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    return false;
+}
+
 bool Data::getCompanyByUserID(int userID, Company& company) {
     vector<string> lines;
     if (!readFile("companies.txt", lines)) {
@@ -281,6 +309,150 @@ bool Data::saveCompany(const Company& company) {
     return writeFile("companies.txt", lines);
 }
 
+bool Data::saveJobSkill(const Job& job) {
+    vector<string> lines;
+    if (!readFile("job_skill.txt", lines)) {
+        return false;
+    }
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+        vector<string> fields = splitLine(lines[i]);
+        if (fields.empty()) {
+            continue;
+        }
+        if (fields[0] == to_string(job.IDjob)) {
+            lines.erase(lines.begin() + i);
+            i--;
+        }
+    }
+    const vector<Skill>& skills = job.getRequiredSkill();
+    for (int i = 0; i < (int)skills.size(); i++) {
+        stringstream ss;
+        ss << job.IDjob << '|'
+           << skills[i].name << '|'
+           << skills[i].level;
+        lines.push_back(ss.str());
+    }
+    return writeFile("job_skill.txt", lines);
+}
+
+bool Data::loadJobSkill(Job& job) {
+    vector<string> lines;
+    if (!readFile("job_skill.txt", lines)) {
+        return false;
+    }
+    vector<Skill> skills;
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+        vector<string> fields = splitLine(lines[i]);
+        if (fields.size() != 3) {
+            continue;
+        }
+        if (fields[0] != to_string(job.IDjob)) {
+            continue;
+        }
+        try {
+            Skill skill{};
+            skill.name = fields[1];
+            skill.level = stoi(fields[2]);
+            skills.push_back(skill);
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    job.requiredSkills = skills;
+    return true;
+}
+
+bool Data::saveJobCertificate(const Job& job) {
+    vector<string> lines;
+    if (!readFile("job_certificate.txt", lines)) {
+        return false;
+    }
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+        vector<string> fields = splitLine(lines[i]);
+        if (fields.empty()) {
+            continue;
+        }
+        if (fields[0] == to_string(job.IDjob)) {
+            lines.erase(lines.begin() + i);
+            i--;
+        }
+    }
+    const vector<CertificateRequirementGroup>& groups = job.getCertificateGroups();
+    for (int i = 0; i < (int)groups.size(); i++) {
+        for (int j = 0; j < (int)groups[i].alternatives.size(); j++) {
+            stringstream ss;
+            ss << job.IDjob << '|'
+               << i + 1 << '|'
+               << groups[i].alternatives[j].certificateTypeID << '|'
+               << groups[i].alternatives[j].minValue << '|'
+               << (groups[i].isRequired ? 1 : 0);
+            lines.push_back(ss.str());
+        }
+    }
+    return writeFile("job_certificate.txt", lines);
+}
+
+bool Data::loadJobCertificate(Job& job) {
+    vector<string> lines;
+    if (!readFile("job_certificate.txt", lines)) {
+        return false;
+    }
+    vector<CertificateRequirementGroup> groups;
+    vector<int> groupIDs;
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+        vector<string> fields = splitLine(lines[i]);
+        if (fields.size() != 5) {
+            continue;
+        }
+        if (fields[0] != to_string(job.IDjob)) {
+            continue;
+        }
+        try {
+            int groupID = stoi(fields[1]);
+            int certificateTypeID = stoi(fields[2]);
+            double minValue = stod(fields[3]);
+            bool isRequired = (stoi(fields[4]) != 0);
+            int index = -1;
+            for (int j = 0; j < (int)groupIDs.size(); j++) {
+                if (groupIDs[j] == groupID) {
+                    index = j;
+                    break;
+                }
+            }
+            if (index == -1) {
+                CertificateRequirementGroup group;
+                group.isRequired = isRequired;
+                groups.push_back(group);
+                groupIDs.push_back(groupID);
+                index = (int)groups.size() - 1;
+            }
+
+            CertificateRequirement requirement;
+            requirement.certificateTypeID = certificateTypeID;
+            requirement.minValue = minValue;
+            groups[index].alternatives.push_back(requirement);
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    job.certificateGroups = groups;
+    return true;
+}
+
 bool Data::getJobsByCompanyID(int companyID, vector<Job>& jobs) {
     vector<string> lines;
     if (!readFile("jobs.txt", lines)) {
@@ -289,7 +461,7 @@ bool Data::getJobsByCompanyID(int companyID, vector<Job>& jobs) {
     jobs.clear();
     for (int i = 0; i < lines.size(); i++) {
         vector<string> fields = splitLine(lines[i]);
-        if (fields.size() < 10 || fields[0].empty()
+        if (fields.size() < 11 || fields[0].empty()
             || fields[0][0] == '#') {
             continue;
         }
@@ -306,6 +478,13 @@ bool Data::getJobsByCompanyID(int companyID, vector<Job>& jobs) {
                 job.deadline = fields[7];
                 job.salary = stoi(fields[8]);
                 job.status = (stoi(fields[9]) != 0);
+                job.nameMajor = fields[10];
+                if (!loadJobSkill(job)) {
+                    continue;
+                }
+                if (!loadJobCertificate(job)) {
+                    continue;
+                }
                 jobs.push_back(job);
             }
         }
@@ -323,11 +502,13 @@ bool Data::getJobByID(int jobID, Job& job) {
     }
     for (int i = 0; i < lines.size(); i++) {
         vector<string> fields = splitLine(lines[i]);
-        if (fields.size() < 10 || fields[0].empty()
-            || fields[0][0] == '#') {
+        if (fields.size() < 11 || fields[0].empty() || fields[0][0] == '#') {
             continue;
         }
-        if (stoi(fields[0]) == jobID) {
+        try {
+            if (stoi(fields[0]) != jobID) {
+                continue;
+            }
             job.IDjob = stoi(fields[0]);
             job.IDcompany = stoi(fields[1]);
             job.title = fields[2];
@@ -338,24 +519,43 @@ bool Data::getJobByID(int jobID, Job& job) {
             job.deadline = fields[7];
             job.salary = stoi(fields[8]);
             job.status = (stoi(fields[9]) != 0);
+            job.nameMajor = fields[10];
+            if (!loadJobSkill(job)) {
+                return false;
+            }
+            if (!loadJobCertificate(job)) {
+                return false;
+            }
             return true;
+        }
+        catch (...) {
+            continue;
         }
     }
     return false;
 }
+
 
 bool Data::saveJob(const Job& job) {
     vector<string> lines;
     if (!readFile("jobs.txt", lines)) {
         return false;
     }
-    for (int i = 0; i < lines.size(); i++) {
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
         vector<string> fields = splitLine(lines[i]);
-        if (fields.size() >= 2 && !fields[0].empty()
-            && fields[0][0] != '#') {
+        if (fields.size() < 2) {
+            continue;
+        }
+        try {
             if (stoi(fields[0]) == job.getIDjob()) {
                 return false;
             }
+        }
+        catch (...) {
+            continue;
         }
     }
     stringstream ss;
@@ -368,10 +568,21 @@ bool Data::saveJob(const Job& job) {
        << job.minExperience << '|'
        << job.deadline << '|'
        << job.salary << '|'
-       << (job.status ? 1 : 0);
+       << (job.status ? 1 : 0) << '|'
+       << job.nameMajor;
     lines.push_back(ss.str());
-    return writeFile("jobs.txt", lines);
+    if (!writeFile("jobs.txt", lines)) {
+        return false;
+    }
+    if (!saveJobSkill(job)) {
+        return false;
+    }
+    if (!saveJobCertificate(job)) {
+        return false;
+    }
+    return true;
 }
+
 
 bool Data::updateJob(const Job& job) {
     vector<string> lines;
@@ -379,12 +590,16 @@ bool Data::updateJob(const Job& job) {
         return false;
     }
     bool found = false;
-    for (int i = 0; i < lines.size(); i++) {
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
         vector<string> fields = splitLine(lines[i]);
-        if (fields.size() >= 10 && !fields[0].empty()
-            && fields[0][0] != '#') {
-            if (stoi(fields[0]) == job.getIDjob()
-                && stoi(fields[1]) == job.getIDcompany()) {
+        if (fields.size() < 11) {
+            continue;
+        }
+        try {
+            if (stoi(fields[0]) == job.getIDjob() && stoi(fields[1]) == job.IDcompany) {
                 stringstream ss;
                 ss << job.IDjob << '|'
                    << job.IDcompany << '|'
@@ -395,17 +610,30 @@ bool Data::updateJob(const Job& job) {
                    << job.minExperience << '|'
                    << job.deadline << '|'
                    << job.salary << '|'
-                   << (job.status ? 1 : 0);
+                   << (job.status ? 1 : 0) << '|'
+                   << job.nameMajor;
                 lines[i] = ss.str();
                 found = true;
                 break;
             }
         }
+        catch (...) {
+            continue;
+        }
     }
     if (!found) {
         return false;
     }
-    return writeFile("jobs.txt", lines);
+    if (!writeFile("jobs.txt", lines)) {
+        return false;
+    }
+    if (!saveJobSkill(job)) {
+        return false;
+    }
+    if (!saveJobCertificate(job)) {
+        return false;
+    }
+    return true;
 }
 
 bool Data::closeJob(int jobID, int companyID) {
@@ -425,29 +653,91 @@ bool Data::closeJob(int jobID, int companyID) {
     return false;
 }
 
+
 bool Data::deleteJob(int jobID, int companyID) {
     vector<string> lines;
     if (!readFile("jobs.txt", lines)) {
         return false;
     }
     bool found = false;
-    for (int i = 0; i < lines.size(); i++) {
+    for (int i = 0; i < (int)lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
         vector<string> fields = splitLine(lines[i]);
-        if (fields.size() >= 2 && !fields[0].empty()
-            && fields[0][0] != '#') {
-            if (stoi(fields[0]) == jobID
-                && stoi(fields[1]) == companyID) {
+        if (fields.size() < 2) {
+            continue;
+        }
+        try {
+            if (stoi(fields[0]) == jobID && stoi(fields[1]) == companyID) {
                 lines.erase(lines.begin() + i);
                 found = true;
                 break;
             }
         }
+        catch (...) {
+            continue;
+        }
     }
     if (!found) {
         return false;
     }
-    return writeFile("jobs.txt", lines);
+    if (!writeFile("jobs.txt", lines)) {
+        return false;
+    }
+    vector<string> skillLines;
+    if (!readFile("job_skill.txt", skillLines)) {
+        return false;
+    }
+    for (int i = 0; i < (int)skillLines.size(); i++) {
+        if (skillLines[i].empty() || skillLines[i][0] == '#') {
+            continue;
+        }
+        vector<string> fields = splitLine(skillLines[i]);
+        if (fields.empty()) {
+            continue;
+        }
+        try {
+            if (stoi(fields[0]) == jobID) {
+                skillLines.erase(skillLines.begin() + i);
+                i--;
+            }
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    if (!writeFile("job_skill.txt", skillLines)) {
+        return false;
+    }
+    vector<string> certificateLines;
+    if (!readFile("job_certificate.txt", certificateLines)) {
+        return false;
+    }
+    for (int i = 0; i < (int)certificateLines.size(); i++) {
+        if (certificateLines[i].empty() || certificateLines[i][0] == '#') {
+            continue;
+        }
+        vector<string> fields = splitLine(certificateLines[i]);
+        if (fields.empty()) {
+            continue;
+        }
+        try {
+            if (stoi(fields[0]) == jobID) {
+                certificateLines.erase(certificateLines.begin() + i);
+                i--;
+            }
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    if (!writeFile("job_certificate.txt", certificateLines)) {
+        return false;
+    }
+    return true;
 }
+
 
 bool Data::getApplicationsByCompanyID(int companyID, vector<Application>& applications) {
     vector<string> applicationLines;
@@ -479,13 +769,13 @@ bool Data::getApplicationsByCompanyID(int companyID, vector<Application>& applic
             continue;
         stringstream ss(applicationLines[i]);
         string idStr, candidateStr, jobStr;
-        string levelStr, status, appliedAt;
+        string levelStr, appliedAt, status;
         getline(ss, idStr, '|');
         getline(ss, candidateStr, '|');
         getline(ss, jobStr, '|');
         getline(ss, levelStr, '|');
-        getline(ss, status, '|');
         getline(ss, appliedAt, '|');
+        getline(ss, status);
         if (idStr.empty() || candidateStr.empty() ||
             jobStr.empty() || levelStr.empty())
             continue;
@@ -525,13 +815,13 @@ bool Data::getApplicationByID(int applicationID, Application& application) {
             continue;
         stringstream ss(lines[i]);
         string idStr, candidateStr, jobStr;
-        string levelStr, status, appliedAt;
+        string levelStr, appliedAt, status;
         getline(ss, idStr, '|');
         getline(ss, candidateStr, '|');
         getline(ss, jobStr, '|');
         getline(ss, levelStr, '|');
-        getline(ss, status, '|');
         getline(ss, appliedAt, '|');
+        getline(ss, status);
         if (idStr.empty() || candidateStr.empty() ||
             jobStr.empty() || levelStr.empty())
             continue;
@@ -564,13 +854,13 @@ bool Data::updateApplicationStatus(int applicationID, const string& status) {
             continue;
         stringstream ss(lines[i]);
         string idStr, candidateStr, jobStr;
-        string levelStr, oldStatus, appliedAt;
+        string levelStr, appliedAt, oldStatus;
         getline(ss, idStr, '|');
         getline(ss, candidateStr, '|');
         getline(ss, jobStr, '|');
         getline(ss, levelStr, '|');
-        getline(ss, oldStatus, '|');
         getline(ss, appliedAt, '|');
+        getline(ss, oldStatus);
 
         if (idStr.empty())
             continue;
@@ -584,8 +874,8 @@ bool Data::updateApplicationStatus(int applicationID, const string& status) {
                 << candidateStr << "|"
                 << jobStr << "|"
                 << levelStr << "|"
-                << status << "|"
-                << appliedAt;
+                << appliedAt << "|"
+                << status;
 
         lines[i] = newLine.str();
         found = true;
@@ -596,10 +886,50 @@ bool Data::updateApplicationStatus(int applicationID, const string& status) {
     return writeFile("applications.txt", lines);
 }
 
+bool Data::updateApplicationScore(int applicationID, float score) {
+    vector<string> lines;
+    if (!readFile("applications.txt", lines))
+        return false;
+    bool found = false;
+    for (string& line : lines) {
+        if (line.empty() || line[0] == '#')
+            continue;
+        stringstream ss(line);
+        vector<string> fields;
+        string field;
+        while (getline(ss, field, '|')) {
+            fields.push_back(field);
+        }
+        if (fields.size() < 6)
+            continue;
+        try {
+            if (stoi(fields[0]) != applicationID)
+                continue;
+            ostringstream scoreText;
+            scoreText << fixed << setprecision(2) << score;
+            fields[3] = scoreText.str();
+            line = "";
+            for (int i = 0; i < (int)fields.size(); i++) {
+                if (i > 0)
+                    line += "|";
+                line += fields[i];
+            }
+            found = true;
+            break;
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    if (!found)
+        return false;
+    return writeFile("applications.txt", lines);
+}
+
 bool Data::saveApplication(const Application& application) {
     vector<string> lines;
     if (!readFile("applications.txt", lines))
-        lines.clear();
+        return false;
     if (application.IDappli <= 0 ||
         application.IDcandidate <= 0 ||
         application.IDjob <= 0) {
@@ -622,8 +952,8 @@ bool Data::saveApplication(const Application& application) {
          << application.IDcandidate << "|"
          << application.IDjob << "|"
          << application.appropriateLevel << "|"
-         << application.status << "|"
-         << application.appliedAt;
+         << application.appliedAt << "|"
+         << application.status;
     lines.push_back(line.str());
     return writeFile("applications.txt", lines);
 }
@@ -694,6 +1024,9 @@ bool Data::saveCandidateSkill (const Candidate& candidate) {
         }
 
         vector <string> fields = splitLine(lines[i]);
+        if (fields.empty()) {
+            continue;
+        }
 
         if (fields[0] == to_string(candidate.IDcandidate)) {
             lines.erase(lines.begin() + i);
@@ -723,7 +1056,7 @@ bool Data::saveCandidateCertificate (const Candidate& candidate) {
 
     vector <string> lines;
 
-    if (!readFile("candidate_certificate", lines)) {
+    if (!readFile("candidate_certificate.txt", lines)) {
         return false;
     }
 
@@ -753,7 +1086,7 @@ bool Data::saveCandidateCertificate (const Candidate& candidate) {
         lines.push_back(ss.str());
     }
 
-    return writeFile("candidatecertificate.txt", lines);
+    return writeFile("candidate_certificate.txt", lines);
 }
 
 bool Data::saveCandidateExperience(const Candidate& candidate) {

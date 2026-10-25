@@ -274,21 +274,43 @@ void Company::closeJob(Data& dt) {
 
 void Company::displayApplications(Data& dt) {
     vector<Application> applications;
-
     if (!dt.getApplicationsByCompanyID(IDcompany, applications)) {
         cout << "Khong the doc danh sach don ung tuyen!\n";
         return;
     }
-
     if (applications.empty()) {
         cout << "Cong ty chua co don ung tuyen nao!\n";
         return;
     }
-
     cout << "\n===== DANH SACH DON UNG TUYEN =====\n";
-
-    for (const Application& application : applications) {
+    for (Application& application : applications) {
+        Candidate candidate;
+        Job job;
+        if (!dt.getCandidateByID(application.getIDcandidate(), candidate)) {
+            application.displayApplication();
+            cout << "Khong tim thay ho so ung vien!\n";
+            continue;
+        }
+        if (!dt.getJobByID(application.getIDjob(), job)) {
+            application.displayApplication();
+            cout << "Khong tim thay cong viec!\n";
+            continue;
+        }
+        double score = calculatorTotal(candidate, job);
+        if (score >= 0) {
+            if (dt.updateApplicationScore(application.getIDappli(), static_cast<float>(score))) {
+                application.setAppropriateLevel(static_cast<float>(score));
+                cout << "Da cap nhat diem vao applications.txt!\n";
+            } else {
+                cout << "Khong the cap nhat diem vao file!\n";
+            }
+        }
         application.displayApplication();
+        if (score < 0) {
+            cout << "Ung vien khong con dap ung dieu kien cong viec!\n";
+        } else {
+            cout << "Diem phu hop hien tai: " << score << "%\n";
+        }
         cout << "----------------------------------\n";
     }
 }

@@ -12,7 +12,7 @@ Job::Job()
 void Job::inputRequiredSkills() {
     int n;
 
-    cout << "Nhap so ky nang yeu cau: ";
+    cout << "\nNhap so ky nang yeu cau: ";
     cin >> n;
     cin.ignore();
 
@@ -138,26 +138,26 @@ void Job::displayCertificate() {
     cout << "\nChung chi yeu cau:\n";
 
     if (certificateGroups.empty()) {
-        cout << "Khong yeu cau chung chi.\n";
+        cout << "Khong yeu cau chung chi.\n\n";
     } else {
         for (int i = 0; i < certificateGroups.size(); i++) {
-            cout << "Nhom:" << i + 1;
+            cout << "Nhom " << i + 1;
             if (certificateGroups[i].isRequired) {
-                cout << "(Bat buoc):\n";
+                cout << " (Bat buoc):\n";
             } else {
-                cout << "(Uu Tien):\n";
+                cout << " (Uu tien):\n";
             }
 
             for (int j = 0; j < certificateGroups[i].alternatives.size(); j++) {
                 const CertificateRequirement& requirement = certificateGroups[i].alternatives[j];
                 if (requirement.certificateTypeID == 1) {
-                    cout << "IELTS";
+                    cout << "  - IELTS";
                 } else if (requirement.certificateTypeID == 2) {
-                    cout << "TOEIC L&R";
+                    cout << "  - TOEIC L&R";
                 } else if (requirement.certificateTypeID == 3) {
-                    cout << "HSK";
+                    cout << "  - HSK";
                 } else {
-                    cout << "Chung chi ID " << requirement.certificateTypeID;
+                    cout << "  - Chung chi ID " << requirement.certificateTypeID;
                 }
 
                 cout << " >= " << requirement.minValue << endl;

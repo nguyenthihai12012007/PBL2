@@ -21,4 +21,6 @@ double caculaterExperience(
     const Candidate& candidate, const Job& job
 );
 
+double calculatorTotal (const Candidate& candidate, const Job& job);
+
 #endif

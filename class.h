@@ -271,6 +271,10 @@ class Application {
         }
 
         string getStatus() const { return status; }
+        int getIDcandidate() const { return IDcandidate; }
+        int getIDjob() const { return IDjob; }
+        int getIDappli() const { return IDappli; }
+        void setAppropriateLevel(float level) { appropriateLevel = level; }
         void setStatus(const string& s) { status = s; }
         void displayApplication() const;
 };
@@ -286,10 +290,16 @@ class Data {
         bool registerUser(const User& user);
 
         bool getCandidateByUserID(int userID, Candidate& candidate);
+        bool getCandidateByID(int candidateID, Candidate& candidate); 
 
         bool getCompanyByUserID(int userID, Company& company);
         bool saveCompany(const Company& company);
 
+        bool saveJobSkill(const Job& job);
+        bool loadJobSkill(Job& job);
+        bool saveJobCertificate(const Job& job);
+        bool loadJobCertificate(Job& job);
+        
         bool getJobsByCompanyID(int companyID, vector<Job>& jobs);
         bool getJobByID(int jobID, Job& job);
         bool saveJob(const Job& job);
@@ -300,6 +310,7 @@ class Data {
         bool getApplicationsByCompanyID(int companyID, vector<Application>& applications);
         bool getApplicationByID(int applicationID, Application& application);
         bool updateApplicationStatus(int applicationID, const string& status);
+        bool updateApplicationScore(int applicationID, float score);
         bool saveApplication(const Application& application);
 
         bool saveCandidate(const Candidate& candidate);
