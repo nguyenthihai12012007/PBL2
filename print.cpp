@@ -24,7 +24,10 @@ void loginMenu(Data& dt) {
             cout << "\n  Xin chao ung vien!\n";
             Candidate candidate;
             if (dt.getCandidateByUserID(user.getIDuser(), candidate)) {
-                menuCandidate(candidate);
+                dt.loadCandidateSkill(candidate);
+                dt.loadCandidateCertificate(candidate);
+                dt.loadCandidateExperience(candidate);
+                menuCandidate(candidate,dt);
             }
             else {
                 cout << "Khong tim thay ho so ung vien!\n";
