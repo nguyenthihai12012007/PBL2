@@ -129,7 +129,7 @@ void menuExperience(Candidate& candidate) {
     } while (choice != 0);
 }
 
-void menuCandidate(Candidate& candidate) {
+void menuCandidate(Candidate& candidate, Data& dt) {
     int choice;
 
     do {
@@ -152,18 +152,21 @@ void menuCandidate(Candidate& candidate) {
 
             case 2:
                 candidate.updateCandidate();
+                dt.saveCandidate(candidate);                
                 break;
-
             case 3:
                 menuSkill(candidate);
+                dt.saveCandidateSkill(candidate);
                 break;
 
             case 4:
                 menuCertificate(candidate);
+                dt.saveCandidateCertificate(candidate);
                 break;
 
             case 5:
                 menuExperience(candidate);
+                dt.saveCandidateCertificate(candidate);
                 break;
 
             case 0:

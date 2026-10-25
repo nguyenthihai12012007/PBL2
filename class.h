@@ -104,6 +104,9 @@ class Experience {
         void inputExperience();
         void displayExperience();
 
+        string getCompanyName() const { return companyName; }
+        string getPosition() const { return position; }
+        string getDescription() const { return description; }
         string getStartDate() const { return startDate; }
         string getEndDate() const { return endDate; }
         int getIDexperience() const { return IDexperience; }
@@ -149,7 +152,7 @@ class Candidate : public User {
         void deleteExperience();
 
         const vector<Skill>& getSkill() const;
-        const vector<Certificate>& getCertificate() const;
+        const vector<Certificate>& getCertificate() const;       
         int getTimeExperience() const;
         double getGPACandidate() const { return professional.GPA ;}
 
@@ -298,6 +301,15 @@ class Data {
         bool getApplicationByID(int applicationID, Application& application);
         bool updateApplicationStatus(int applicationID, const string& status);
         bool saveApplication(const Application& application);
+
+        bool saveCandidate(const Candidate& candidate);
+        bool saveCandidateSkill (const Candidate& candidate);
+        bool saveCandidateCertificate (const Candidate& candidate);
+        bool saveCandidateExperience(const Candidate& candidate);
+
+        bool loadCandidateSkill(Candidate& candidate);
+        bool loadCandidateCertificate(Candidate& candidate);
+        bool loadCandidateExperience(Candidate& candidate);
 };
 
 #endif

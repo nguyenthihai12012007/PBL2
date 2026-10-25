@@ -627,3 +627,314 @@ bool Data::saveApplication(const Application& application) {
     lines.push_back(line.str());
     return writeFile("applications.txt", lines);
 }
+
+bool Data::saveCandidate (const Candidate& candidate) {
+    if (candidate.IDcandidate <= 0 || candidate.getIDuser() <= 0) {
+        return false;
+    }
+
+    vector <string> lines;
+
+    if (!readFile("candidates.txt", lines)) {
+        return false;
+    }
+
+    stringstream ss;
+
+
+    ss << candidate.IDcandidate << '|'
+       << candidate.getIDuser() << '|'
+       << candidate.personal.fullName << '|'
+       << candidate.personal.birthday << '|'
+       << candidate.personal.gender << '|'
+       << candidate.personal.phoneCandidate << '|'
+       << candidate.personal.addressCandidate << '|'
+       << candidate.professional.major << '|'
+       << candidate.professional.school << '|'
+       << candidate.professional.educationLevel << '|'
+       << candidate.professional.GPA;
+
+    bool found = false;
+
+    for (int i = 0; i < lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+
+        vector <string> fields = splitLine(lines[i]);
+
+        if (fields[0] == to_string(candidate.IDcandidate)) {
+            lines[i] = ss.str();
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        lines.push_back(ss.str());
+    }
+
+    return writeFile("candidate.txt", lines);
+}
+
+bool Data::saveCandidateSkill (const Candidate& candidate) {
+    if (candidate.IDcandidate <= 0 || candidate.getIDuser() <= 0) {
+        return false;
+    }
+
+    vector<string> lines;
+
+    if(!readFile("candidate_skill.txt", lines)) {
+        return false;
+    }
+
+    for (int i = 0; i < lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+
+        vector <string> fields = splitLine(lines[i]);
+
+        if (fields[0] == to_string(candidate.IDcandidate)) {
+            lines.erase(lines.begin() + i);
+            i--;
+        }
+    }
+
+    const vector<Skill>& skill = candidate.getSkill();
+
+    for (int i = 0; i < skill.size(); i++) {
+        stringstream ss;
+
+        ss << candidate.IDcandidate << '|'
+           << skill[i].name << '|'
+           << skill[i].level;
+
+        lines.push_back(ss.str());
+    }
+
+    return writeFile("candidate_skill.txt", lines);
+}
+
+bool Data::saveCandidateCertificate (const Candidate& candidate) {
+    if (candidate.IDcandidate <= 0 || candidate.getIDuser() <= 0) {
+        return false;
+    }
+
+    vector <string> lines;
+
+    if (!readFile("candidate_certificate", lines)) {
+        return false;
+    }
+
+    for (int i = 0; i < lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+
+        vector <string> fields = splitLine(lines[i]);
+
+        if (fields[0] == to_string(candidate.IDcandidate)) {
+            lines.erase(lines.begin() + i);
+            i--;
+        }
+    }
+
+    const vector <Certificate>& certificate = candidate.getCertificate();
+
+    for (int i = 0; i < certificate.size(); i++) {
+        stringstream ss;
+
+        ss << candidate.IDcandidate << '|'
+            << certificate[i].certificateTypeID << '|'
+            << certificate[i].organization << '|'
+            << certificate[i].value;
+
+        lines.push_back(ss.str());
+    }
+
+    return writeFile("candidatecertificate.txt", lines);
+}
+
+bool Data::saveCandidateExperience(const Candidate& candidate) {
+    if (candidate.IDcandidate <= 0 || candidate.getIDuser() <= 0) {
+        return false;
+    }
+
+    vector<string> lines;
+
+    if (!readFile("candidate_experience.txt", lines)) {
+        return false;
+    }
+
+    for (int i = 0; i < lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+
+        vector<string> fields = splitLine(lines[i]);
+
+        if (fields.empty()) {
+            continue;
+        }
+
+        if (fields[0] == to_string(candidate.IDcandidate)) {
+            lines.erase(lines.begin() + i);
+            i--;
+        }
+    }
+
+    vector<Experience> experiences = candidate.getExperiences();
+
+    for (int i = 0; i < experiences.size(); i++) {
+        stringstream ss;
+
+        ss << candidate.IDcandidate << '|'
+           << experiences[i].getIDexperience() << '|'
+           << experiences[i].getCompanyName() << '|'
+           << experiences[i].getPosition() << '|'
+           << experiences[i].getDescription() << '|'
+           << experiences[i].getStartDate() << '|'
+           << experiences[i].getEndDate();
+
+        lines.push_back(ss.str());
+    }
+
+    return writeFile("candidate_experience.txt", lines);
+}
+
+bool Data::loadCandidateSkill(Candidate& candidate) {
+    if (candidate.getIDcandidate() <= 0) {
+        return false;
+    }
+
+    vector<string> lines;
+
+    if (!readFile("candidate_skill.txt", lines)) {
+        return false;
+    }
+
+    vector<Skill> skills;
+
+    for (int i = 0; i < lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+
+        vector<string> fields = splitLine(lines[i]);
+
+        if (fields.size() != 3) {
+            continue;
+        }
+
+        if (fields[0] == to_string(candidate.getIDcandidate())) {
+            Skill skill{};
+
+            skill.name = fields[1];
+            skill.level = stoi(fields[2]);
+            skills.push_back(skill);
+        }
+    }
+
+    candidate.professional.skills = skills;
+
+    return true;
+}
+
+bool Data::loadCandidateCertificate(Candidate& candidate) {
+    if (candidate.getIDcandidate() <= 0) {
+        return false;
+    }
+
+    vector<string> lines;
+
+    if (!readFile("candidate_certificate.txt", lines)) {
+        return false;
+    }
+
+    vector<Certificate> certificates;
+
+    for (int i = 0; i < lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+
+        vector<string> fields = splitLine(lines[i]);
+
+        if (fields.size() != 4) {
+            continue;
+        }
+
+        if (fields[0] == to_string(candidate.getIDcandidate())) {
+            Certificate certificate{};
+
+            certificate.organization = fields[2];
+
+            try {
+                certificate.certificateTypeID = stoi(fields[1]);
+                certificate.value = stod(fields[3]);
+            }
+            catch (...) {
+                return false;
+            }
+
+            certificates.push_back(certificate);
+        }
+    }
+
+    candidate.professional.certificates = certificates;
+
+    return true;
+}
+
+bool Data::loadCandidateExperience(Candidate& candidate) {
+    if (candidate.getIDcandidate() <= 0) {
+        return false;
+    }
+
+    vector<string> lines;
+
+    if (!readFile("candidate_experience.txt", lines)) {
+        return false;
+    }
+
+    vector<Experience> experiences;
+
+    for (int i = 0; i < lines.size(); i++) {
+        if (lines[i].empty() || lines[i][0] == '#') {
+            continue;
+        }
+
+        vector<string> fields = splitLine(lines[i]);
+
+        if (fields.size() != 7) {
+            continue;
+        }
+
+        if (fields[0] == to_string(candidate.getIDcandidate())) {
+            int experienceID;
+
+            try {
+                experienceID = stoi(fields[1]);
+            }
+            catch (...) {
+                return false;
+            }
+
+            Experience experience(
+                experienceID,
+                fields[2],
+                fields[3],
+                fields[4],
+                fields[5],
+                fields[6]
+            );
+
+            experiences.push_back(experience);
+        }
+    }
+
+    candidate.experiences = experiences;
+
+    return true;
+}

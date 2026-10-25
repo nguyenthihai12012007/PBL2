@@ -4,6 +4,6 @@
 #include "class.h"
 
 void menuUpdateCandidate();
-void menuCandidate(Candidate& candidate);
+void menuCandidate(Candidate& candidate,Data& dt);
 
 #endif
