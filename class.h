@@ -41,6 +41,15 @@ class User {
         bool login(Data& dt, const string& email, const string& password);
 };
 
+struct JobMatchResult {
+    Job job;
+    double score;
+};
+
+vector<JobMatchResult> matching(
+    const vector<Job>& jobs,
+    const Candidate& candidate
+);
 
 struct PersonalInfo {
     string fullName;
@@ -321,6 +330,8 @@ class Data {
         bool loadCandidateSkill(Candidate& candidate);
         bool loadCandidateCertificate(Candidate& candidate);
         bool loadCandidateExperience(Candidate& candidate);
+
+        bool getAllJobs(vector<Job>& jobs);
 };
 
 #endif

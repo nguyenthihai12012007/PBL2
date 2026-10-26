@@ -495,6 +495,54 @@ bool Data::getJobsByCompanyID(int companyID, vector<Job>& jobs) {
     return true;
 }
 
+bool Data::getAllJobs(vector<Job>& jobs) {
+    vector<string> lines;
+    if (!readFile("jobs.txt", lines)) {
+        return false;
+    }
+
+    jobs.clear();
+
+    for (int i = 0; i < lines.size(); i++) {
+        vector<string> fields = splitLine(lines[i]);
+
+        if (fields.size() < 11 || fields[0].empty()
+            || fields[0][0] == '#') {
+            continue;
+        }
+
+        try {
+            Job job;
+            job.IDjob = stoi(fields[0]);
+            job.IDcompany = stoi(fields[1]);
+            job.title = fields[2];
+            job.description = fields[3];
+            job.location = fields[4];
+            job.minGPA = stof(fields[5]);
+            job.minExperience = stoi(fields[6]);
+            job.deadline = fields[7];
+            job.salary = stoi(fields[8]);
+            job.status = (stoi(fields[9]) != 0);
+            job.nameMajor = fields[10];
+
+            if (!loadJobSkill(job)) {
+                continue;
+            }
+
+            if (!loadJobCertificate(job)) {
+                continue;
+            }
+
+            jobs.push_back(job);
+        }
+        catch (...) {
+            continue;
+        }
+    }
+
+    return true;
+}
+
 bool Data::getJobByID(int jobID, Job& job) {
     vector<string> lines;
     if (!readFile("jobs.txt", lines)) {

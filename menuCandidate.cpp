@@ -166,7 +166,7 @@ void menuCandidate(Candidate& candidate, Data& dt) {
 
             case 5:
                 menuExperience(candidate);
-                dt.saveCandidateCertificate(candidate);
+                dt.saveCandidateExperience(candidate);
                 break;
 
             case 0:
