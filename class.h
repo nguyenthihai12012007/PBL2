@@ -366,8 +366,6 @@ class Data {
         bool loadCandidateSkill(Candidate& candidate);
         bool loadCandidateCertificate(Candidate& candidate);
         bool loadCandidateExperience(Candidate& candidate);
-
-        bool getAllJobs(vector<Job>& jobs);
 };
 
 #endif
