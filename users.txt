@@ -1,4 +1,3 @@
-
 # userID|email|password|role
 1|nguyenvanan@gmail.com|123456|CANDIDATE
 2|tranthibinh@gmail.com|123456|CANDIDATE
