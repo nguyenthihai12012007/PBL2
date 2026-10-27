@@ -161,7 +161,7 @@ class Candidate : public User {
         ProfessionalInfo getProfessionalInfo() const { return professional; }
         vector<Experience> getExperiences() const { return experiences; }
 
-        void setIDcandidate(int id) { IDcandidate = id; }
+        void setIDCandidate(int id) { IDcandidate = id; }
         void setPersonalInfo(const PersonalInfo& info) { personal = info; }
         void setProfessionalInfo(const ProfessionalInfo& info) { professional = info; }
         void setExperiences(const vector<Experience>& exp) { experiences = exp; }
