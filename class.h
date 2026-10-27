@@ -41,15 +41,6 @@ class User {
         bool login(Data& dt, const string& email, const string& password);
 };
 
-struct JobMatchResult {
-    Job job;
-    double score;
-};
-
-vector<JobMatchResult> matching(
-    const vector<Job>& jobs,
-    const Candidate& candidate
-);
 
 struct PersonalInfo {
     string fullName;
@@ -170,6 +161,8 @@ class Candidate : public User {
         ProfessionalInfo getProfessionalInfo() const { return professional; }
         vector<Experience> getExperiences() const { return experiences; }
 
+        void setIDCandidate(int id) { IDcandidate = id;}
+
         // updateCV();
         //bool loadCandidate(int candidateID);
         //bool applyJob(Data& dt, int jobID);
@@ -219,6 +212,16 @@ class Job {
         bool isExpired() const;
         bool isEligible(const Candidate& candidate) const;
 };
+
+struct JobMatchResult {
+    Job job;
+    double score;
+};
+
+vector<JobMatchResult> matching(
+    const vector<Job>& jobs,
+    const Candidate& candidate
+);
 
 class Company : public User {
         friend class Data;

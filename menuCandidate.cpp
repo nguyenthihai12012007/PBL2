@@ -129,6 +129,48 @@ void menuExperience(Candidate& candidate) {
     } while (choice != 0);
 }
 
+void createCandidateProfile (Candidate& candidate, Data& dt) {
+    if (candidate.getIDcandidate() != 0) {
+        cout << "Ban da co ho so.\n";
+        return;
+    }
+
+    candidate.inputCandidate();
+
+    int id = dt.getNextID("candidates.txt");
+    candidate.setIDCandidate(id);
+
+    if (!dt.saveCandidate(candidate)) {
+        candidate.setIDCandidate(0);
+
+        cout << "Khong luu duoc ho so. Vui long thu lai!\n";
+        return;
+    }
+
+    bool savedSkills = dt.saveCandidateSkill(candidate);
+    bool savedCertificates = dt.saveCandidateCertificate(candidate);
+    bool savedExperiences = dt.saveCandidateExperience(candidate);
+
+    if (savedSkills && savedCertificates && savedExperiences) {
+        cout << "Tao ho so thanh cong!\n";
+    } else {
+        cout << "Da tao ho so, nhung chua luu du du lieu bo sung!\n";
+
+        if (!savedSkills) {
+            cout << "- Chua luu duoc ky nang.\n";
+        }
+
+        if (!savedCertificates) {
+            cout << "- Chua luu duoc chung chi.\n";
+        }
+
+        if (!savedExperiences) {
+            cout << "- Chua luu duoc kinh nghiem.\n";
+        }
+    }
+}
+
+
 void menuCandidate(Candidate& candidate, Data& dt) {
     int choice;
 
@@ -139,6 +181,7 @@ void menuCandidate(Candidate& candidate, Data& dt) {
         cout << "3. Quan ly ky nang\n";
         cout << "4. Quan ly chung chi\n";
         cout << "5. Quan ly kinh nghiem\n";
+        cout << "6. Tao ho so\n";
         cout << "0. Dang xuat\n";
 
         cout << "Lua chon: ";
@@ -169,6 +212,9 @@ void menuCandidate(Candidate& candidate, Data& dt) {
                 dt.saveCandidateExperience(candidate);
                 break;
 
+            case 6:
+                createCandidateProfile(candidate,dt);
+                break;
             case 0:
                 cout << "Dang xuat...\n";
                 break;

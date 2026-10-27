@@ -1052,7 +1052,7 @@ bool Data::saveCandidate (const Candidate& candidate) {
         lines.push_back(ss.str());
     }
 
-    return writeFile("candidate.txt", lines);
+    return writeFile("candidates.txt", lines);
 }
 
 bool Data::saveCandidateSkill (const Candidate& candidate) {

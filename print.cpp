@@ -23,6 +23,11 @@ void loginMenu(Data& dt) {
         if (user.getRole() == "CANDIDATE") {
             cout << "\n  Xin chao ung vien!\n";
             Candidate candidate;
+
+            candidate.setIDuser(user.getIDuser());
+            candidate.setEmail(user.getEmail());
+            candidate.setRole(user.getRole());
+            
             if (dt.getCandidateByUserID(user.getIDuser(), candidate)) {
                 dt.loadCandidateSkill(candidate);
                 dt.loadCandidateCertificate(candidate);
