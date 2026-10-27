@@ -252,6 +252,49 @@ bool Data::getCompanyByUserID(int userID, Company& company) {
     return false;
 }
 
+bool Data::getCompanyByID(int companyID, Company& company) {
+    vector<string> lines;
+    if (!readFile("companies.txt", lines)) {
+        return false;
+    }
+    for (const string& line : lines) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        stringstream ss(line);
+        string companyIDText, userIDText;
+        string nameCompany, phoneCompany;
+        string addressCompany, description, website;
+        if (!getline(ss, companyIDText, '|') ||
+            !getline(ss, userIDText, '|') ||
+            !getline(ss, nameCompany, '|') ||
+            !getline(ss, phoneCompany, '|') ||
+            !getline(ss, addressCompany, '|') ||
+            !getline(ss, description, '|') ||
+            !getline(ss, website)) {
+            continue;
+        }
+        try {
+            if (stoi(companyIDText) != companyID) {
+                continue;
+            }
+            company.IDcompany = companyID;
+            company.setIDuser(stoi(userIDText));
+            company.setRole("COMPANY");
+            company.nameCompany = nameCompany;
+            company.phoneCompany = phoneCompany;
+            company.addressCompany = addressCompany;
+            company.description = description;
+            company.website = website;
+            return true;
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    return false;
+}
+
 static vector<string> splitLine(const string& line) {
     vector<string> fields;
     string field;
@@ -786,6 +829,33 @@ bool Data::deleteJob(int jobID, int companyID) {
     return true;
 }
 
+bool Data::getAllJobs(vector<Job>& jobs) {
+    jobs.clear();
+    vector<string> lines;
+    if (!readFile("jobs.txt", lines)) {
+        return false;
+    }
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+        stringstream ss(line);
+        string jobIDText;
+        if (!getline(ss, jobIDText, '|')) {
+            continue;
+        }
+        try {
+            int jobID = stoi(jobIDText);
+            Job job;
+            if (getJobByID(jobID, job)) {
+                jobs.push_back(job);
+            }
+        } catch (...) {
+            continue;
+        }
+    }
+    return true;
+}
 
 bool Data::getApplicationsByCompanyID(int companyID, vector<Application>& applications) {
     vector<string> applicationLines;
