@@ -2,6 +2,7 @@
 #include "Matching.h"
 #include <unordered_map>
 #include <ctime>
+#include <algorithm>
 #include <iostream>
 using namespace std;
 
@@ -207,6 +208,10 @@ double calculatorTotal (const Candidate& candidate, const Job& job) {
     return scoreTotal / scoreWeight;
 }
 
+bool compareJobMatch(const JobMatchResult& a, const JobMatchResult& b) {
+    return a.score > b.score;
+}
+
 void Application::displayApplication() const {
     cout << "\n===== CHI TIET DON UNG TUYEN =====\n";
     cout << "Ma don ung tuyen: " << IDappli << endl;
@@ -215,4 +220,23 @@ void Application::displayApplication() const {
     cout << "Muc do phu hop: " << appropriateLevel << "%" << endl;
     cout << "Trang thai: " << status << endl;
     cout << "Ngay ung tuyen: " << appliedAt << endl;
+}
+
+vector<JobMatchResult> matching(const vector<Job>& jobs, const Candidate& candidate) {
+    vector<JobMatchResult> satisfiedJob;
+
+    for (int i = 0; i < jobs.size(); i++) {
+        double score = calculatorTotal(candidate, jobs[i]);
+
+        if (score >= 70.0) {
+            JobMatchResult result;
+            result.job = jobs[i];
+            result.score = score;
+
+            satisfiedJob.push_back(result);
+        }
+    }
+    sort(satisfiedJob.begin(), satisfiedJob.end(), compareJobMatch);
+
+    return satisfiedJob;
 }

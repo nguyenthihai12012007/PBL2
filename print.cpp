@@ -23,28 +23,30 @@ void loginMenu(Data& dt) {
         if (user.getRole() == "CANDIDATE") {
             cout << "\n  Xin chao ung vien!\n";
             Candidate candidate;
+
+            candidate.setIDuser(user.getIDuser());
+            candidate.setEmail(user.getEmail());
+            candidate.setRole(user.getRole());
+            
             if (dt.getCandidateByUserID(user.getIDuser(), candidate)) {
                 dt.loadCandidateSkill(candidate);
                 dt.loadCandidateCertificate(candidate);
                 dt.loadCandidateExperience(candidate);
-                menuCandidate(candidate,dt);
             }
-            else {
-                cout << "Khong tim thay ho so ung vien!\n";
-            }
-        }
-        else if (user.getRole() == "COMPANY") {
+            menuCandidate(candidate,dt);
+
+        } else if (user.getRole() == "COMPANY") {
             cout << "\n  Xin chao cong ty!\n";
             Company company;
-            if (dt.getCompanyByUserID(user.getIDuser(), company)) {
-                companyMenu(company, dt);
-            }
-            else {
-                cout << "Khong tim thay ho so cong ty!\n";
-            }
-        }
-        else {
-            cout << "\n  Vai tro tai khoan khong hop le!\n";
+            company.setIDuser(user.getIDuser());
+            company.setEmail(user.getEmail());
+            company.setRole(user.getRole());
+
+            dt.getCompanyByUserID(user.getIDuser(), company);
+
+            companyMenu(company, dt);
+        } else {
+            cout << "\n  Tai khoan khong ton tai!\n";
         }
     }
 }

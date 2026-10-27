@@ -161,6 +161,12 @@ class Candidate : public User {
         ProfessionalInfo getProfessionalInfo() const { return professional; }
         vector<Experience> getExperiences() const { return experiences; }
 
+        void setIDCandidate(int id) { IDcandidate = id; }
+        void setPersonalInfo(const PersonalInfo& info) { personal = info; }
+        void setProfessionalInfo(const ProfessionalInfo& info) { professional = info; }
+        void setExperiences(const vector<Experience>& exp) { experiences = exp; }
+        void setGPA(double gpa) { professional.GPA = gpa; }
+
         // updateCV();
         //bool loadCandidate(int candidateID);
         //bool applyJob(Data& dt, int jobID);
@@ -203,13 +209,36 @@ class Job {
         bool getStatus() const { return status; }
         string getDeadline() const { return deadline; }
         string getNameMajor() const { return nameMajor; }
+        string getTitle() const { return title; }
+        int getSalary() const { return salary; }
+        string getLocation() const { return location; }
+        string getDescription() const { return description; }
 
         void setIDjob(int id) { IDjob = id; }
+        void setIDcompany(int id) { IDcompany = id; }
+        void setTitle(const string& t) { title = t; }
+        void setDescription(const string& desc) { description = desc; }
+        void setLocation(const string& loc) { location = loc; }
+        void setMinGPA(float gpa) { minGPA = gpa; }
+        void setMinExperience(int exp) { minExperience = exp; }
+        void setDeadline(const string& dl) { deadline = dl; }
+        void setSalary(int sal) { salary = sal; }
+        void setNameMajor(const string& major) { nameMajor = major; }
         void setStatus(bool s) { status = s; }
 
         bool isExpired() const;
         bool isEligible(const Candidate& candidate) const;
 };
+
+struct JobMatchResult {
+    Job job;
+    double score;
+};
+
+vector<JobMatchResult> matching(
+    const vector<Job>& jobs,
+    const Candidate& candidate
+);
 
 class Company : public User {
         friend class Data;
@@ -238,7 +267,18 @@ class Company : public User {
         void closeJob(Data& dt);
 
         int getIDcompany() const { return IDcompany; }
+        string getNameCompany() const { return nameCompany; }
+        string getPhoneCompany() const { return phoneCompany; }
+        string getAddressCompany() const { return addressCompany; }
+        string getDescription() const { return description; }
+        string getWebsite() const { return website; }
+
         void setIDcompany(int id) { IDcompany = id; }
+        void setNameCompany(const string& name) { nameCompany = name; }
+        void setPhoneCompany(const string& phone) { phoneCompany = phone; }
+        void setAddressCompany(const string& address) { addressCompany = address; }
+        void setWebsite(const string& web) { website = web; }
+        void setDescription(const string& des) { description = des; }
         void displayApplications(Data& dt);
 };
 
@@ -274,6 +314,9 @@ class Application {
         int getIDcandidate() const { return IDcandidate; }
         int getIDjob() const { return IDjob; }
         int getIDappli() const { return IDappli; }
+        float getAppropriateLevel() const { return appropriateLevel; }
+        string getAppliedAt() const { return appliedAt; } 
+
         void setAppropriateLevel(float level) { appropriateLevel = level; }
         void setStatus(const string& s) { status = s; }
         void displayApplication() const;
@@ -293,6 +336,7 @@ class Data {
         bool getCandidateByID(int candidateID, Candidate& candidate); 
 
         bool getCompanyByUserID(int userID, Company& company);
+        bool getCompanyByID(int companyID, Company& company);
         bool saveCompany(const Company& company);
 
         bool saveJobSkill(const Job& job);
@@ -306,6 +350,7 @@ class Data {
         bool updateJob(const Job& job);
         bool closeJob(int jobID, int companyID);
         bool deleteJob(int jobID, int companyID);
+        bool getAllJobs(vector<Job>& jobs);
 
         bool getApplicationsByCompanyID(int companyID, vector<Application>& applications);
         bool getApplicationByID(int applicationID, Application& application);
@@ -321,6 +366,8 @@ class Data {
         bool loadCandidateSkill(Candidate& candidate);
         bool loadCandidateCertificate(Candidate& candidate);
         bool loadCandidateExperience(Candidate& candidate);
+
+        bool getAllJobs(vector<Job>& jobs);
 };
 
 #endif

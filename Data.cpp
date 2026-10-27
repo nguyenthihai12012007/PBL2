@@ -252,6 +252,49 @@ bool Data::getCompanyByUserID(int userID, Company& company) {
     return false;
 }
 
+bool Data::getCompanyByID(int companyID, Company& company) {
+    vector<string> lines;
+    if (!readFile("companies.txt", lines)) {
+        return false;
+    }
+    for (const string& line : lines) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        stringstream ss(line);
+        string companyIDText, userIDText;
+        string nameCompany, phoneCompany;
+        string addressCompany, description, website;
+        if (!getline(ss, companyIDText, '|') ||
+            !getline(ss, userIDText, '|') ||
+            !getline(ss, nameCompany, '|') ||
+            !getline(ss, phoneCompany, '|') ||
+            !getline(ss, addressCompany, '|') ||
+            !getline(ss, description, '|') ||
+            !getline(ss, website)) {
+            continue;
+        }
+        try {
+            if (stoi(companyIDText) != companyID) {
+                continue;
+            }
+            company.IDcompany = companyID;
+            company.setIDuser(stoi(userIDText));
+            company.setRole("COMPANY");
+            company.nameCompany = nameCompany;
+            company.phoneCompany = phoneCompany;
+            company.addressCompany = addressCompany;
+            company.description = description;
+            company.website = website;
+            return true;
+        }
+        catch (...) {
+            continue;
+        }
+    }
+    return false;
+}
+
 static vector<string> splitLine(const string& line) {
     vector<string> fields;
     string field;
@@ -492,6 +535,54 @@ bool Data::getJobsByCompanyID(int companyID, vector<Job>& jobs) {
             continue;
         }
     }
+    return true;
+}
+
+bool Data::getAllJobs(vector<Job>& jobs) {
+    vector<string> lines;
+    if (!readFile("jobs.txt", lines)) {
+        return false;
+    }
+
+    jobs.clear();
+
+    for (int i = 0; i < lines.size(); i++) {
+        vector<string> fields = splitLine(lines[i]);
+
+        if (fields.size() < 11 || fields[0].empty()
+            || fields[0][0] == '#') {
+            continue;
+        }
+
+        try {
+            Job job;
+            job.IDjob = stoi(fields[0]);
+            job.IDcompany = stoi(fields[1]);
+            job.title = fields[2];
+            job.description = fields[3];
+            job.location = fields[4];
+            job.minGPA = stof(fields[5]);
+            job.minExperience = stoi(fields[6]);
+            job.deadline = fields[7];
+            job.salary = stoi(fields[8]);
+            job.status = (stoi(fields[9]) != 0);
+            job.nameMajor = fields[10];
+
+            if (!loadJobSkill(job)) {
+                continue;
+            }
+
+            if (!loadJobCertificate(job)) {
+                continue;
+            }
+
+            jobs.push_back(job);
+        }
+        catch (...) {
+            continue;
+        }
+    }
+
     return true;
 }
 
@@ -738,6 +829,33 @@ bool Data::deleteJob(int jobID, int companyID) {
     return true;
 }
 
+bool Data::getAllJobs(vector<Job>& jobs) {
+    jobs.clear();
+    vector<string> lines;
+    if (!readFile("jobs.txt", lines)) {
+        return false;
+    }
+    for (const string& line : lines) {
+        if (line.empty()) {
+            continue;
+        }
+        stringstream ss(line);
+        string jobIDText;
+        if (!getline(ss, jobIDText, '|')) {
+            continue;
+        }
+        try {
+            int jobID = stoi(jobIDText);
+            Job job;
+            if (getJobByID(jobID, job)) {
+                jobs.push_back(job);
+            }
+        } catch (...) {
+            continue;
+        }
+    }
+    return true;
+}
 
 bool Data::getApplicationsByCompanyID(int companyID, vector<Application>& applications) {
     vector<string> applicationLines;
@@ -1004,7 +1122,7 @@ bool Data::saveCandidate (const Candidate& candidate) {
         lines.push_back(ss.str());
     }
 
-    return writeFile("candidate.txt", lines);
+    return writeFile("candidates.txt", lines);
 }
 
 bool Data::saveCandidateSkill (const Candidate& candidate) {
