@@ -1,0 +1,345 @@
+#ifndef STYLE_HELPER_H
+#define STYLE_HELPER_H
+
+#include <QString>
+
+class StyleHelper {
+public:
+    // Color Palette Definitions (Bám sát design_reference.png)
+    // 1. Cam đất / Terracotta chủ đạo (Brand, Primary Button, Sidebar)
+    inline static const QString COLOR_PRIMARY          = "#B95334";
+    inline static const QString COLOR_PRIMARY_HOVER    = "#A3462A";
+    inline static const QString COLOR_PRIMARY_PRESSED  = "#8C3920";
+
+    // 2. Nền ấm & Card
+    inline static const QString COLOR_BG_MAIN          = "#FBF8F5"; // Trắng kem ngà sáng
+    inline static const QString COLOR_CARD_BG          = "#FFFFFF"; // Nền card trắng tinh
+    inline static const QString COLOR_SIDEBAR_ACTIVE   = "#FFF4ED"; // Nền active menu cam kem
+    inline static const QString COLOR_SIDEBAR_ACTIVE_TEXT = "#B95334";
+
+    // 3. Chữ & Phụ đề
+    inline static const QString COLOR_TEXT_MAIN        = "#1E1E1E";
+    inline static const QString COLOR_TEXT_MUTED       = "#6C757D";
+
+    // 4. Đường viền mỏng
+    inline static const QString COLOR_BORDER           = "#ECE5DE";
+    inline static const QString COLOR_BORDER_LIGHT     = "#F4EFEA";
+
+    // 5. Trạng thái & Tag
+    inline static const QString COLOR_SUCCESS_BG       = "#E3F7EB"; // Xanh lá nhạt
+    inline static const QString COLOR_SUCCESS_TEXT     = "#1B7F49";
+    inline static const QString COLOR_WARNING_BG       = "#FEF3E2"; // Vàng cam nhạt (đang xem xét)
+    inline static const QString COLOR_WARNING_TEXT     = "#B76E00";
+    inline static const QString COLOR_TAG_BG           = "#F5EBE1"; // Be nhạt tag kỹ năng
+    inline static const QString COLOR_TAG_TEXT         = "#754533";
+
+    static QString getStyleSheet() {
+        return R"(
+            /* Thiết lập toàn cục */
+            QWidget {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-size: 13px;
+                color: #1E1E1E;
+            }
+
+            /* Nền chính của ứng dụng: Màu kem ngà ấm */
+            QMainWindow, QDialog {
+                background-color: #FBF8F5;
+            }
+
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+
+            /* ========================================================= */
+            /* SIDEBAR BÊN TRÁI: Màu cam đất Terracotta (#B95334)        */
+            /* ========================================================= */
+            #sidebarFrame {
+                background-color: #B95334;
+                border: none;
+            }
+
+            #sidebarTitle {
+                color: #FFFFFF;
+                font-size: 18px;
+                font-weight: 800;
+                letter-spacing: 0.5px;
+            }
+
+            #sidebarSubtitle {
+                color: #FCE8E2;
+                font-size: 11px;
+                font-weight: 400;
+            }
+
+            /* Nút điều hướng trong Sidebar */
+            QPushButton.navButton {
+                text-align: left;
+                padding: 10px 14px;
+                font-size: 13px;
+                font-weight: 500;
+                color: #FFFFFF;
+                background-color: transparent;
+                border: none;
+                border-radius: 8px;
+            }
+
+            QPushButton.navButton:hover {
+                background-color: rgba(255, 255, 255, 0.15);
+                color: #FFFFFF;
+            }
+
+            /* Mục Active: Nền kem sáng bo góc, chữ cam đất nổi bật */
+            QPushButton.navButton:checked, 
+            QPushButton.navButton.active,
+            QPushButton.navButton[active="true"] {
+                color: #B95334;
+                background-color: #FFF4ED;
+                font-weight: 700;
+            }
+
+            /* Nút Đăng xuất ở chân Sidebar */
+            QPushButton#logoutButton {
+                text-align: left;
+                padding: 9px 14px;
+                font-size: 12px;
+                font-weight: 500;
+                color: #FFE6DF;
+                background-color: rgba(0, 0, 0, 0.12);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 6px;
+            }
+
+            QPushButton#logoutButton:hover {
+                color: #FFFFFF;
+                background-color: rgba(0, 0, 0, 0.25);
+            }
+
+            /* Badge số lượng thông báo trên sidebar */
+            QLabel.navBadge {
+                background-color: #DE6E4B;
+                color: #FFFFFF;
+                font-size: 11px;
+                font-weight: 700;
+                border-radius: 9px;
+                padding: 1px 7px;
+            }
+
+            /* ========================================================= */
+            /* TOP BAR TRÊN CÙNG: Thanh tìm kiếm & Cụm User Avatar       */
+            /* ========================================================= */
+            #topBarFrame {
+                background-color: #FBF8F5;
+                border-bottom: 1px solid #ECE5DE;
+            }
+
+            #topSearchBar {
+                background-color: #FFFFFF;
+                border: 1px solid #ECE5DE;
+                border-radius: 18px;
+                padding: 7px 16px 7px 16px;
+                font-size: 13px;
+                color: #1E1E1E;
+            }
+
+            #topSearchBar:focus {
+                border: 1.5px solid #B95334;
+            }
+
+            #userAvatarCircle {
+                background-color: #9C452A;
+                color: #FFFFFF;
+                font-size: 13px;
+                font-weight: 700;
+                border-radius: 18px;
+                min-width: 36px;
+                max-width: 36px;
+                min-height: 36px;
+                max-height: 36px;
+                qproperty-alignment: 'AlignCenter';
+            }
+
+            #userNameTopLabel {
+                font-size: 13px;
+                font-weight: 700;
+                color: #1E1E1E;
+            }
+
+            #userRoleTopLabel {
+                font-size: 11px;
+                color: #6C757D;
+            }
+
+            /* ========================================================= */
+            /* THẺ CARD TRẮNG BO TRÒN: (border-radius: 12px)              */
+            /* ========================================================= */
+            QFrame.cardBox, #cardBox {
+                background-color: #FFFFFF;
+                border: 1px solid #ECE5DE;
+                border-radius: 12px;
+            }
+
+            /* ========================================================= */
+            /* NÚT BẤM (BUTTONS)                                         */
+            /* ========================================================= */
+            /* Primary Button (Khối cam đất) */
+            QPushButton.primaryBtn, QPushButton.primaryButton {
+                background-color: #B95334;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 8px;
+                padding: 8px 18px;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            QPushButton.primaryBtn:hover, QPushButton.primaryButton:hover {
+                background-color: #A3462A;
+            }
+
+            QPushButton.primaryBtn:pressed, QPushButton.primaryButton:pressed {
+                background-color: #8C3920;
+            }
+
+            /* Outline Button (Viền cam đất mảnh) */
+            QPushButton.outlineBtn, QPushButton.secondaryButton {
+                background-color: transparent;
+                color: #B95334;
+                border: 1px solid #B95334;
+                border-radius: 8px;
+                padding: 7px 15px;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            QPushButton.outlineBtn:hover, QPushButton.secondaryButton:hover {
+                background-color: #FFF4ED;
+                color: #B95334;
+                border-color: #B95334;
+            }
+
+            /* Tag Pill Button / Label (Kỹ năng) */
+            .tagPill {
+                background-color: #F5EBE1;
+                color: #754533;
+                border: none;
+                border-radius: 12px;
+                padding: 4px 10px;
+                font-size: 11px;
+                font-weight: 600;
+            }
+
+            /* ========================================================= */
+            /* HUY HIỆU TRẠNG THÁI (STATUS BADGES)                       */
+            /* ========================================================= */
+            /* Huy hiệu Match Score xanh lá */
+            #matchScoreBox {
+                background-color: #E3F7EB;
+                border-radius: 8px;
+                padding: 6px 12px;
+            }
+
+            #matchScoreNum {
+                color: #1B7F49;
+                font-size: 18px;
+                font-weight: 800;
+            }
+
+            #matchScoreText {
+                color: #1B7F49;
+                font-size: 10px;
+                font-weight: 600;
+            }
+
+            /* Status: Đang tuyển / Đã gửi / Thành công */
+            .badgeSuccess {
+                background-color: #E3F7EB;
+                color: #1B7F49;
+                font-size: 11px;
+                font-weight: 600;
+                border-radius: 6px;
+                padding: 3px 8px;
+            }
+
+            /* Status: Đang xem xét / Chờ duyệt */
+            .badgeWarning {
+                background-color: #FEF3E2;
+                color: #B76E00;
+                font-size: 11px;
+                font-weight: 600;
+                border-radius: 6px;
+                padding: 3px 8px;
+            }
+
+            /* Status: Đã đóng / Từ chối */
+            .badgeDanger {
+                background-color: #FEE2E2;
+                color: #DC2626;
+                font-size: 11px;
+                font-weight: 600;
+                border-radius: 6px;
+                padding: 3px 8px;
+            }
+
+            /* ========================================================= */
+            /* THANH TIẾN ĐỘ (PROGRESS BAR)                              */
+            /* ========================================================= */
+            QProgressBar {
+                border: none;
+                border-radius: 4px;
+                background-color: #ECE5DE;
+                text-align: right;
+                min-height: 8px;
+                max-height: 8px;
+            }
+
+            QProgressBar::chunk {
+                background-color: #B95334;
+                border-radius: 4px;
+            }
+
+            /* ========================================================= */
+            /* INPUTS & FORMS                                            */
+            /* ========================================================= */
+            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTextEdit {
+                background-color: #FFFFFF;
+                border: 1px solid #ECE5DE;
+                border-radius: 6px;
+                padding: 7px 10px;
+                color: #1E1E1E;
+            }
+
+            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDateEdit:focus, QTextEdit:focus {
+                border: 1.5px solid #B95334;
+                outline: none;
+            }
+
+            /* ========================================================= */
+            /* SCROLLBAR TINH TẾ                                         */
+            /* ========================================================= */
+            QScrollBar:vertical {
+                border: none;
+                background: transparent;
+                width: 8px;
+                margin: 0px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #D8CECA;
+                min-height: 30px;
+                border-radius: 4px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #B95334;
+            }
+
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        )";
+    }
+};
+
+#endif // STYLE_HELPER_H

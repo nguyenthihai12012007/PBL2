@@ -1,1 +1,45 @@
 # jobID|skillName|requiredLevel
+1|HTML|2
+1|CSS|2
+1|JavaScript|2
+2|C++|3
+2|OOP|3
+2|Git|2
+3|Java|3
+3|Spring Boot|2
+3|SQL|2
+4|Manual Testing|2
+4|Test Case Design|2
+4|SQL|1
+5|SQL|3
+5|Python|2
+5|PowerBI|2
+6|SQL|3
+6|Database Design|3
+6|PostgreSQL|2
+7|Python|3
+7|PyTorch|2
+7|Linear Algebra|2
+8|Python|4
+8|Machine Learning|3
+8|Deep Learning|3
+9|Node.js|3
+9|RESTful API|3
+9|MongoDB|2
+10|Network Fundamentals|2
+10|Windows Server|2
+10|Troubleshooting|2
+11|React|3
+11|JavaScript|3
+11|CSS|2
+12|UML|2
+12|Requirements Analysis|3
+12|Agile|2
+13|C++|2
+13|Data Structures|2
+14|Python|3
+14|Spark|2
+14|Data Pipeline|2
+15|Automation Testing|2
+15|Selenium|2
+15|Jira|2

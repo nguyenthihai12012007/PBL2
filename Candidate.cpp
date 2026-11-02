@@ -1,5 +1,4 @@
 #include "class.h"
-#include "menuCandidate.h"
 #include <iostream>
 using namespace std;
 
@@ -19,7 +18,7 @@ Candidate::Candidate(int id, string email, string password)
     professional.GPA = 0;
 }
 
-
+//bỏ
 void Candidate::inputCandidate() {
     cout << "Nhap ho ten: ";
     getline(cin, personal.fullName);
@@ -59,7 +58,7 @@ void Candidate::inputCandidate() {
     inputExperiences(experiences);
 }
 
-
+//bỏ
 void inputSkills(vector<Skill>& skills) {
     int n;
 
@@ -81,7 +80,7 @@ void inputSkills(vector<Skill>& skills) {
     }
 }
 
-
+//bỏ
 void inputCertificate(vector<Certificate>& certificates) {
     int n;
 
@@ -107,7 +106,7 @@ void inputCertificate(vector<Certificate>& certificates) {
     }
 }
 
-
+//bỏ
 void inputExperiences(vector<Experience>& experiences) {
     int n;
 
@@ -126,7 +125,7 @@ void inputExperiences(vector<Experience>& experiences) {
     }
 }
 
-
+//bỏ
 void Experience::inputExperience() {
     cout << "Ten cong ty: ";
     getline(cin, companyName);
@@ -144,7 +143,7 @@ void Experience::inputExperience() {
     getline(cin, endDate);
 }
 
-
+//bỏ
 void Experience::displayExperience() {
     cout << "Cong ty: " << companyName << endl;
     cout << "Vi tri: " << position << endl;
@@ -153,7 +152,7 @@ void Experience::displayExperience() {
          << " - " << endDate << endl;
 }
 
-
+//bỏ
 void Candidate::displayCandidate() {
     cout << "\n===== THONG TIN UNG VIEN =====\n";
 
@@ -217,11 +216,22 @@ void Candidate::displayCandidate() {
     }
 }
 
+//bỏ
 void Candidate::updateCandidate() {
     int choice;
 
     do {
-        menuUpdateCandidate();
+        cout << "\n===== CAP NHAT THONG TIN CANDIDATE =====\n";
+        cout << "1. Cap nhat ho ten\n";
+        cout << "2. Cap nhat ngay sinh\n";
+        cout << "3. Cap nhat gioi tinh\n";
+        cout << "4. Cap nhat so dien thoai\n";
+        cout << "5. Cap nhat dia chi\n";
+        cout << "6. Cap nhat chuyen nganh\n";
+        cout << "7. Cap nhat truong\n";
+        cout << "8. Cap nhat trinh do hoc van\n";
+        cout << "9. Cap nhat GPA\n";
+        cout << "0. Quay lai\n";
 
         cout << "Lua chon: ";
         cin >> choice;
@@ -285,6 +295,7 @@ void Candidate::updateCandidate() {
     } while (choice != 0);
 }
 
+//bỏ
 void Candidate::addSkill() {
     Skill s;
 
@@ -298,6 +309,7 @@ void Candidate::addSkill() {
     professional.skills.push_back(s);
 }
 
+//bỏ
 void Candidate::updateSkill() {
     if (professional.skills.empty()) {
         cout << "Chua co ky nang nao!\n";
@@ -334,6 +346,7 @@ void Candidate::updateSkill() {
     cout << "Cap nhat ky nang thanh cong!\n";
 }
 
+//bỏ
 void Candidate::deleteSkill() {
     if (professional.skills.empty()) {
         cout << "Chua co ky nang nao!\n";
@@ -364,6 +377,7 @@ void Candidate::deleteSkill() {
     cout << "Xoa ky nang thanh cong!\n";
 }
 
+//bỏ
 void Candidate::addCertificate() {
     Certificate c;
 
@@ -383,6 +397,7 @@ void Candidate::addCertificate() {
     cout << "Them chung chi thanh cong!\n";
 }
 
+//bỏ
 void Candidate::updateCertificate() {
     if (professional.certificates.empty()) {
         cout << "Chua co chung chi nao!\n";
@@ -427,6 +442,7 @@ void Candidate::updateCertificate() {
     cout << "Cap nhat chung chi thanh cong!\n";
 }
 
+//bỏ
 void Candidate::deleteCertificate() {
     if (professional.certificates.empty()) {
         cout << "Chua co chung chi nao!\n";
@@ -461,6 +477,7 @@ void Candidate::deleteCertificate() {
     cout << "Xoa chung chi thanh cong!\n";
 }
 
+//bỏ
 void Candidate::addExperience() {
     Experience e;
 
@@ -470,6 +487,7 @@ void Candidate::addExperience() {
     cout << "Them kinh nghiem thanh cong!\n";
 }
 
+//bỏ
 void Candidate::updateExperience() {
     if (experiences.empty()) {
         cout << "Chua co kinh nghiem nao!\n";
@@ -499,6 +517,7 @@ void Candidate::updateExperience() {
     cout << "Cap nhat kinh nghiem thanh cong!\n";
 }
 
+//bỏ
 void Candidate::deleteExperience() {
     if (experiences.empty()) {
         cout << "Chua co kinh nghiem nao!\n";
@@ -556,4 +575,115 @@ int Candidate::getTimeExperience() const {
         totalTime += calculateMonths(start, end);
     }
     return totalTime;
+}
+
+bool Candidate::addSkill(const Skill& skill, Data& dt) {
+    professional.skills.push_back(skill);
+    if (dt.saveCandidateSkill(*this)) {
+        return true;
+    }
+    professional.skills.pop_back();
+    return false;
+}
+
+bool Candidate::updateSkill(int index, const Skill& skill, Data& dt) {
+    if (index < 0 || index >= static_cast<int>(professional.skills.size())) {
+        return false;
+    }
+    Skill oldSkill = professional.skills[index];
+    professional.skills[index] = skill;
+    if (dt.saveCandidateSkill(*this)) {
+        return true;
+    }
+    professional.skills[index] = oldSkill;
+    return false;
+}
+
+bool Candidate::deleteSkill(int index, Data& dt) {
+    if (index < 0 || index >= static_cast<int>(professional.skills.size())) {
+        return false;
+    }
+    Skill oldSkill = professional.skills[index];
+    professional.skills.erase(professional.skills.begin() + index);
+    if (dt.saveCandidateSkill(*this)) {
+        return true;
+    }
+    professional.skills.insert(professional.skills.begin() + index, oldSkill);
+    return false;
+}
+
+bool Candidate::addCertificate(const Certificate& cert, Data& dt) {
+    professional.certificates.push_back(cert);
+    if (dt.saveCandidateCertificate(*this)) {
+        return true;
+    }
+    professional.certificates.pop_back();
+    return false;
+}
+
+bool Candidate::updateCertificate(int index, const Certificate& cert, Data& dt) {
+    if (index < 0 || index >= static_cast<int>(professional.certificates.size())) {
+        return false;
+    }
+    Certificate oldCert = professional.certificates[index];
+    professional.certificates[index] = cert;
+    if (dt.saveCandidateCertificate(*this)) {
+        return true;
+    }
+    professional.certificates[index] = oldCert;
+    return false;
+}
+
+bool Candidate::deleteCertificate(int index, Data& dt) {
+    if (index < 0 || index >= static_cast<int>(professional.certificates.size())) {
+        return false;
+    }
+    Certificate oldCert = professional.certificates[index];
+    professional.certificates.erase(professional.certificates.begin() + index);
+    if (dt.saveCandidateCertificate(*this)) {
+        return true;
+    }
+    professional.certificates.insert(professional.certificates.begin() + index, oldCert);
+    return false;
+}
+
+bool Candidate::addExperience(const Experience& exp, Data& dt) {
+    experiences.push_back(exp);
+    if (dt.saveCandidateExperience(*this)) {
+        return true;
+    }
+    experiences.pop_back();
+    return false;
+}
+
+bool Candidate::updateExperience(int index, const Experience& exp, Data& dt) {
+    if (index < 0 || index >= static_cast<int>(experiences.size())) {
+        return false;
+    }
+    Experience oldExp = experiences[index];
+    experiences[index] = exp;
+    if (dt.saveCandidateExperience(*this)) {
+        return true;
+    }
+    experiences[index] = oldExp;
+    return false;
+}
+
+bool Candidate::deleteExperience(int index, Data& dt) {
+    if (index < 0 || index >= static_cast<int>(experiences.size())) {
+        return false;
+    }
+    Experience oldExp = experiences[index];
+    experiences.erase(experiences.begin() + index);
+    if (dt.saveCandidateExperience(*this)) {
+        return true;
+    }
+    experiences.insert(experiences.begin() + index, oldExp);
+    return false;
+}
+
+bool Candidate::updateCandidate(const PersonalInfo& p, const ProfessionalInfo& prof, Data& dt) {
+    personal = p;
+    professional = prof;
+    return dt.saveCandidate(*this);
 }

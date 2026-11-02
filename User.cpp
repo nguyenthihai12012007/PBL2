@@ -2,6 +2,7 @@
 #include <iostream>
 using namespace std;
 
+//bỏ
 bool User::login(Data& dt, const string& email, const string& password) {
     User account;
     if (!dt.findUserByEmail(email, account)) {

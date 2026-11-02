@@ -205,6 +205,10 @@ double calculatorTotal (const Candidate& candidate, const Job& job) {
         scoreWeight += 0.1; 
     }
 
+    if (scoreWeight <= 0.0001) {
+        return 100.0;
+    }
+
     return scoreTotal / scoreWeight;
 }
 
@@ -212,6 +216,7 @@ bool compareJobMatch(const JobMatchResult& a, const JobMatchResult& b) {
     return a.score > b.score;
 }
 
+//bỏ
 void Application::displayApplication() const {
     cout << "\n===== CHI TIET DON UNG TUYEN =====\n";
     cout << "Ma don ung tuyen: " << IDappli << endl;

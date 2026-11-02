@@ -674,7 +674,6 @@ bool Data::saveJob(const Job& job) {
     return true;
 }
 
-
 bool Data::updateJob(const Job& job) {
     vector<string> lines;
     if (!readFile("jobs.txt", lines)) {
@@ -829,34 +828,6 @@ bool Data::deleteJob(int jobID, int companyID) {
     return true;
 }
 
-bool Data::getAllJobs(vector<Job>& jobs) {
-    jobs.clear();
-    vector<string> lines;
-    if (!readFile("jobs.txt", lines)) {
-        return false;
-    }
-    for (const string& line : lines) {
-        if (line.empty()) {
-            continue;
-        }
-        stringstream ss(line);
-        string jobIDText;
-        if (!getline(ss, jobIDText, '|')) {
-            continue;
-        }
-        try {
-            int jobID = stoi(jobIDText);
-            Job job;
-            if (getJobByID(jobID, job)) {
-                jobs.push_back(job);
-            }
-        } catch (...) {
-            continue;
-        }
-    }
-    return true;
-}
-
 bool Data::getApplicationsByCompanyID(int companyID, vector<Application>& applications) {
     vector<string> applicationLines;
     vector<string> jobLines;
@@ -924,6 +895,7 @@ bool Data::getApplicationsByCompanyID(int companyID, vector<Application>& applic
     return true;
 }
 
+//bỏ
 bool Data::getApplicationByID(int applicationID, Application& application) {
     vector<string> lines;
     if (!readFile("applications.txt", lines))

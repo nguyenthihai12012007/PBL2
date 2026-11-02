@@ -9,6 +9,7 @@ Job::Job()
       minGPA(0), minExperience(0), status(true) {
 }
 
+//bỏ
 void Job::inputRequiredSkills() {
     int n;
 
@@ -30,6 +31,7 @@ void Job::inputRequiredSkills() {
     }
 }
 
+//bỏ
 void Job::inputCertificateGroups() {
     int n;
 
@@ -96,6 +98,7 @@ void Job::inputCertificateGroups() {
     }
 }
 
+//bỏ
 void Job::inputJob(int companyID) {
     cin.ignore();
     IDcompany = companyID;
@@ -134,6 +137,7 @@ void Job::inputJob(int companyID) {
     status = true;
 }
 
+//bỏ
 void Job::displayCertificate() {
     cout << "\nChung chi yeu cau:\n";
 
@@ -167,6 +171,7 @@ void Job::displayCertificate() {
     }
 }
 
+//bỏ
 void Job::displayJob() {
     cout << "\n===== THONG TIN CONG VIEC ===== \n";
     cout << "ID cong viec: " << IDjob << endl;
@@ -202,6 +207,7 @@ void Job::displayJob() {
         cout << "Da dong" << endl;
 }
 
+//bỏ
 void Job::updateJob() {
     int choice;
     do {
