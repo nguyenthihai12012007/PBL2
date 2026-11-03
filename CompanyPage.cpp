@@ -1039,93 +1039,121 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
     contentLayout->setContentsMargins(0, 0, 0, 0);
     contentLayout->setSpacing(14);
 
-    auto makeSection = [](QWidget *parent, const QString &secTitle, const QString &icon) -> std::pair<QFrame*, QVBoxLayout*> {
-        QFrame *secCard = new QFrame(parent);
-        secCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 14px;");
-        QVBoxLayout *secLayout = new QVBoxLayout(secCard);
-        secLayout->setSpacing(10);
-        QLabel *titleLbl = new QLabel(icon + " " + secTitle, secCard);
-        titleLbl->setStyleSheet("font-size: 14px; font-weight: 700; color: #1E1E1E;");
+    // Thẻ thông tin hợp nhất, loại bỏ các ô trắng phân mục rời rạc chiếm diện tích
+    QFrame *detailCard = new QFrame(scrollContent);
+    detailCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 16px;");
+    QVBoxLayout *dLayout = new QVBoxLayout(detailCard);
+    dLayout->setSpacing(12);
+
+    auto makeSection = [detailCard](QVBoxLayout *parentLayout, const QString &secTitle, const QString &icon, bool addDivider) -> QVBoxLayout* {
+        if (addDivider) {
+            QFrame *line = new QFrame(detailCard);
+            line->setFrameShape(QFrame::HLine);
+            line->setFrameShadow(QFrame::Sunken);
+            line->setStyleSheet("background-color: #F0EAE4; max-height: 1px; border: none; margin: 4px 0px;");
+            parentLayout->addWidget(line);
+        }
+        QVBoxLayout *secLayout = new QVBoxLayout();
+        secLayout->setSpacing(6);
+        QLabel *titleLbl = new QLabel(icon + " " + secTitle, detailCard);
+        titleLbl->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
         secLayout->addWidget(titleLbl);
-        return {secCard, secLayout};
+        parentLayout->addLayout(secLayout);
+        return secLayout;
     };
 
     // 1. Thông tin cá nhân & Liên hệ
-    auto [pCard, pLayout] = makeSection(scrollContent, "Thông tin cá nhân & Liên hệ", "👤");
+    QVBoxLayout *pLayout = makeSection(dLayout, "Thông tin cá nhân & Liên hệ", "👤", false);
     QFormLayout *pForm = new QFormLayout();
     pForm->setSpacing(6);
-    pForm->addRow("Email:", new QLabel(QString::fromStdString(cand.getEmail().empty() ? "Chưa cập nhật" : cand.getEmail()), pCard));
-    pForm->addRow("Điện thoại:", new QLabel(QString::fromStdString(p.phoneCandidate.empty() ? "Chưa cập nhật" : p.phoneCandidate), pCard));
-    pForm->addRow("Ngày sinh:", new QLabel(QString::fromStdString(p.birthday.empty() ? "Chưa cập nhật" : p.birthday) + " (" + QString::fromStdString(p.gender) + ")", pCard));
-    pForm->addRow("Địa chỉ:", new QLabel(QString::fromStdString(p.addressCandidate.empty() ? "Chưa cập nhật" : p.addressCandidate), pCard));
+    pForm->addRow("Email:", new QLabel(QString::fromStdString(cand.getEmail().empty() ? "Chưa cập nhật" : cand.getEmail()), detailCard));
+    pForm->addRow("Điện thoại:", new QLabel(QString::fromStdString(p.phoneCandidate.empty() ? "Chưa cập nhật" : p.phoneCandidate), detailCard));
+    pForm->addRow("Ngày sinh:", new QLabel(QString::fromStdString(p.birthday.empty() ? "Chưa cập nhật" : p.birthday) + " (" + QString::fromStdString(p.gender) + ")", detailCard));
+    pForm->addRow("Địa chỉ:", new QLabel(QString::fromStdString(p.addressCandidate.empty() ? "Chưa cập nhật" : p.addressCandidate), detailCard));
     pLayout->addLayout(pForm);
-    contentLayout->addWidget(pCard);
 
     // 2. Học vấn & Bằng cấp
-    auto [eduCard, eduLayout] = makeSection(scrollContent, "Học vấn & Trình độ", "🎓");
+    QVBoxLayout *eduLayout = makeSection(dLayout, "Học vấn & Trình độ", "🎓", true);
     QFormLayout *eduForm = new QFormLayout();
     eduForm->setSpacing(6);
-    eduForm->addRow("Ngành học:", new QLabel(QString::fromStdString(prof.major.empty() ? "Chưa cập nhật" : prof.major), eduCard));
-    eduForm->addRow("Trường đào tạo:", new QLabel(QString::fromStdString(prof.school.empty() ? "Chưa cập nhật" : prof.school), eduCard));
-    eduForm->addRow("Trình độ:", new QLabel(QString::fromStdString(prof.educationLevel.empty() ? "Đại học" : prof.educationLevel), eduCard));
-    eduForm->addRow("Điểm GPA:", new QLabel(QString::number(prof.GPA, 'f', 2), eduCard));
+    eduForm->addRow("Ngành học:", new QLabel(QString::fromStdString(prof.major.empty() ? "Chưa cập nhật" : prof.major), detailCard));
+    eduForm->addRow("Trường đào tạo:", new QLabel(QString::fromStdString(prof.school.empty() ? "Chưa cập nhật" : prof.school), detailCard));
+    eduForm->addRow("Trình độ:", new QLabel(QString::fromStdString(prof.educationLevel.empty() ? "Đại học" : prof.educationLevel), detailCard));
+    eduForm->addRow("Điểm GPA:", new QLabel(QString::number(prof.GPA, 'f', 2), detailCard));
     eduLayout->addLayout(eduForm);
-    contentLayout->addWidget(eduCard);
 
     // 3. Kỹ năng chuyên môn
     const auto &skills = cand.getSkill();
     if (!skills.empty()) {
-        auto [skCard, skLayout] = makeSection(scrollContent, "Kỹ năng chuyên môn", "⚡");
+        QVBoxLayout *skLayout = makeSection(dLayout, "Kỹ năng chuyên môn", "⚡", true);
         QHBoxLayout *badgesLayout = new QHBoxLayout();
         badgesLayout->setSpacing(8);
         for (const auto &sk : skills) {
-            QLabel *b = new QLabel(QString::fromStdString(sk.name) + " (Lv " + QString::number(sk.level) + ")", skCard);
+            QLabel *b = new QLabel(QString::fromStdString(sk.name) + " (Lv " + QString::number(sk.level) + ")", detailCard);
             b->setStyleSheet("background-color: #FCE8E2; color: #B95334; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 4px 8px;");
             badgesLayout->addWidget(b);
         }
         badgesLayout->addStretch();
         skLayout->addLayout(badgesLayout);
-        contentLayout->addWidget(skCard);
     }
 
     // 4. Chứng chỉ
     const auto &certs = cand.getCertificate();
     if (!certs.empty()) {
-        auto [certCard, certLayout] = makeSection(scrollContent, "Chứng chỉ chuyên ngành", "📜");
+        QVBoxLayout *certLayout = makeSection(dLayout, "Chứng chỉ chuyên ngành & Ngoại ngữ", "📜", true);
         for (const auto &c : certs) {
-            QString cText = QString("• Đơn vị cấp: %1 — Điểm số: %2")
-                .arg(QString::fromStdString(c.organization))
-                .arg(c.value);
-            QLabel *cLbl = new QLabel(cText, certCard);
+            QString typeName = "Chứng chỉ";
+            if (c.certificateTypeID == 1) typeName = "IELTS";
+            else if (c.certificateTypeID == 2) typeName = "TOEIC";
+            else if (c.certificateTypeID == 3) typeName = "TOEFL / HSK";
+            else if (c.certificateTypeID == 4) typeName = "JLPT (Tiếng Nhật)";
+            else if (c.certificateTypeID == 5) typeName = "Cloud / AWS";
+            else typeName = "Chuyên ngành";
+
+            QString valStr;
+            if (c.certificateTypeID == 1) { // IELTS dạng 7.0, 6.5
+                valStr = QString::number(c.value, 'f', 1);
+            } else if (c.certificateTypeID == 2) { // TOEIC dạng số nguyên 700, 650
+                valStr = QString::number(static_cast<int>(std::round(c.value)));
+            } else if (c.certificateTypeID == 4) { // JLPT dạng N3, N2...
+                int n = static_cast<int>(std::round(c.value));
+                valStr = (n >= 1 && n <= 5) ? QString("N%1").arg(n) : QString::number(n);
+            } else {
+                valStr = (c.value == static_cast<int>(c.value)) ? QString::number(static_cast<int>(c.value)) : QString::number(c.value, 'f', 1);
+            }
+
+            QString orgStr = c.organization.empty() ? "Tổ chức uy tín" : QString::fromStdString(c.organization);
+            QString cText = QString("• %1: %2 (%3)").arg(typeName).arg(valStr).arg(orgStr);
+            QLabel *cLbl = new QLabel(cText, detailCard);
             cLbl->setStyleSheet("font-size: 12px; color: #333;");
             certLayout->addWidget(cLbl);
         }
-        contentLayout->addWidget(certCard);
     }
 
     // 5. Kinh nghiệm làm việc
     const auto &exps = cand.getExperiences();
     if (!exps.empty()) {
-        auto [expCard, expLayout] = makeSection(scrollContent, "Kinh nghiệm làm việc", "💼");
+        QVBoxLayout *expLayout = makeSection(dLayout, "Kinh nghiệm làm việc", "💼", true);
         for (const auto &e : exps) {
             QVBoxLayout *eBox = new QVBoxLayout();
             eBox->setSpacing(2);
-            QLabel *posLbl = new QLabel(QString::fromStdString(e.getPosition()) + " @ " + QString::fromStdString(e.getCompanyName()), expCard);
+            QLabel *posLbl = new QLabel(QString::fromStdString(e.getPosition()) + " @ " + QString::fromStdString(e.getCompanyName()), detailCard);
             posLbl->setStyleSheet("font-size: 13px; font-weight: 600; color: #1E1E1E;");
-            QLabel *dateLbl = new QLabel(QString::fromStdString(e.getStartDate()) + " → " + QString::fromStdString(e.getEndDate()), expCard);
+            QLabel *dateLbl = new QLabel(QString::fromStdString(e.getStartDate()) + " → " + QString::fromStdString(e.getEndDate()), detailCard);
             dateLbl->setStyleSheet("font-size: 11px; color: #6C757D;");
             eBox->addWidget(posLbl);
             eBox->addWidget(dateLbl);
             if (!e.getDescription().empty()) {
-                QLabel *descLbl = new QLabel(QString::fromStdString(e.getDescription()), expCard);
-                descLbl->setStyleSheet("font-size: 12px; color: #555;");
+                QLabel *descLbl = new QLabel(QString::fromStdString(e.getDescription()), detailCard);
+                descLbl->setStyleSheet("font-size: 12px; color: #555; padding-left: 12px;");
                 descLbl->setWordWrap(true);
                 eBox->addWidget(descLbl);
             }
             expLayout->addLayout(eBox);
         }
-        contentLayout->addWidget(expCard);
     }
+
+    contentLayout->addWidget(detailCard);
 
     scrollArea->setWidget(scrollContent);
     mainLayout->addWidget(scrollArea, 1);
@@ -1197,6 +1225,7 @@ void CompanyPage::onCreateJobClicked() {
     QDialog dialog(this);
     dialog.setWindowTitle("Đăng tin tuyển dụng mới");
     dialog.setFixedSize(580, 580);
+    dialog.setStyleSheet("background-color: #FBF8F5;");
 
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
     layout->setContentsMargins(18, 18, 18, 18);
@@ -1290,6 +1319,7 @@ void CompanyPage::onCreateJobClicked() {
 
     QListWidget *skillsListWidget = new QListWidget(reqTab);
     skillsListWidget->setMaximumHeight(80);
+    skillsListWidget->setStyleSheet("background-color: #FFFFFF; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 4px;");
     reqLayout->addWidget(skillsListWidget);
 
     QPushButton *removeSkillBtn = new QPushButton("✕ Xóa kỹ năng đã chọn", reqTab);
@@ -1303,14 +1333,43 @@ void CompanyPage::onCreateJobClicked() {
 
     QHBoxLayout *certInputRow = new QHBoxLayout();
     QComboBox *certTypeCombo = new QComboBox(reqTab);
-    certTypeCombo->addItem("IELTS", 1);
-    certTypeCombo->addItem("TOEIC L&R", 2);
-    certTypeCombo->addItem("HSK", 3);
+    certTypeCombo->addItem("IELTS (Tiếng Anh)", 1);
+    certTypeCombo->addItem("TOEIC (Tiếng Anh)", 2);
+    certTypeCombo->addItem("TOEFL / HSK", 3);
+    certTypeCombo->addItem("JLPT (Tiếng Nhật)", 4);
+    certTypeCombo->addItem("Cloud / AWS", 5);
 
     QDoubleSpinBox *certScoreSpin = new QDoubleSpinBox(reqTab);
     certScoreSpin->setRange(0.0, 990.0);
     certScoreSpin->setSingleStep(0.5);
     certScoreSpin->setValue(6.5);
+
+    auto updateSpinForCert = [certScoreSpin](int typeId) {
+        if (typeId == 1) { // IELTS
+            certScoreSpin->setRange(1.0, 9.0);
+            certScoreSpin->setSingleStep(0.5);
+            certScoreSpin->setValue(6.5);
+        } else if (typeId == 2) { // TOEIC
+            certScoreSpin->setRange(100.0, 990.0);
+            certScoreSpin->setSingleStep(50.0);
+            certScoreSpin->setValue(650.0);
+        } else if (typeId == 3) { // TOEFL / HSK
+            certScoreSpin->setRange(1.0, 120.0);
+            certScoreSpin->setSingleStep(5.0);
+            certScoreSpin->setValue(80.0);
+        } else if (typeId == 4) { // JLPT
+            certScoreSpin->setRange(1.0, 5.0);
+            certScoreSpin->setSingleStep(1.0);
+            certScoreSpin->setValue(3.0);
+        } else if (typeId == 5) { // Cloud / AWS
+            certScoreSpin->setRange(1.0, 5.0);
+            certScoreSpin->setSingleStep(1.0);
+            certScoreSpin->setValue(1.0);
+        }
+    };
+    QObject::connect(certTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), [certTypeCombo, updateSpinForCert](int) {
+        updateSpinForCert(certTypeCombo->currentData().toInt());
+    });
 
     QComboBox *certReqCombo = new QComboBox(reqTab);
     certReqCombo->addItem("Bắt buộc", 1);
@@ -1327,6 +1386,7 @@ void CompanyPage::onCreateJobClicked() {
 
     QListWidget *certsListWidget = new QListWidget(reqTab);
     certsListWidget->setMaximumHeight(80);
+    certsListWidget->setStyleSheet("background-color: #FFFFFF; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 4px;");
     reqLayout->addWidget(certsListWidget);
 
     QPushButton *removeCertBtn = new QPushButton("✕ Xóa chứng chỉ đã chọn", reqTab);
@@ -1373,8 +1433,8 @@ void CompanyPage::onCreateJobClicked() {
         group.alternatives.push_back(req);
         addedCertGroups.push_back(group);
 
-        QString reqStr = isReq ? "Bắt buộc" : "Ưu tiên";
-        certsListWidget->addItem(QString("• %1 >= %2 (%3)").arg(typeName).arg(minVal).arg(reqStr));
+        QString reqBadge = isReq ? "[BẮT BUỘC]" : "[ƯU TIÊN]";
+        certsListWidget->addItem(QString("%1 %2 >= %3").arg(reqBadge).arg(typeName).arg(minVal));
     });
 
     connect(removeCertBtn, &QPushButton::clicked, [&]() {
@@ -1389,7 +1449,7 @@ void CompanyPage::onCreateJobClicked() {
     QHBoxLayout *btnLayout = new QHBoxLayout();
     btnLayout->addStretch();
     QPushButton *cancelBtn = new QPushButton("Hủy bỏ", &dialog);
-    cancelBtn->setStyleSheet("background-color: transparent; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px;");
+    cancelBtn->setStyleSheet("background-color: transparent; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px; font-weight: 500;");
     QPushButton *saveBtn = new QPushButton("Đăng tin ngay", &dialog);
     saveBtn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 600; border: none; border-radius: 6px; padding: 6px 18px;");
 
@@ -1448,6 +1508,7 @@ void CompanyPage::onEditJobClicked(int jobId) {
     QDialog dialog(this);
     dialog.setWindowTitle("Chỉnh sửa tin tuyển dụng");
     dialog.setFixedSize(580, 580);
+    dialog.setStyleSheet("background-color: #FBF8F5;");
 
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
     layout->setContentsMargins(18, 18, 18, 18);
@@ -1543,6 +1604,7 @@ void CompanyPage::onEditJobClicked(int jobId) {
 
     QListWidget *skillsListWidget = new QListWidget(reqTab);
     skillsListWidget->setMaximumHeight(80);
+    skillsListWidget->setStyleSheet("background-color: #FFFFFF; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 4px;");
     for (const auto& s : addedSkills) {
         skillsListWidget->addItem(QString("• %1 — Level tối thiểu: %2/5").arg(QString::fromStdString(s.name)).arg(s.level));
     }
@@ -1559,14 +1621,43 @@ void CompanyPage::onEditJobClicked(int jobId) {
 
     QHBoxLayout *certInputRow = new QHBoxLayout();
     QComboBox *certTypeCombo = new QComboBox(reqTab);
-    certTypeCombo->addItem("IELTS", 1);
-    certTypeCombo->addItem("TOEIC L&R", 2);
-    certTypeCombo->addItem("HSK", 3);
+    certTypeCombo->addItem("IELTS (Tiếng Anh)", 1);
+    certTypeCombo->addItem("TOEIC (Tiếng Anh)", 2);
+    certTypeCombo->addItem("TOEFL / HSK", 3);
+    certTypeCombo->addItem("JLPT (Tiếng Nhật)", 4);
+    certTypeCombo->addItem("Cloud / AWS", 5);
 
     QDoubleSpinBox *certScoreSpin = new QDoubleSpinBox(reqTab);
     certScoreSpin->setRange(0.0, 990.0);
     certScoreSpin->setSingleStep(0.5);
     certScoreSpin->setValue(6.5);
+
+    auto updateSpinForCert = [certScoreSpin](int typeId) {
+        if (typeId == 1) { // IELTS
+            certScoreSpin->setRange(1.0, 9.0);
+            certScoreSpin->setSingleStep(0.5);
+            certScoreSpin->setValue(6.5);
+        } else if (typeId == 2) { // TOEIC
+            certScoreSpin->setRange(100.0, 990.0);
+            certScoreSpin->setSingleStep(50.0);
+            certScoreSpin->setValue(650.0);
+        } else if (typeId == 3) { // TOEFL / HSK
+            certScoreSpin->setRange(1.0, 120.0);
+            certScoreSpin->setSingleStep(5.0);
+            certScoreSpin->setValue(80.0);
+        } else if (typeId == 4) { // JLPT
+            certScoreSpin->setRange(1.0, 5.0);
+            certScoreSpin->setSingleStep(1.0);
+            certScoreSpin->setValue(3.0);
+        } else if (typeId == 5) { // Cloud / AWS
+            certScoreSpin->setRange(1.0, 5.0);
+            certScoreSpin->setSingleStep(1.0);
+            certScoreSpin->setValue(1.0);
+        }
+    };
+    QObject::connect(certTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), [certTypeCombo, updateSpinForCert](int) {
+        updateSpinForCert(certTypeCombo->currentData().toInt());
+    });
 
     QComboBox *certReqCombo = new QComboBox(reqTab);
     certReqCombo->addItem("Bắt buộc", 1);
@@ -1583,11 +1674,19 @@ void CompanyPage::onEditJobClicked(int jobId) {
 
     QListWidget *certsListWidget = new QListWidget(reqTab);
     certsListWidget->setMaximumHeight(80);
+    certsListWidget->setStyleSheet("background-color: #FFFFFF; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 4px;");
     for (const auto& grp : addedCertGroups) {
         for (const auto& alt : grp.alternatives) {
-            QString typeName = (alt.certificateTypeID == 1 ? "IELTS" : (alt.certificateTypeID == 2 ? "TOEIC L&R" : "HSK"));
-            QString reqStr = grp.isRequired ? "Bắt buộc" : "Ưu tiên";
-            certsListWidget->addItem(QString("• %1 >= %2 (%3)").arg(typeName).arg(alt.minValue).arg(reqStr));
+            QString typeName = "Chứng chỉ";
+            if (alt.certificateTypeID == 1) typeName = "IELTS";
+            else if (alt.certificateTypeID == 2) typeName = "TOEIC";
+            else if (alt.certificateTypeID == 3) typeName = "TOEFL / HSK";
+            else if (alt.certificateTypeID == 4) typeName = "JLPT";
+            else if (alt.certificateTypeID == 5) typeName = "Cloud / AWS";
+            else typeName = "Chuyên môn";
+
+            QString reqBadge = grp.isRequired ? "[BẮT BUỘC]" : "[ƯU TIÊN]";
+            certsListWidget->addItem(QString("%1 %2 >= %3").arg(reqBadge).arg(typeName).arg(alt.minValue));
         }
     }
     reqLayout->addWidget(certsListWidget);
@@ -1636,8 +1735,8 @@ void CompanyPage::onEditJobClicked(int jobId) {
         group.alternatives.push_back(req);
         addedCertGroups.push_back(group);
 
-        QString reqStr = isReq ? "Bắt buộc" : "Ưu tiên";
-        certsListWidget->addItem(QString("• %1 >= %2 (%3)").arg(typeName).arg(minVal).arg(reqStr));
+        QString reqBadge = isReq ? "[BẮT BUỘC]" : "[ƯU TIÊN]";
+        certsListWidget->addItem(QString("%1 %2 >= %3").arg(reqBadge).arg(typeName).arg(minVal));
     });
 
     connect(removeCertBtn, &QPushButton::clicked, [&]() {
@@ -1652,7 +1751,7 @@ void CompanyPage::onEditJobClicked(int jobId) {
     QHBoxLayout *btnLayout = new QHBoxLayout();
     btnLayout->addStretch();
     QPushButton *cancelBtn = new QPushButton("Hủy bỏ", &dialog);
-    cancelBtn->setStyleSheet("background-color: transparent; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px;");
+    cancelBtn->setStyleSheet("background-color: transparent; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px; font-weight: 500;");
     QPushButton *saveBtn = new QPushButton("✓ Lưu thay đổi", &dialog);
     saveBtn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 600; border: none; border-radius: 6px; padding: 6px 18px;");
 

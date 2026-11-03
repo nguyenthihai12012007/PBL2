@@ -315,6 +315,162 @@ public:
                 outline: none;
             }
 
+            /* Menu xổ xuống của ComboBox: Khóa nền trắng và chữ đen rõ nét */
+            QComboBox::drop-down {
+                border: none;
+                width: 22px;
+            }
+
+            QComboBox QAbstractItemView {
+                background-color: #FFFFFF;
+                color: #1E1E1E;
+                border: 1px solid #ECE5DE;
+                border-radius: 6px;
+                padding: 4px;
+                outline: none;
+                selection-background-color: #FFF4ED;
+                selection-color: #B95334;
+            }
+
+            QComboBox QAbstractItemView::item {
+                color: #1E1E1E;
+                padding: 6px 10px;
+                border-radius: 4px;
+                min-height: 24px;
+            }
+
+            QComboBox QAbstractItemView::item:hover,
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #FFF4ED;
+                color: #B95334;
+            }
+
+            /* ========================================================= */
+            /* BẢNG BIỂU & DANH SÁCH (TABLE & LIST WIDGETS)              */
+            /* ========================================================= */
+            QTableWidget, QTableView {
+                background-color: #FFFFFF;
+                color: #1E1E1E;
+                gridline-color: #ECE5DE;
+                border: 1px solid #ECE5DE;
+                border-radius: 8px;
+                outline: none;
+            }
+
+            QTableWidget::item, QTableView::item {
+                color: #1E1E1E;
+                padding: 6px 10px;
+                background-color: #FFFFFF;
+            }
+
+            QTableWidget::item:selected, QTableView::item:selected {
+                background-color: #FFF4ED;
+                color: #B95334;
+                font-weight: 600;
+            }
+
+            QHeaderView::section {
+                background-color: #F8F4F0;
+                color: #1E1E1E;
+                font-weight: 700;
+                font-size: 12px;
+                border: none;
+                border-bottom: 1.5px solid #ECE5DE;
+                padding: 6px 10px;
+            }
+
+            QListWidget, QListView {
+                background-color: #FFFFFF;
+                color: #1E1E1E;
+                border: 1px solid #ECE5DE;
+                border-radius: 8px;
+                padding: 4px;
+                outline: none;
+            }
+
+            QListWidget::item, QListView::item {
+                color: #1E1E1E;
+                background-color: #FFFFFF;
+                padding: 6px 10px;
+                border-radius: 6px;
+                margin-bottom: 2px;
+            }
+
+            QListWidget::item:hover, QListView::item:hover {
+                background-color: #F8F4F0;
+                color: #1E1E1E;
+            }
+
+            QListWidget::item:selected, QListView::item:selected {
+                background-color: #FFF4ED;
+                color: #B95334;
+                font-weight: 600;
+            }
+
+            /* ========================================================= */
+            /* THẺ TAB (TAB WIDGET & TAB BAR)                            */
+            /* ========================================================= */
+            QTabWidget::pane {
+                border: 1px solid #ECE5DE;
+                border-radius: 8px;
+                background-color: #FFFFFF;
+                top: -1px;
+            }
+
+            QTabBar::tab {
+                background-color: #F5EBE1;
+                color: #6C757D;
+                font-weight: 600;
+                font-size: 12px;
+                padding: 8px 18px;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                margin-right: 4px;
+                border: 1px solid #ECE5DE;
+                border-bottom: none;
+            }
+
+            QTabBar::tab:selected {
+                background-color: #B95334;
+                color: #FFFFFF;
+                font-weight: 700;
+            }
+
+            QTabBar::tab:hover:!selected {
+                background-color: #EFE4DA;
+                color: #1E1E1E;
+            }
+
+            /* ========================================================= */
+            /* MENU NGỮ CẢNH (CONTEXT MENU / 3 CHẤM)                     */
+            /* ========================================================= */
+            QMenu {
+                background-color: #FFFFFF;
+                color: #1E1E1E;
+                border: 1px solid #ECE5DE;
+                border-radius: 8px;
+                padding: 6px 0px;
+            }
+
+            QMenu::item {
+                background-color: transparent;
+                color: #1E1E1E;
+                padding: 8px 24px 8px 16px;
+                font-size: 13px;
+            }
+
+            QMenu::item:selected {
+                background-color: #FFF4ED;
+                color: #B95334;
+                font-weight: 600;
+            }
+
+            QMenu::separator {
+                height: 1px;
+                background-color: #ECE5DE;
+                margin: 4px 8px;
+            }
+
             /* ========================================================= */
             /* SCROLLBAR TINH TẾ                                         */
             /* ========================================================= */

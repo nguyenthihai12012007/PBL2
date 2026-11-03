@@ -547,86 +547,104 @@ void MainWindow::showCandidateProfileDialog() {
     cLayout->setContentsMargins(0, 0, 0, 0);
     cLayout->setSpacing(12);
 
-    auto makeSection = [](QWidget *parent, const QString &title, const QString &icon) -> std::pair<QFrame*, QVBoxLayout*> {
-        QFrame *frame = new QFrame(parent);
-        frame->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 14px;");
-        QVBoxLayout *layout = new QVBoxLayout(frame);
-        layout->setSpacing(8);
-        QLabel *l = new QLabel(icon + " " + title, frame);
-        l->setStyleSheet("font-size: 14px; font-weight: 700; color: #1E1E1E;");
-        layout->addWidget(l);
-        return {frame, layout};
+    // Thẻ thông tin hợp nhất, loại bỏ các ô trắng phân mục rời rạc chiếm diện tích
+    QFrame *detailsCard = new QFrame(content);
+    detailsCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 16px;");
+    QVBoxLayout *dLayout = new QVBoxLayout(detailsCard);
+    dLayout->setSpacing(12);
+
+    auto makeSection = [detailsCard](QVBoxLayout *parentLayout, const QString &title, const QString &icon, bool addDivider) -> QVBoxLayout* {
+        if (addDivider) {
+            QFrame *line = new QFrame(detailsCard);
+            line->setFrameShape(QFrame::HLine);
+            line->setFrameShadow(QFrame::Sunken);
+            line->setStyleSheet("background-color: #F0EAE4; max-height: 1px; border: none; margin: 4px 0px;");
+            parentLayout->addWidget(line);
+        }
+        QVBoxLayout *secLay = new QVBoxLayout();
+        secLay->setSpacing(6);
+        QLabel *l = new QLabel(icon + " " + title, detailsCard);
+        l->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
+        secLay->addWidget(l);
+        parentLayout->addLayout(secLay);
+        return secLay;
     };
 
     // 1. Thông tin cá nhân
-    auto [pFrame, pLay] = makeSection(content, "Thông tin cá nhân & Liên hệ", "👤");
+    QVBoxLayout *pLay = makeSection(dLayout, "Thông tin cá nhân & Liên hệ", "👤", false);
     QLabel *contactInfo = new QLabel(QString(
         "• Email: %1\n• Điện thoại: %2\n• Ngày sinh: %3 (%4)\n• Địa chỉ: %5"
     ).arg(currentEmail)
      .arg(QString::fromStdString(p.phoneCandidate))
      .arg(QString::fromStdString(p.birthday))
      .arg(QString::fromStdString(p.gender))
-     .arg(QString::fromStdString(p.addressCandidate)), pFrame);
+     .arg(QString::fromStdString(p.addressCandidate)), detailsCard);
     contactInfo->setStyleSheet("font-size: 12px; line-height: 1.5; color: #333333;");
     pLay->addWidget(contactInfo);
-    cLayout->addWidget(pFrame);
 
     // 2. Học vấn & GPA
-    auto [eduFrame, eduLay] = makeSection(content, "Học vấn & Trình độ", "🎓");
+    QVBoxLayout *eduLay = makeSection(dLayout, "Học vấn & Trình độ", "🎓", true);
     QLabel *eduInfo = new QLabel(QString(
         "• Trường đào tạo: %1\n• Chuyên ngành: %2\n• Trình độ: %3\n• Điểm GPA: %4 / 4.00"
     ).arg(QString::fromStdString(prof.school))
      .arg(QString::fromStdString(prof.major))
      .arg(QString::fromStdString(prof.educationLevel))
-     .arg(QString::number(prof.GPA, 'f', 2)), eduFrame);
+     .arg(QString::number(prof.GPA, 'f', 2)), detailsCard);
     eduInfo->setStyleSheet("font-size: 12px; line-height: 1.5; color: #333333;");
     eduLay->addWidget(eduInfo);
-    cLayout->addWidget(eduFrame);
 
     // 3. Kỹ năng
     const auto &skills = cand.getSkill();
     if (!skills.empty()) {
-        auto [skFrame, skLay] = makeSection(content, "Kỹ năng chuyên môn", "⚡");
+        QVBoxLayout *skLay = makeSection(dLayout, "Kỹ năng chuyên môn", "⚡", true);
         QHBoxLayout *tagsLay = new QHBoxLayout();
         tagsLay->setSpacing(8);
         for (const auto &sk : skills) {
-            QLabel *tag = new QLabel(QString::fromStdString(sk.name) + " (Lv " + QString::number(sk.level) + ")", skFrame);
+            QLabel *tag = new QLabel(QString::fromStdString(sk.name) + " (Lv " + QString::number(sk.level) + ")", detailsCard);
             tag->setStyleSheet("background-color: #FCE8E2; color: #B95334; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 4px 8px;");
             tagsLay->addWidget(tag);
         }
         tagsLay->addStretch();
         skLay->addLayout(tagsLay);
-        cLayout->addWidget(skFrame);
     }
 
     // 4. Chứng chỉ chuyên ngành & Ngoại ngữ
     const auto &certs = cand.getCertificate();
     if (!certs.empty()) {
-        auto [certFrame, certLay] = makeSection(content, "Chứng chỉ chuyên ngành & Ngoại ngữ", "📜");
+        QVBoxLayout *certLay = makeSection(dLayout, "Chứng chỉ chuyên ngành & Ngoại ngữ", "📜", true);
         for (const auto &c : certs) {
             QString typeName = "Chứng chỉ";
             if (c.certificateTypeID == 1) typeName = "IELTS";
             else if (c.certificateTypeID == 2) typeName = "TOEIC";
-            else if (c.certificateTypeID == 3) typeName = "TOEFL";
-            else if (c.certificateTypeID == 4) typeName = "JLPT";
-            else if (c.certificateTypeID == 5) typeName = "Cloud/AWS";
+            else if (c.certificateTypeID == 3) typeName = "TOEFL / HSK";
+            else if (c.certificateTypeID == 4) typeName = "JLPT (Tiếng Nhật)";
+            else if (c.certificateTypeID == 5) typeName = "Cloud / AWS";
             else typeName = "Chuyên ngành";
 
-            QString cText = QString("• %1: %2 điểm (%3)")
-                .arg(typeName)
-                .arg(c.value)
-                .arg(QString::fromStdString(c.organization.empty() ? "Tổ chức uy tín" : c.organization));
-            QLabel *cLbl = new QLabel(cText, certFrame);
+            QString valStr;
+            if (c.certificateTypeID == 1) { // IELTS dạng 7.0, 6.5
+                valStr = QString::number(c.value, 'f', 1);
+            } else if (c.certificateTypeID == 2) { // TOEIC dạng số nguyên 700, 650
+                valStr = QString::number(static_cast<int>(std::round(c.value)));
+            } else if (c.certificateTypeID == 4) { // JLPT dạng N3, N2...
+                int n = static_cast<int>(std::round(c.value));
+                valStr = (n >= 1 && n <= 5) ? QString("N%1").arg(n) : QString::number(n);
+            } else {
+                valStr = (c.value == static_cast<int>(c.value)) ? QString::number(static_cast<int>(c.value)) : QString::number(c.value, 'f', 1);
+            }
+
+            QString orgStr = c.organization.empty() ? "Tổ chức uy tín" : QString::fromStdString(c.organization);
+            QString cText = QString("• %1: %2 (%3)").arg(typeName).arg(valStr).arg(orgStr);
+            QLabel *cLbl = new QLabel(cText, detailsCard);
             cLbl->setStyleSheet("font-size: 12px; color: #333333;");
             certLay->addWidget(cLbl);
         }
-        cLayout->addWidget(certFrame);
     }
 
     // 5. Kinh nghiệm làm việc
     const auto &exps = cand.getExperiences();
     if (!exps.empty()) {
-        auto [expFrame, expLay] = makeSection(content, "Kinh nghiệm làm việc", "💼");
+        QVBoxLayout *expLay = makeSection(dLayout, "Kinh nghiệm làm việc", "💼", true);
         for (const auto &e : exps) {
             QVBoxLayout *eBox = new QVBoxLayout();
             eBox->setSpacing(2);
@@ -634,19 +652,20 @@ void MainWindow::showCandidateProfileDialog() {
                 .arg(QString::fromStdString(e.getPosition()))
                 .arg(QString::fromStdString(e.getCompanyName()))
                 .arg(QString::fromStdString(e.getStartDate()))
-                .arg(QString::fromStdString(e.getEndDate())), expFrame);
+                .arg(QString::fromStdString(e.getEndDate())), detailsCard);
             eLbl->setStyleSheet("font-size: 12px; font-weight: 600; color: #1E1E1E;");
             eBox->addWidget(eLbl);
             if (!e.getDescription().empty()) {
-                QLabel *descLbl = new QLabel(QString::fromStdString(e.getDescription()), expFrame);
-                descLbl->setStyleSheet("font-size: 11px; color: #555555;");
+                QLabel *descLbl = new QLabel(QString::fromStdString(e.getDescription()), detailsCard);
+                descLbl->setStyleSheet("font-size: 11px; color: #555555; padding-left: 12px;");
                 descLbl->setWordWrap(true);
                 eBox->addWidget(descLbl);
             }
             expLay->addLayout(eBox);
         }
-        cLayout->addWidget(expFrame);
     }
+
+    cLayout->addWidget(detailsCard);
 
     scrollArea->setWidget(content);
     mainLayout->addWidget(scrollArea, 1);
@@ -759,7 +778,7 @@ void MainWindow::showCandidateApplicationsDialog() {
 
         QPushButton *viewJobBtn = new QPushButton("Xem tin", card);
         viewJobBtn->setCursor(Qt::PointingHandCursor);
-        viewJobBtn->setStyleSheet("background-color: transparent; border: 1px solid #ECE5DE; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600;");
+        viewJobBtn->setStyleSheet("background-color: transparent; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600;");
         connect(viewJobBtn, &QPushButton::clicked, this, [this, jobId, &dialog]() {
             dialog.accept();
             onShowJobDetail(jobId);

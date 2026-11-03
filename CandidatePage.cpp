@@ -101,13 +101,13 @@ void CandidatePage::setupUI() {
     leftCol->addLayout(jobsListLayout);
     leftCol->addStretch();
 
-    dashboardLayout->addLayout(leftCol, 65);
+    dashboardLayout->addLayout(leftCol, 70);
 
     // =========================================================================
-    // RIGHT COLUMN (~35%): Hồ sơ cá nhân & Đơn ứng tuyển gần đây
+    // RIGHT COLUMN (~30%): Hồ sơ cá nhân & Đơn ứng tuyển gần đây
     // =========================================================================
     QVBoxLayout *rightCol = new QVBoxLayout();
-    rightCol->setSpacing(20);
+    rightCol->setSpacing(16);
 
     // Card 1: Hồ sơ của tôi
     QFrame *profileCard = new QFrame(scrollContent);
@@ -116,12 +116,12 @@ void CandidatePage::setupUI() {
         "#cardBox {"
         "   background-color: #FFFFFF;"
         "   border: 1px solid #ECE5DE;"
-        "   border-radius: 12px;"
-        "   padding: 18px;"
+        "   border-radius: 10px;"
+        "   padding: 14px;"
         "}"
     );
     profileContentLayout = new QVBoxLayout(profileCard);
-    profileContentLayout->setSpacing(14);
+    profileContentLayout->setSpacing(12);
     rightCol->addWidget(profileCard);
 
     // Card 2: Đơn ứng tuyển gần đây
@@ -131,16 +131,16 @@ void CandidatePage::setupUI() {
         "#cardBox {"
         "   background-color: #FFFFFF;"
         "   border: 1px solid #ECE5DE;"
-        "   border-radius: 12px;"
-        "   padding: 18px;"
+        "   border-radius: 10px;"
+        "   padding: 14px;"
         "}"
     );
     recentAppsLayout = new QVBoxLayout(recentAppsCard);
-    recentAppsLayout->setSpacing(14);
+    recentAppsLayout->setSpacing(12);
     rightCol->addWidget(recentAppsCard);
 
     rightCol->addStretch();
-    dashboardLayout->addLayout(rightCol, 35);
+    dashboardLayout->addLayout(rightCol, 30);
 
     contentLayout->addLayout(dashboardLayout);
     scrollArea->setWidget(scrollContent);
@@ -319,7 +319,7 @@ void CandidatePage::buildProfileCard() {
     eduBox->addWidget(eduTitle);
 
     QFrame *eduCard = new QFrame(this);
-    eduCard->setStyleSheet("background-color: #FDFBF9; border: 1px solid #ECE5DE; border-radius: 8px; padding: 8px 12px;");
+    eduCard->setStyleSheet("background-color: #FAF6F2; border: none; border-left: 3px solid #B95334; border-radius: 4px; padding: 6px 10px;");
     QVBoxLayout *eduCardLay = new QVBoxLayout(eduCard);
     eduCardLay->setSpacing(4);
 
@@ -422,13 +422,25 @@ void CandidatePage::buildProfileCard() {
             QString typeName = "Chứng chỉ";
             if (c.certificateTypeID == 1) typeName = "IELTS";
             else if (c.certificateTypeID == 2) typeName = "TOEIC";
-            else if (c.certificateTypeID == 3) typeName = "TOEFL";
-            else if (c.certificateTypeID == 4) typeName = "JLPT";
-            else if (c.certificateTypeID == 5) typeName = "Cloud/AWS";
+            else if (c.certificateTypeID == 3) typeName = "TOEFL / HSK";
+            else if (c.certificateTypeID == 4) typeName = "JLPT (Tiếng Nhật)";
+            else if (c.certificateTypeID == 5) typeName = "Cloud / AWS";
             else typeName = "Chuyên ngành";
 
             QString orgStr = QString::fromStdString(c.organization.empty() ? "Tổ chức uy tín" : c.organization);
-            QString certLine = QString("• %1: %2 điểm (%3)").arg(typeName).arg(c.value).arg(orgStr);
+            QString valStr;
+            if (c.certificateTypeID == 1) { // IELTS dạng 7.0, 6.5
+                valStr = QString::number(c.value, 'f', 1);
+            } else if (c.certificateTypeID == 2) { // TOEIC dạng số nguyên 700, 650
+                valStr = QString::number(static_cast<int>(std::round(c.value)));
+            } else if (c.certificateTypeID == 4) { // JLPT dạng N3, N2...
+                int n = static_cast<int>(std::round(c.value));
+                valStr = (n >= 1 && n <= 5) ? QString("N%1").arg(n) : QString::number(n);
+            } else {
+                valStr = (c.value == static_cast<int>(c.value)) ? QString::number(static_cast<int>(c.value)) : QString::number(c.value, 'f', 1);
+            }
+
+            QString certLine = QString("• %1: %2 (%3)").arg(typeName).arg(valStr).arg(orgStr);
 
             QHBoxLayout *certRow = new QHBoxLayout();
             certRow->setSpacing(8);
@@ -484,7 +496,7 @@ void CandidatePage::buildProfileCard() {
         for (int i = 0; i < static_cast<int>(exps.size()); ++i) {
             const auto &e = exps[i];
             QFrame *expItem = new QFrame(this);
-            expItem->setStyleSheet("background-color: #FDFBF9; border: 1px solid #ECE5DE; border-radius: 6px; padding: 8px 12px;");
+            expItem->setStyleSheet("background-color: #FAF6F2; border: none; border-left: 3px solid #B95334; border-radius: 4px; padding: 6px 10px;");
             QVBoxLayout *expItemLay = new QVBoxLayout(expItem);
             expItemLay->setSpacing(4);
 
@@ -1091,11 +1103,49 @@ void CandidatePage::onAddCertificateClicked() {
     orgEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QDoubleSpinBox *scoreSpin = new QDoubleSpinBox(formCard);
-    scoreSpin->setRange(0.0, 1000.0);
+    scoreSpin->setRange(1.0, 9.0);
     scoreSpin->setSingleStep(0.5);
     scoreSpin->setDecimals(1);
     scoreSpin->setValue(7.0);
     scoreSpin->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 5px 8px;");
+
+    auto configSpinForCertType = [scoreSpin](int typeId, bool setDefault) {
+        if (typeId == 1) { // IELTS: 7.0
+            scoreSpin->setRange(1.0, 9.0);
+            scoreSpin->setDecimals(1);
+            scoreSpin->setSingleStep(0.5);
+            if (setDefault) scoreSpin->setValue(7.0);
+        } else if (typeId == 2) { // TOEIC: 700
+            scoreSpin->setRange(100.0, 990.0);
+            scoreSpin->setDecimals(0);
+            scoreSpin->setSingleStep(50.0);
+            if (setDefault) scoreSpin->setValue(700.0);
+        } else if (typeId == 3) { // TOEFL / HSK
+            scoreSpin->setRange(1.0, 120.0);
+            scoreSpin->setDecimals(0);
+            scoreSpin->setSingleStep(5.0);
+            if (setDefault) scoreSpin->setValue(80.0);
+        } else if (typeId == 4) { // JLPT
+            scoreSpin->setRange(1.0, 5.0);
+            scoreSpin->setDecimals(0);
+            scoreSpin->setSingleStep(1.0);
+            if (setDefault) scoreSpin->setValue(3.0);
+        } else if (typeId == 5) { // Cloud / AWS
+            scoreSpin->setRange(1.0, 5.0);
+            scoreSpin->setDecimals(0);
+            scoreSpin->setSingleStep(1.0);
+            if (setDefault) scoreSpin->setValue(1.0);
+        } else {
+            scoreSpin->setRange(0.0, 1000.0);
+            scoreSpin->setDecimals(1);
+            scoreSpin->setSingleStep(0.5);
+            if (setDefault) scoreSpin->setValue(100.0);
+        }
+    };
+
+    QObject::connect(typeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), [typeCombo, configSpinForCertType](int) {
+        configSpinForCertType(typeCombo->currentData().toInt(), true);
+    });
 
     form->addRow("Loại chứng chỉ *:", typeCombo);
     form->addRow("Đơn vị / Tổ chức cấp *:", orgEdit);
@@ -1422,9 +1472,37 @@ void CandidatePage::onEditCertificateClicked(int index) {
     QDoubleSpinBox *scoreSpin = new QDoubleSpinBox(formCard);
     scoreSpin->setRange(0.0, 1000.0);
     scoreSpin->setSingleStep(0.5);
-    scoreSpin->setDecimals(1);
+    scoreSpin->setDecimals(curCert.certificateTypeID == 1 ? 1 : 0);
     scoreSpin->setValue(curCert.value);
     scoreSpin->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 5px 8px;");
+
+    auto configSpinForEdit = [scoreSpin](int typeId) {
+        if (typeId == 1) { // IELTS: 7.0
+            scoreSpin->setRange(1.0, 9.0);
+            scoreSpin->setDecimals(1);
+            scoreSpin->setSingleStep(0.5);
+        } else if (typeId == 2) { // TOEIC: 700
+            scoreSpin->setRange(100.0, 990.0);
+            scoreSpin->setDecimals(0);
+            scoreSpin->setSingleStep(50.0);
+        } else if (typeId == 3) { // TOEFL / HSK
+            scoreSpin->setRange(1.0, 120.0);
+            scoreSpin->setDecimals(0);
+            scoreSpin->setSingleStep(5.0);
+        } else if (typeId == 4 || typeId == 5) {
+            scoreSpin->setRange(1.0, 5.0);
+            scoreSpin->setDecimals(0);
+            scoreSpin->setSingleStep(1.0);
+        } else {
+            scoreSpin->setRange(0.0, 1000.0);
+            scoreSpin->setDecimals(1);
+            scoreSpin->setSingleStep(0.5);
+        }
+    };
+    configSpinForEdit(curCert.certificateTypeID);
+    QObject::connect(typeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), [typeCombo, configSpinForEdit](int) {
+        configSpinForEdit(typeCombo->currentData().toInt());
+    });
 
     form->addRow("Loại chứng chỉ *:", typeCombo);
     form->addRow("Đơn vị / Tổ chức cấp *:", orgEdit);
@@ -1639,9 +1717,9 @@ void CandidatePage::onEditExperienceClicked(int index) {
             currentExp.getIDexperience(),
             comp.toStdString(),
             pos.toStdString(),
+            descEdit->toPlainText().trimmed().toStdString(),
             startText,
             endText
-            endEdit->text().trimmed().toStdString()
         );
 
         if (m_candidate.updateExperience(index, updatedExp, m_data)) {

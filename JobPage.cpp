@@ -13,6 +13,38 @@
 #include <QLocale>
 #include <QString>
 
+namespace {
+QString formatCertificateRequirementName(int typeId, double minValue) {
+    switch (typeId) {
+        case 1: {
+            QString v = QString::number(minValue, 'f', 1);
+            return QString("IELTS >= %1").arg(v);
+        }
+        case 2: {
+            int score = static_cast<int>(std::round(minValue));
+            return QString("TOEIC >= %1").arg(score);
+        }
+        case 3: {
+            QString v = (minValue == static_cast<int>(minValue)) ? QString::number(static_cast<int>(minValue)) : QString::number(minValue, 'f', 1);
+            return QString("TOEFL / HSK >= %1").arg(v);
+        }
+        case 4: {
+            int n = static_cast<int>(std::round(minValue));
+            if (n >= 1 && n <= 5) return QString("JLPT N%1 trở lên").arg(n);
+            return QString("JLPT >= %1").arg(minValue);
+        }
+        case 5: {
+            int lvl = static_cast<int>(std::round(minValue));
+            return QString("Chứng chỉ Cloud / AWS (Level %1)").arg(lvl > 0 ? lvl : 1);
+        }
+        default: {
+            QString v = (minValue == static_cast<int>(minValue)) ? QString::number(static_cast<int>(minValue)) : QString::number(minValue, 'f', 1);
+            return QString("Chứng chỉ chuyên ngành (>= %1)").arg(v);
+        }
+    }
+}
+}
+
 JobPage::JobPage(QWidget *parent)
     : QWidget(parent) {
     setupUI();
@@ -156,27 +188,27 @@ void JobPage::setupUI() {
     reqForm->addRow("Kinh nghiệm:", expLabel);
     reqCardLayout->addLayout(reqForm);
 
-    QLabel *skillsHeader = new QLabel("Kỹ năng yêu cầu:", reqCard);
-    skillsHeader->setStyleSheet("font-weight: 600; color: #1e293b; margin-top: 6px;");
+    QLabel *skillsHeader = new QLabel("⚡ Kỹ năng yêu cầu:", reqCard);
+    skillsHeader->setStyleSheet("font-weight: 700; font-size: 13px; color: #1E1E1E; margin-top: 8px;");
     reqCardLayout->addWidget(skillsHeader);
 
-    skillsTable = new QTableWidget(reqCard);
-    skillsTable->setColumnCount(1);
-    skillsTable->setHorizontalHeaderLabels(QStringList() << "Yêu cầu kỹ năng");
-    skillsTable->horizontalHeader()->setStretchLastSection(true);
-    skillsTable->setMaximumHeight(120);
-    reqCardLayout->addWidget(skillsTable);
+    skillsContainer = new QWidget(reqCard);
+    skillsContainer->setStyleSheet("background: transparent;");
+    skillsLayout = new QVBoxLayout(skillsContainer);
+    skillsLayout->setContentsMargins(0, 2, 0, 4);
+    skillsLayout->setSpacing(6);
+    reqCardLayout->addWidget(skillsContainer);
 
-    QLabel *certsHeader = new QLabel("Chứng chỉ bắt buộc & ưu tiên:", reqCard);
-    certsHeader->setStyleSheet("font-weight: 600; color: #1e293b; margin-top: 6px;");
+    QLabel *certsHeader = new QLabel("📜 Chứng chỉ bắt buộc & ưu tiên:", reqCard);
+    certsHeader->setStyleSheet("font-weight: 700; font-size: 13px; color: #1E1E1E; margin-top: 8px;");
     reqCardLayout->addWidget(certsHeader);
 
-    certsTable = new QTableWidget(reqCard);
-    certsTable->setColumnCount(1);
-    certsTable->setHorizontalHeaderLabels(QStringList() << "Yêu cầu chứng chỉ");
-    certsTable->horizontalHeader()->setStretchLastSection(true);
-    certsTable->setMaximumHeight(100);
-    reqCardLayout->addWidget(certsTable);
+    certsContainer = new QWidget(reqCard);
+    certsContainer->setStyleSheet("background: transparent;");
+    certsLayout = new QVBoxLayout(certsContainer);
+    certsLayout->setContentsMargins(0, 2, 0, 4);
+    certsLayout->setSpacing(6);
+    reqCardLayout->addWidget(certsContainer);
 
     rightCol->addWidget(reqCard);
     gridColsLayout->addLayout(rightCol, 2);
@@ -235,16 +267,96 @@ void JobPage::loadJob(const MockJobDetail &job) {
     gpaLabel->setText(QString::number(job.minGpa, 'f', 2));
     expLabel->setText(QString("%1 tháng").arg(job.minExp));
 
-    // Skills
-    skillsTable->setRowCount(job.skills.size());
-    for (int i = 0; i < job.skills.size(); ++i) {
-        skillsTable->setItem(i, 0, new QTableWidgetItem("✓ " + job.skills[i]));
+    // Clear old items
+    auto clearLayout = [](QLayout *l, auto &self) -> void {
+        if (!l) return;
+        QLayoutItem *item;
+        while ((item = l->takeAt(0)) != nullptr) {
+            if (item->widget()) delete item->widget();
+            else if (item->layout()) self(item->layout(), self);
+            delete item;
+        }
+    };
+    clearLayout(skillsLayout, clearLayout);
+    clearLayout(certsLayout, clearLayout);
+
+    // Skills: Hiển thị dạng badge tag gọn gàng, không dùng bảng ô vuông chiếm diện tích
+    if (job.skills.isEmpty()) {
+        QLabel *emptySkill = new QLabel("Không yêu cầu kỹ năng bắt buộc", skillsContainer);
+        emptySkill->setStyleSheet("color: #6C757D; font-size: 12px; font-style: italic;");
+        skillsLayout->addWidget(emptySkill);
+    } else {
+        QHBoxLayout *tagsRow = new QHBoxLayout();
+        tagsRow->setSpacing(6);
+        for (const QString &skill : job.skills) {
+            QLabel *tag = new QLabel(skill, skillsContainer);
+            tag->setStyleSheet("background-color: #F5EBE1; color: #754533; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 4px 10px;");
+            tagsRow->addWidget(tag);
+        }
+        tagsRow->addStretch();
+        skillsLayout->addLayout(tagsRow);
     }
 
-    // Certs
-    certsTable->setRowCount(job.certs.size());
-    for (int i = 0; i < job.certs.size(); ++i) {
-        certsTable->setItem(i, 0, new QTableWidgetItem("✓ " + job.certs[i]));
+    // Certs: Hiển thị phân loại rõ ràng Bắt buộc & Ưu tiên với tên chứng chỉ rõ ràng
+    if (job.requiredCerts.isEmpty() && job.preferredCerts.isEmpty() && job.certs.isEmpty()) {
+        QLabel *emptyCert = new QLabel("Không yêu cầu chứng chỉ ngoại ngữ / chuyên môn", certsContainer);
+        emptyCert->setStyleSheet("color: #6C757D; font-size: 12px; font-style: italic;");
+        certsLayout->addWidget(emptyCert);
+    } else {
+        // 1. Nhóm chứng chỉ BẮT BUỘC (Điều kiện tiên quyết)
+        if (!job.requiredCerts.isEmpty()) {
+            QHBoxLayout *badgeRow = new QHBoxLayout();
+            badgeRow->setSpacing(6);
+            QLabel *badge = new QLabel("BẮT BUỘC", certsContainer);
+            badge->setStyleSheet("background-color: #FEE2E2; color: #DC2626; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 2px 6px;");
+            QLabel *desc = new QLabel("Điều kiện tiên quyết:", certsContainer);
+            desc->setStyleSheet("color: #DC2626; font-size: 11px; font-weight: 600;");
+            badgeRow->addWidget(badge);
+            badgeRow->addWidget(desc);
+            badgeRow->addStretch();
+            certsLayout->addLayout(badgeRow);
+
+            for (const QString &c : job.requiredCerts) {
+                QLabel *certLbl = new QLabel("• " + c, certsContainer);
+                certLbl->setWordWrap(true);
+                certLbl->setStyleSheet("color: #1E1E1E; font-size: 12px; font-weight: 600; padding-left: 6px;");
+                certsLayout->addWidget(certLbl);
+            }
+        }
+
+        // 2. Nhóm chứng chỉ ƯU TIÊN (Cộng điểm đánh giá)
+        if (!job.preferredCerts.isEmpty()) {
+            if (!job.requiredCerts.isEmpty()) {
+                certsLayout->addSpacing(6);
+            }
+            QHBoxLayout *badgeRow = new QHBoxLayout();
+            badgeRow->setSpacing(6);
+            QLabel *badge = new QLabel("ƯU TIÊN", certsContainer);
+            badge->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 2px 6px;");
+            QLabel *desc = new QLabel("Cộng điểm đánh giá hồ sơ:", certsContainer);
+            desc->setStyleSheet("color: #1B7F49; font-size: 11px; font-weight: 600;");
+            badgeRow->addWidget(badge);
+            badgeRow->addWidget(desc);
+            badgeRow->addStretch();
+            certsLayout->addLayout(badgeRow);
+
+            for (const QString &c : job.preferredCerts) {
+                QLabel *certLbl = new QLabel("• " + c, certsContainer);
+                certLbl->setWordWrap(true);
+                certLbl->setStyleSheet("color: #333333; font-size: 12px; font-weight: 500; padding-left: 6px;");
+                certsLayout->addWidget(certLbl);
+            }
+        }
+
+        // 3. Fallback cho callers chỉ truyền job.certs
+        if (job.requiredCerts.isEmpty() && job.preferredCerts.isEmpty()) {
+            for (const QString &cert : job.certs) {
+                QLabel *certLbl = new QLabel("• " + cert, certsContainer);
+                certLbl->setWordWrap(true);
+                certLbl->setStyleSheet("color: #333333; font-size: 12px; font-weight: 500;");
+                certsLayout->addWidget(certLbl);
+            }
+        }
     }
 }
 
@@ -280,27 +392,29 @@ void JobPage::loadJob(const Job &job, const Company &company, double matchScore)
         detail.skills.append(QString::fromStdString(skill.name));
     }
 
+    detail.requiredCerts.clear();
+    detail.preferredCerts.clear();
+    detail.certs.clear();
+
     for (const auto &group : job.getCertificateGroups()) {
         QStringList alternatives;
 
         for (const auto &certificate : group.alternatives) {
-            alternatives.append(
-                QString("Loại chứng chỉ #%1 (mức tối thiểu: %2)")
-                    .arg(certificate.certificateTypeID)
-                    .arg(certificate.minValue)
-                );
+            alternatives.append(formatCertificateRequirementName(
+                certificate.certificateTypeID, certificate.minValue
+            ));
         }
 
         if (!alternatives.isEmpty()) {
-            QString groupText = alternatives.join(" / ");
+            QString groupText = alternatives.join("  hoặc  ");
 
             if (group.isRequired) {
-                groupText.prepend("[Bắt buộc] ");
+                detail.requiredCerts.append(groupText);
+                detail.certs.append("[Bắt buộc] " + groupText);
             } else {
-                groupText.prepend("[Tùy chọn] ");
+                detail.preferredCerts.append(groupText);
+                detail.certs.append("[Ưu tiên] " + groupText);
             }
-
-            detail.certs.append(groupText);
         }
     }
 

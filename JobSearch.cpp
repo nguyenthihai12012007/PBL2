@@ -401,7 +401,6 @@ ApplyResult JobSearchEngine::applyJob(int candidateUserId, int jobId, Data& data
         return result;
     }
     result.job = job;
-
     if (!job.getStatus() || job.isExpired()) {
         result.status = ApplyStatus::JOB_CLOSED_OR_EXPIRED;
         result.message = "Tin tuyển dụng này đã đóng hoặc đã hết hạn nộp hồ sơ.";

@@ -7,7 +7,7 @@
 
 class QLabel;
 class QPushButton;
-class QTableWidget;
+class QVBoxLayout;
 
 struct MockJobDetail {
     int id = 1;
@@ -26,6 +26,8 @@ struct MockJobDetail {
     QString companyAddress = "Khu Công viên Phần mềm Đà Nẵng, Hải Châu, Đà Nẵng";
     QStringList skills;
     QStringList certs;
+    QStringList requiredCerts;  // Nhóm chứng chỉ bắt buộc (tiên quyết)
+    QStringList preferredCerts; // Nhóm chứng chỉ ưu tiên (điểm cộng)
     int matchScore = 92;
 };
 
@@ -70,8 +72,10 @@ private:
     QLabel *descLabel;
     QLabel *companyInfoLabel;
 
-    QTableWidget *skillsTable;
-    QTableWidget *certsTable;
+    QWidget *skillsContainer;
+    QVBoxLayout *skillsLayout;
+    QWidget *certsContainer;
+    QVBoxLayout *certsLayout;
 };
 
 #endif // JOB_PAGE_H
