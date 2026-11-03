@@ -222,10 +222,19 @@ void MainWindow::setSession(int userId, const QString &email, const QString &rol
 
 void MainWindow::updateNavigationForRole(const QString &role) {
     // Xóa các nút cũ
-    for (QPushButton *btn : navButtons) {
-        navButtonsLayout->removeWidget(btn);
-        btn->deleteLater();
+    QLayoutItem *item;
+    
+    while ((item = navButtonsLayout->takeAt(0)) != nullptr) {
+        QWidget *widget = item->widget();
+        
+        if (widget != nullptr) {
+            widget->hide();
+            widget->deleteLater();
+        }
+        
+        delete item;
     }
+    
     navButtons.clear();
 
     auto createNavBtn = [this](const QString &text, bool active = false) -> QPushButton* {
