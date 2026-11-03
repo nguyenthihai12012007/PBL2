@@ -1174,15 +1174,25 @@ void CandidatePage::onAddExperienceClicked() {
     compEdit->setPlaceholderText("VD: FPT Software, Viettel, VNG...");
     compEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
-    QLineEdit *startEdit = new QLineEdit(formCard);
-    startEdit->setPlaceholderText("YYYY-MM-DD (VD: 2022-06-01)");
-    startEdit->setText("2023-01-01");
-    startEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
+    QDateEdit *startEdit = new QDateEdit(formCard);
+    startEdit->setCalendarPopup(true);
+    startEdit->setDisplayFormat("dd/MM/yyyy");
+    startEdit->setMaximumDate(QDate::currentDate());
+    startEdit->setDate(QDate::currentDate().addYears(-1));
 
-    QLineEdit *endEdit = new QLineEdit(formCard);
-    endEdit->setPlaceholderText("YYYY-MM-DD (VD: 2024-01-01 hoặc Hiện tại)");
-    endEdit->setText("2024-01-01");
-    endEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
+    QDateEdit *endEdit = new QDateEdit(formCard);
+    endEdit->setCalendarPopup(true);
+    endEdit->setDisplayFormat("dd/MM/yyyy");
+    endEdit->setMaximumDate(QDate::currentDate());
+    endEdit->setDate(QDate::currentDate());
+
+    QCheckBox *currentCheck = new QCheckBox(
+        "Đang làm việc tại đây", formCard
+    );
+
+    connect(currentCheck, &QCheckBox::toggled, endEdit, [endEdit](bool checked) {
+        endEdit->setEnabled(!checked);
+    });
 
     QTextEdit *descEdit = new QTextEdit(formCard);
     descEdit->setPlaceholderText("Mô tả trách nhiệm công việc, kỹ nghệ sử dụng và thành tích...");
@@ -1193,6 +1203,7 @@ void CandidatePage::onAddExperienceClicked() {
     form->addRow("Tên công ty *:", compEdit);
     form->addRow("Thời gian bắt đầu *:", startEdit);
     form->addRow("Thời gian kết thúc:", endEdit);
+    form->addRow("", currentCheck); 
     form->addRow("Mô tả chi tiết:", descEdit);
     mainLayout->addWidget(formCard);
 
@@ -1217,14 +1228,27 @@ void CandidatePage::onAddExperienceClicked() {
             return;
         }
 
+        QDate startDate = startEdit->date();
+
+        QDate endDate = currentCheck->isChecked() ? QDate::currentDate() : endEdit->date();
+
+        if (startDate > endDate) {
+            CustomMessageBox::warning( &dialog, "Ngày không hợp lệ", "Ngày bắt đầu không được sau ngày kết thúc.");
+            return;
+        }
+
+        string startText = startDate.toString("yyyy-MM-dd").toStdString();
+
+        string endText = currentCheck->isChecked() ? string("Hiện tại") : endDate.toString("yyyy-MM-dd").toStdString();
+
         int newId = static_cast<int>(m_candidate.getExperiences().size()) + 1;
         Experience exp(
             newId,
             comp.toStdString(),
             pos.toStdString(),
             descEdit->toPlainText().trimmed().toStdString(),
-            startEdit->text().trimmed().toStdString(),
-            endEdit->text().trimmed().toStdString()
+            startText,
+            endText
         );
 
         if (m_candidate.addExperience(exp, m_data)) {
@@ -1504,13 +1528,57 @@ void CandidatePage::onEditExperienceClicked(int index) {
     compEdit->setText(QString::fromStdString(currentExp.getCompanyName()));
     compEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
-    QLineEdit *startEdit = new QLineEdit(formCard);
-    startEdit->setText(QString::fromStdString(currentExp.getStartDate()));
-    startEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
+    QDate savedStart = QDate::fromString(
+        QString::fromStdString(currentExp.getStartDate()),
+        "yyyy-MM-dd"
+    );
 
-    QLineEdit *endEdit = new QLineEdit(formCard);
-    endEdit->setText(QString::fromStdString(currentExp.getEndDate()));
-    endEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
+    QString savedEndText =
+        QString::fromStdString(currentExp.getEndDate());
+
+    bool isCurrent = (savedEndText == "Hiện tại");
+
+    QDate savedEnd = isCurrent
+        ? QDate::currentDate()
+        : QDate::fromString(savedEndText, "yyyy-MM-dd");
+
+    if (!savedStart.isValid() || !savedEnd.isValid()
+        || savedStart > savedEnd
+        || savedEnd > QDate::currentDate()) {
+        CustomMessageBox::warning(
+            this,
+            "Dữ liệu ngày không hợp lệ",
+            "Ngày kinh nghiệm đã lưu không hợp lệ.\n"
+            "Hãy kiểm tra bản ghi tương ứng trong "
+            "candidate_experience.txt.\n"
+            "Định dạng ngày trong file phải là YYYY-MM-DD."
+        );
+        return;
+    }
+
+    QDateEdit *startEdit = new QDateEdit(formCard);
+    startEdit->setCalendarPopup(true);
+    startEdit->setDisplayFormat("dd/MM/yyyy");
+    startEdit->setMaximumDate(QDate::currentDate());
+    startEdit->setDate(savedStart);
+
+    QDateEdit *endEdit = new QDateEdit(formCard);
+    endEdit->setCalendarPopup(true);
+    endEdit->setDisplayFormat("dd/MM/yyyy");
+    endEdit->setMaximumDate(QDate::currentDate());
+    endEdit->setDate(savedEnd);
+
+    QCheckBox *currentCheck = new QCheckBox(
+        "Đang làm việc tại đây", formCard
+    );
+
+    currentCheck->setChecked(isCurrent);
+    endEdit->setEnabled(!isCurrent);
+
+    connect(currentCheck, &QCheckBox::toggled,
+            endEdit, [endEdit](bool checked) {
+        endEdit->setEnabled(!checked);
+    });
 
     QTextEdit *descEdit = new QTextEdit(formCard);
     descEdit->setText(QString::fromStdString(currentExp.getDescription()));
@@ -1521,6 +1589,7 @@ void CandidatePage::onEditExperienceClicked(int index) {
     form->addRow("Tên công ty *:", compEdit);
     form->addRow("Thời gian bắt đầu *:", startEdit);
     form->addRow("Thời gian kết thúc:", endEdit);
+    form->addRow("", currentCheck);
     form->addRow("Mô tả chi tiết:", descEdit);
     mainLayout->addWidget(formCard);
 
@@ -1544,13 +1613,34 @@ void CandidatePage::onEditExperienceClicked(int index) {
             CustomMessageBox::warning(&dialog, "Thiếu dữ liệu", "Vui lòng nhập vị trí đảm nhiệm và tên công ty.");
             return;
         }
+        QDate startDate = startEdit->date();
+
+        QDate endDate = currentCheck->isChecked()
+            ? QDate::currentDate()
+            : endEdit->date();
+
+        if (startDate > endDate) {
+            CustomMessageBox::warning(
+                &dialog,
+                "Ngày không hợp lệ",
+                "Ngày bắt đầu không được sau ngày kết thúc."
+            );
+            return;
+        }
+
+        string startText =
+            startDate.toString("yyyy-MM-dd").toStdString();
+
+        string endText = currentCheck->isChecked()
+            ? string("Hiện tại")
+            : endDate.toString("yyyy-MM-dd").toStdString();
 
         Experience updatedExp(
             currentExp.getIDexperience(),
             comp.toStdString(),
             pos.toStdString(),
-            descEdit->toPlainText().trimmed().toStdString(),
-            startEdit->text().trimmed().toStdString(),
+            startText,
+            endText
             endEdit->text().trimmed().toStdString()
         );
 

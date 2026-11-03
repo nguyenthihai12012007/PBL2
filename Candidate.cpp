@@ -1,5 +1,7 @@
 #include "class.h"
 #include <iostream>
+#include <ctime>
+#include <cctype>
 using namespace std;
 
 void inputSkills(vector<Skill>& skills);
@@ -556,14 +558,80 @@ const vector<Certificate>& Candidate::getCertificate() const {
     return professional.certificates;
 }
 
+bool parseExperienceDate(const string& date,int& year, int& month, int& day) {
+    if (date.size() != 10 || date[4] != '-' || date[7] != '-') {
+        return false;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        if (i == 4 || i == 7) {
+            continue;
+        }
+
+        if (date[i] < '0' || date[i] > '9') {
+            return false;
+        }
+    }
+
+    year = stoi(date.substr(0, 4));
+    month = stoi(date.substr(5, 2));
+    day = stoi(date.substr(8, 2));
+
+    if (year < 1 || month < 1 || month > 12) {
+        return false;
+    }
+
+    int daysInMonth[] = {
+        31, 28, 31, 30, 31, 30,
+        31, 31, 30, 31, 30, 31
+    };
+
+    bool leapYear = (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0);
+
+    if (leapYear) {
+        daysInMonth[1] = 29;
+    }
+
+    return day >= 1 && day <= daysInMonth[month - 1];
+}
+
 int calculateMonths(const string& start, const string& end) {
-    int startMonth = stoi(start.substr(0, 2));
-    int startYear  = stoi(start.substr(3, 4));
+    int startYear, startMonth, startDay;
+    int endYear, endMonth, endDay;
 
-    int endMonth = stoi(end.substr(0, 2));
-    int endYear  = stoi(end.substr(3, 4));
+    if (!parseExperienceDate(start, startYear, startMonth, startDay)) {
+        return 0;
+    }
 
-    return (endYear - startYear) * 12 + (endMonth - startMonth);
+    if (end == "Hiện tại") {
+        time_t now = time(nullptr);
+        tm* today = localtime(&now);
+
+        if (today == nullptr) {
+            return 0;
+        }
+
+        endYear = today->tm_year + 1900;
+        endMonth = today->tm_mon + 1;
+        endDay = today->tm_mday;
+    } else {
+        if (!parseExperienceDate(end, endYear, endMonth, endDay)) {
+            return 0;
+        }
+    }
+
+    int months = (endYear - startYear) * 12
+               + (endMonth - startMonth);
+
+    if (endDay < startDay) {
+        months--;
+    }
+
+    if (months < 0) {
+        return 0;
+    }
+
+    return months;
 }
 
 int Candidate::getTimeExperience() const {
