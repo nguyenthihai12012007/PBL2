@@ -216,17 +216,6 @@ bool compareJobMatch(const JobMatchResult& a, const JobMatchResult& b) {
     return a.score > b.score;
 }
 
-//bỏ
-void Application::displayApplication() const {
-    cout << "\n===== CHI TIET DON UNG TUYEN =====\n";
-    cout << "Ma don ung tuyen: " << IDappli << endl;
-    cout << "Ma ung vien: " << IDcandidate << endl;
-    cout << "Ma cong viec: " << IDjob << endl;
-    cout << "Muc do phu hop: " << appropriateLevel << "%" << endl;
-    cout << "Trang thai: " << status << endl;
-    cout << "Ngay ung tuyen: " << appliedAt << endl;
-}
-
 vector<JobMatchResult> matching(const vector<Job>& jobs, const Candidate& candidate) {
     vector<JobMatchResult> satisfiedJob;
 

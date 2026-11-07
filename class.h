@@ -37,9 +37,6 @@ class User {
         void setEmail(const string& e) { email = e; }
         void setPassword(const string& p) { password = p; }
         void setRole(const string& r) { role = r; }
-
-        //bỏ
-        bool login(Data& dt, const string& email, const string& password);
 };
 
 
@@ -102,11 +99,6 @@ class Experience {
             endDate = end;
         }
 
-        //bỏ
-        void inputExperience();
-        //bỏ
-        void displayExperience();
-
         string getCompanyName() const { return companyName; }
         string getPosition() const { return position; }
         string getDescription() const { return description; }
@@ -135,36 +127,7 @@ class Candidate : public User {
 
     public:
         Candidate();
-
         Candidate(int id, string email, string password);
-
-        //bỏ
-        void inputCandidate();
-        //bỏ
-        void displayCandidate();
-        //bỏ
-        void updateCandidate();
-        
-        //bỏ
-        void addSkill();
-        //bỏ
-        void updateSkill();
-        //bỏ
-        void deleteSkill();
-
-        //bỏ
-        void addCertificate();
-        //bỏ
-        void updateCertificate();
-        //bỏ
-        void deleteCertificate();
-
-        //bỏ
-        void addExperience();
-        //bỏ
-        void updateExperience();
-        //bỏ
-        void deleteExperience();
 
         bool addSkill(const Skill& skill, Data& dt);
         bool updateSkill(int index, const Skill& skill, Data& dt);
@@ -219,18 +182,6 @@ class Job {
     public :
         Job();
 
-        //bỏ
-        void inputRequiredSkills();
-        //bỏ
-        void inputCertificateGroups();
-        //bỏ
-        void inputJob(int companyID);
-        //bỏ
-        void displayCertificate();
-        //bỏ
-        void displayJob();
-        //bỏ
-        void updateJob();
         bool checkStatus() { return status; }
 
         const vector<Skill>& getRequiredSkill() const;
@@ -291,27 +242,6 @@ class Company : public User {
         Company();
         Company(int id, string email, string password);
 
-        //bỏ
-        void inputCompany();
-        //bỏ
-        void displayCompany();
-        //bỏ
-        void updateCompany(Data& dt);
-
-        //bỏ
-        void createJob(Data& dt);
-        //bỏ
-        void displayJobs(Data& dt);
-        //bỏ
-        void displayJobDetail(Data& dt);
-
-        //bỏ
-        void updateJob(Data& dt);
-        //bỏ
-        void deleteJob(Data& dt);
-        //bỏ
-        void closeJob(Data& dt);
-
         bool addJob(const Job& job, Data& dt);
         bool closeJob(int jobID, Data& dt);
         bool deleteJob(int jobID, Data& dt);
@@ -371,8 +301,6 @@ class Application {
 
         void setAppropriateLevel(float level) { appropriateLevel = level; }
         void setStatus(const string& s) { status = s; }
-        //bỏ
-        void displayApplication() const;
 };
 
 class Data {
@@ -406,8 +334,6 @@ class Data {
         bool getAllJobs(vector<Job>& jobs);
 
         bool getApplicationsByCompanyID(int companyID, vector<Application>& applications);
-        //bỏ
-        bool getApplicationByID(int applicationID, Application& application);
         bool updateApplicationStatus(int applicationID, const string& status);
         bool updateApplicationScore(int applicationID, float score);
         bool saveApplication(const Application& application);

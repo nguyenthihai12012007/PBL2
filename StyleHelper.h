@@ -2,9 +2,223 @@
 #define STYLE_HELPER_H
 
 #include <QString>
+#include <QStringList>
+#include <QPixmap>
+#include <QPainter>
+#include <QPainterPath>
+#include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QFont>
+#include <QRect>
+#include <QImage>
+#include <QCoreApplication>
+#include <algorithm>
 
 class StyleHelper {
 public:
+    static QString getProjectRootDir() {
+        static QString cachedRoot;
+        if (!cachedRoot.isEmpty() && QFile::exists(QDir(cachedRoot).filePath("users.txt"))) {
+            return cachedRoot;
+        }
+
+        QStringList searchDirs = {
+            QDir::currentPath(),
+            QCoreApplication::applicationDirPath(),
+            QDir(QCoreApplication::applicationDirPath()).filePath(".."),
+            QDir(QCoreApplication::applicationDirPath()).filePath("../.."),
+            QDir(QCoreApplication::applicationDirPath()).filePath("../../..")
+        };
+
+        for (const QString &dir : searchDirs) {
+            if (QFile::exists(QDir(dir).filePath("users.txt"))) {
+                cachedRoot = QDir(dir).canonicalPath();
+                return cachedRoot;
+            }
+        }
+        cachedRoot = QDir::currentPath();
+        return cachedRoot;
+    }
+
+    static QString getCandidateAvatarPath(int candidateId) {
+        if (candidateId <= 0) return "";
+        QString root = getProjectRootDir();
+        QStringList exts = {".png", ".jpg", ".jpeg"};
+        for (const QString &ext : exts) {
+            QString path = QDir(root).filePath(QString("avatars/candidate_%1%2").arg(candidateId).arg(ext));
+            if (QFile::exists(path)) return path;
+        }
+        return "";
+    }
+
+    static QString getCompanyLogoPath(int companyId) {
+        if (companyId <= 0) return "";
+        QString root = getProjectRootDir();
+        QStringList exts = {".png", ".jpg", ".jpeg"};
+        for (const QString &ext : exts) {
+            QString path = QDir(root).filePath(QString("avatars/company_%1%2").arg(companyId).arg(ext));
+            if (QFile::exists(path)) return path;
+        }
+        return "";
+    }
+
+    static QString getInitials(const QString &name, const QString &defaultInitials = "JM") {
+        QString trimmed = name.trimmed();
+        if (trimmed.isEmpty()) return defaultInitials;
+        QStringList parts = trimmed.split(' ', Qt::SkipEmptyParts);
+        if (parts.size() >= 2) {
+            return parts.first().left(1).toUpper() + parts.last().left(1).toUpper();
+        } else if (!parts.isEmpty()) {
+            return parts.first().left(2).toUpper();
+        }
+        return defaultInitials;
+    }
+
+    static bool saveCandidateAvatar(int candidateId, const QString &sourceImagePath, QString &outSavedPath) {
+        if (candidateId <= 0 || sourceImagePath.isEmpty()) return false;
+        QImage img;
+        if (!img.load(sourceImagePath)) return false;
+
+        QString root = getProjectRootDir();
+        QDir rootDir(root);
+        rootDir.mkpath("avatars");
+
+        // Đảm bảo không bị lạc thư mục làm việc sau khi mở file dialog
+        QDir::setCurrent(root);
+
+        // Scale & Center Crop vuông 400x400
+        QImage scaled = img.scaled(400, 400, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        int x = (scaled.width() - 400) / 2;
+        int y = (scaled.height() - 400) / 2;
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        int w = std::min(400, scaled.width());
+        int h = std::min(400, scaled.height());
+        QImage cropped = scaled.copy(x, y, w, h);
+
+        QString targetPath = rootDir.filePath(QString("avatars/candidate_%1.png").arg(candidateId));
+        bool ok = cropped.save(targetPath, "PNG");
+        if (ok) {
+            // Xóa các file đuôi khác nếu có
+            QStringList exts = {".jpg", ".jpeg"};
+            for (const QString &ext : exts) {
+                QString oldPath = rootDir.filePath(QString("avatars/candidate_%1%2").arg(candidateId).arg(ext));
+                if (QFile::exists(oldPath)) QFile::remove(oldPath);
+            }
+            outSavedPath = targetPath;
+        }
+        return ok;
+    }
+
+    static bool saveCompanyLogo(int companyId, const QString &sourceImagePath, QString &outSavedPath) {
+        if (companyId <= 0 || sourceImagePath.isEmpty()) return false;
+        QImage img;
+        if (!img.load(sourceImagePath)) return false;
+
+        QString root = getProjectRootDir();
+        QDir rootDir(root);
+        rootDir.mkpath("avatars");
+
+        QDir::setCurrent(root);
+
+        QImage scaled = img.scaled(400, 400, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        int x = (scaled.width() - 400) / 2;
+        int y = (scaled.height() - 400) / 2;
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        int w = std::min(400, scaled.width());
+        int h = std::min(400, scaled.height());
+        QImage cropped = scaled.copy(x, y, w, h);
+
+        QString targetPath = rootDir.filePath(QString("avatars/company_%1.png").arg(companyId));
+        bool ok = cropped.save(targetPath, "PNG");
+        if (ok) {
+            QStringList exts = {".jpg", ".jpeg"};
+            for (const QString &ext : exts) {
+                QString oldPath = rootDir.filePath(QString("avatars/company_%1%2").arg(companyId).arg(ext));
+                if (QFile::exists(oldPath)) QFile::remove(oldPath);
+            }
+            outSavedPath = targetPath;
+        }
+        return ok;
+    }
+
+    static QPixmap getCircularAvatar(const QString &imagePath, const QString &initials, int size,
+                                     const QString &bgColorHex = "#EFE4DA",
+                                     const QString &textColorHex = "#8A4E36") {
+        if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
+            QPixmap src(imagePath);
+            if (!src.isNull()) {
+                QPixmap out(size, size);
+                out.fill(Qt::transparent);
+                QPainter p(&out);
+                p.setRenderHint(QPainter::Antialiasing);
+                p.setRenderHint(QPainter::SmoothPixmapTransform);
+                QPainterPath path;
+                path.addEllipse(0, 0, size, size);
+                p.setClipPath(path);
+                QPixmap scaled = src.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+                int x = (scaled.width() - size) / 2;
+                int y = (scaled.height() - size) / 2;
+                p.drawPixmap(0, 0, scaled.copy(x, y, size, size));
+                return out;
+            }
+        }
+
+        QPixmap out(size, size);
+        out.fill(Qt::transparent);
+        QPainter p(&out);
+        p.setRenderHint(QPainter::Antialiasing);
+        QPainterPath path;
+        path.addEllipse(0, 0, size, size);
+        p.fillPath(path, QColor(bgColorHex));
+        p.setPen(QColor(textColorHex));
+        QFont f = p.font();
+        f.setPixelSize(size * 0.38);
+        f.setBold(true);
+        p.setFont(f);
+        p.drawText(QRect(0, 0, size, size), Qt::AlignCenter, initials);
+        return out;
+    }
+
+    static QPixmap getRoundedBadge(const QString &imagePath, const QString &initials, int size, int radius = 10,
+                                   const QString &bgColorHex = "#B95334",
+                                   const QString &textColorHex = "#FFFFFF") {
+        if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
+            QPixmap src(imagePath);
+            if (!src.isNull()) {
+                QPixmap out(size, size);
+                out.fill(Qt::transparent);
+                QPainter p(&out);
+                p.setRenderHint(QPainter::Antialiasing);
+                p.setRenderHint(QPainter::SmoothPixmapTransform);
+                QPainterPath path;
+                path.addRoundedRect(0, 0, size, size, radius, radius);
+                p.setClipPath(path);
+                QPixmap scaled = src.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+                int x = (scaled.width() - size) / 2;
+                int y = (scaled.height() - size) / 2;
+                p.drawPixmap(0, 0, scaled.copy(x, y, size, size));
+                return out;
+            }
+        }
+
+        QPixmap out(size, size);
+        out.fill(Qt::transparent);
+        QPainter p(&out);
+        p.setRenderHint(QPainter::Antialiasing);
+        QPainterPath path;
+        path.addRoundedRect(0, 0, size, size, radius, radius);
+        p.fillPath(path, QColor(bgColorHex));
+        p.setPen(QColor(textColorHex));
+        QFont f = p.font();
+        f.setPixelSize(size * 0.38);
+        f.setBold(true);
+        p.setFont(f);
+        p.drawText(QRect(0, 0, size, size), Qt::AlignCenter, initials);
+        return out;
+    }
     // Color Palette Definitions (Bám sát design_reference.png)
     // 1. Cam đất / Terracotta chủ đạo (Brand, Primary Button, Sidebar)
     inline static const QString COLOR_PRIMARY          = "#B95334";
@@ -148,10 +362,11 @@ public:
             }
 
             #userAvatarCircle {
-                background-color: #9C452A;
+                background-color: transparent;
                 color: #FFFFFF;
                 font-size: 13px;
                 font-weight: 700;
+                border: none;
                 border-radius: 18px;
                 min-width: 36px;
                 max-width: 36px;

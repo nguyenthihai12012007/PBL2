@@ -40,6 +40,10 @@ public slots:
     void onEditExperienceClicked(int index);
     void onDeleteExperienceClicked(int index);
     void showAllJobsDialog();
+    void onChangeAvatarClicked();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     void setupUI();

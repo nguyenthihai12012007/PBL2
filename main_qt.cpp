@@ -10,8 +10,8 @@ int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
     // Application metadata
-    app.setApplicationName("JobSystem");
-    app.setApplicationDisplayName("JOB SYSTEM - Quản lý việc làm");
+    app.setApplicationName("JobMatch");
+    app.setApplicationDisplayName("JobMatch — Quản lý việc làm");
     app.setOrganizationName("DUT_PBL2");
 
     // Ensure working directory is the project root containing data files (.txt)

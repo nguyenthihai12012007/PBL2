@@ -13,7 +13,7 @@
 
 LoginWindow::LoginWindow(Data &data, QWidget *parent)
     : QWidget(parent), m_data(data) {
-    setWindowTitle("JobMatch C++ — Đăng nhập");
+    setWindowTitle("JobMatch — Đăng nhập");
     setFixedSize(460, 560);
     setupUI();
 }
@@ -43,7 +43,7 @@ void LoginWindow::setupUI() {
     QVBoxLayout *headerLayout = new QVBoxLayout();
     headerLayout->setSpacing(4);
 
-    QLabel *logoLabel = new QLabel("JobMatch C++", this);
+    QLabel *logoLabel = new QLabel("JobMatch", this);
     logoLabel->setAlignment(Qt::AlignCenter);
     logoLabel->setStyleSheet("font-size: 24px; font-weight: 800; color: #B95334; letter-spacing: 0.5px;");
 
@@ -179,13 +179,13 @@ void LoginWindow::setupUI() {
 void LoginWindow::onSwitchToRegister() {
     loginStatusLabel->setVisible(false);
     formStackedWidget->setCurrentIndex(1);
-    setWindowTitle("JobSystem - Đăng ký tài khoản");
+    setWindowTitle("JobMatch — Đăng ký tài khoản");
 }
 
 void LoginWindow::onSwitchToLogin() {
     regStatusLabel->setVisible(false);
     formStackedWidget->setCurrentIndex(0);
-    setWindowTitle("JobSystem - Đăng nhập");
+    setWindowTitle("JobMatch — Đăng nhập");
 }
 
 void LoginWindow::onLoginClicked() {

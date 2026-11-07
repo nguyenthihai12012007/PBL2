@@ -31,6 +31,10 @@ public slots:
     void onEditJobClicked(int jobId);
     void onEditCompanyProfileClicked();
     void onRefreshData();
+    void onChangeLogoClicked();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     void setupUI();
@@ -48,6 +52,7 @@ private:
     std::vector<Job> m_jobs;
     std::vector<Application> m_applications;
     QString m_filterKeyword;
+    QLabel *companyLogoLabel = nullptr;
 
     // UI layouts
     QVBoxLayout *companyHeaderLayout = nullptr;

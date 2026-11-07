@@ -8,13 +8,58 @@
 using namespace std;
 
 string JobSearchEngine::normalizeText(const string& input) {
-    string result;
-    for (size_t i = 0; i < input.size(); i++) {
-        unsigned char c = static_cast<unsigned char>(input[i]);
-        if (c >= 'A' && c <= 'Z') {
-            c = c + ('a' - 'A');
+    static const unordered_map<string, char> vietnameseMap = []() {
+        unordered_map<string, char> mp;
+        const vector<pair<string, char>> groups = {
+            {u8"ÀÁẠẢÃĂẰẮẶẲẴÂẦẤẬẨẪàáạảãăằắặẳẵâầấậẩẫ", 'a'},
+            {u8"ÈÉẸẺẼÊỀẾỆỂỄèéẹẻẽêềếệểễ", 'e'},
+            {u8"ÌÍỊỈĨìíịỉĩ", 'i'},
+            {u8"ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠòóọỏõôồốộổỗơờớợởỡ", 'o'},
+            {u8"ÙÚỤỦŨƯỪỨỰỬỮùúụủũưừứựửữ", 'u'},
+            {u8"ỲÝỴỶỸỳýỵỷỹ", 'y'},
+            {u8"Đđ", 'd'}
+        };
+        for (const auto& group : groups) {
+            const string& chars = group.first;
+            char base = group.second;
+            for (size_t i = 0; i < chars.size();) {
+                unsigned char c = static_cast<unsigned char>(chars[i]);
+                size_t len = 1;
+                if ((c & 0xE0) == 0xC0) len = 2;
+                else if ((c & 0xF0) == 0xE0) len = 3;
+                else if ((c & 0xF8) == 0xF0) len = 4;
+                mp[chars.substr(i, len)] = base;
+                i += len;
+            }
         }
-        result.push_back(static_cast<char>(c));
+        return mp;
+    }();
+    
+    string result;
+    for (size_t i = 0; i < input.size();) {
+        unsigned char c = static_cast<unsigned char>(input[i]);
+        if (c < 128) {
+            if (c >= 'A' && c <= 'Z') {
+                c += ('a' - 'A');
+            }
+            result.push_back(static_cast<char>(c));
+            i++;
+        }
+        else {
+            size_t len = 1;
+            if ((c & 0xE0) == 0xC0) len = 2;
+            else if ((c & 0xF0) == 0xE0) len = 3;
+            else if ((c & 0xF8) == 0xF0) len = 4;
+            string character = input.substr(i, len);
+            auto it = vietnameseMap.find(character);
+            if (it != vietnameseMap.end()) {
+                result.push_back(it->second);
+            }
+            else {
+                result += character;
+            }
+            i += len;
+        }
     }
     return result;
 }

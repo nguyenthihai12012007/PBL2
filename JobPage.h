@@ -24,6 +24,7 @@ struct MockJobDetail {
     QString description = "Tham gia thiết kế và phát triển các ứng dụng Desktop hiện đại bằng C++17 và Qt Widgets / QML. Xây dựng module nghiệp vụ, tối ưu hóa hiệu năng và kết nối cơ sở dữ liệu.";
     QString companyWebsite = "https://abctechnology.vn";
     QString companyAddress = "Khu Công viên Phần mềm Đà Nẵng, Hải Châu, Đà Nẵng";
+    QString companyDesc = "Công ty phát triển phần mềm và giải pháp ứng dụng web hiện đại";
     QStringList skills;
     QStringList certs;
     QStringList requiredCerts;  // Nhóm chứng chỉ bắt buộc (tiên quyết)
@@ -58,6 +59,7 @@ private:
     QPushButton *backBtn;
     QPushButton *applyBtn;
 
+    QLabel *companyLogoLabel;
     QLabel *jobTitleLabel;
     QLabel *companyNameLabel;
     QLabel *salaryLabel;

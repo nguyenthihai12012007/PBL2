@@ -1,1 +1,6 @@
-1|1|FPT Softwa|C++ Software developer||2023-01-01|2024-01-01
+# candidateID|IDexperience|companyName|position|description|startDate|endDate
+1|1|FPT Software|Lập trình viên C++|Phát triển và bảo trì phần mềm ứng dụng desktop bằng C++ và Qt|2023-01-01|2024-01-01
+2|2|Viettel Solutions|Thực tập sinh Java Backend|Hỗ trợ thiết kế API RESTful và kiểm thử module phần mềm doanh nghiệp|2023-03-01|2023-09-01
+5|3|Enclave Da Nang|Thực tập sinh Phát triển Web|Xây dựng giao diện web ứng dụng bằng HTML, CSS và JavaScript|2023-06-01|2023-12-01
+6|4|Axon Da Nang|Nghiên cứu viên AI|Hỗ trợ tiền xử lý dữ liệu và đánh giá hiệu năng mô hình Deep Learning|2022-09-01|2023-09-01
+8|5|KMS Technology|Thực tập sinh Frontend|Tham gia phát triển giao diện responsive trên ReactJS|2023-05-01|2023-11-01

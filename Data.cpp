@@ -895,40 +895,6 @@ bool Data::getApplicationsByCompanyID(int companyID, vector<Application>& applic
     return true;
 }
 
-//bỏ
-bool Data::getApplicationByID(int applicationID, Application& application) {
-    vector<string> lines;
-    if (!readFile("applications.txt", lines))
-        return false;
-    for (int i = 0; i < (int)lines.size(); i++) {
-        if (lines[i].empty() || lines[i][0] == '#')
-            continue;
-        stringstream ss(lines[i]);
-        string idStr, candidateStr, jobStr;
-        string levelStr, appliedAt, status;
-        getline(ss, idStr, '|');
-        getline(ss, candidateStr, '|');
-        getline(ss, jobStr, '|');
-        getline(ss, levelStr, '|');
-        getline(ss, appliedAt, '|');
-        getline(ss, status);
-        if (idStr.empty() || candidateStr.empty() ||
-            jobStr.empty() || levelStr.empty())
-            continue;
-        int id = stoi(idStr);
-        if (id != applicationID || id <= 0)
-            continue;
-        application.IDappli = id;
-        application.IDcandidate = stoi(candidateStr);
-        application.IDjob = stoi(jobStr);
-        application.appropriateLevel = stof(levelStr);
-        application.status = status;
-        application.appliedAt = appliedAt;
-        return true;
-    }
-    return false;
-}
-
 bool Data::updateApplicationStatus(int applicationID, const string& status) {
     if (status != "PENDING" && status != "ACCEPTED" && status != "REJECTED") {
         return false;

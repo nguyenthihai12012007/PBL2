@@ -1,4 +1,5 @@
 #include "JobPage.h"
+#include "StyleHelper.h"
 #include <cmath>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -85,16 +86,32 @@ void JobPage::setupUI() {
     QFrame *headerCard = new QFrame(contentWidget);
     headerCard->setStyleSheet("background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 20px;");
     QVBoxLayout *headerCardLayout = new QVBoxLayout(headerCard);
-    headerCardLayout->setSpacing(8);
+    headerCardLayout->setSpacing(12);
 
+    QHBoxLayout *brandHeaderRow = new QHBoxLayout();
+    brandHeaderRow->setSpacing(14);
+    brandHeaderRow->setAlignment(Qt::AlignVCenter);
+
+    companyLogoLabel = new QLabel(headerCard);
+    companyLogoLabel->setFixedSize(54, 54);
+    companyLogoLabel->setAlignment(Qt::AlignCenter);
+
+    QVBoxLayout *titleTextCol = new QVBoxLayout();
+    titleTextCol->setSpacing(3);
+    titleTextCol->setAlignment(Qt::AlignVCenter);
     jobTitleLabel = new QLabel("Lập trình viên C++ / Qt GUI", headerCard);
     jobTitleLabel->setStyleSheet("font-size: 22px; font-weight: 700; color: #1E1E1E;");
 
     companyNameLabel = new QLabel("Công ty Cổ phần Công nghệ ABC", headerCard);
     companyNameLabel->setStyleSheet("font-size: 15px; color: #6C757D; font-weight: 500;");
 
-    headerCardLayout->addWidget(jobTitleLabel);
-    headerCardLayout->addWidget(companyNameLabel);
+    titleTextCol->addWidget(jobTitleLabel);
+    titleTextCol->addWidget(companyNameLabel);
+
+    brandHeaderRow->addWidget(companyLogoLabel, 0, Qt::AlignVCenter);
+    brandHeaderRow->addLayout(titleTextCol, 1);
+
+    headerCardLayout->addLayout(brandHeaderRow);
 
     // Quick Stats Bar
     QHBoxLayout *statsLayout = new QHBoxLayout();
@@ -225,6 +242,7 @@ void JobPage::setupUI() {
 void JobPage::loadJob(const MockJobDetail &job) {
     currentJob = job;
 
+    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge("", StyleHelper::getInitials(job.company, "VT"), 54, 12));
     jobTitleLabel->setText(job.title);
     companyNameLabel->setText(job.company);
     salaryLabel->setText(QString("💰 Lương: %1 VNĐ").arg(QLocale(QLocale::Vietnamese).toString(job.salary)));
@@ -258,9 +276,10 @@ void JobPage::loadJob(const MockJobDetail &job) {
         );
 
     descLabel->setText(job.description);
+    QString compDesc = job.companyDesc.isEmpty() ? "Doanh nghiệp công nghệ phát triển giải pháp phần mềm." : job.companyDesc;
     companyInfoLabel->setText(
-        QString("• Địa chỉ: %1\n• Website: %2\n• Đánh giá uy tín: 4.8 / 5.0")
-        .arg(job.companyAddress, job.companyWebsite)
+        QString("• Giới thiệu: %1\n• Địa chỉ: %2\n• Website: %3\n• Đánh giá uy tín: 4.8 / 5.0")
+        .arg(compDesc, job.companyAddress, job.companyWebsite)
     );
 
     majorLabel->setText(job.major);
@@ -380,6 +399,9 @@ void JobPage::loadJob(const Job &job, const Company &company, double matchScore)
     detail.companyAddress =
         QString::fromStdString(company.getAddressCompany());
 
+    detail.companyDesc =
+        QString::fromStdString(company.getDescription());
+
     detail.isOpen = job.getStatus();
     if (matchScore >= 0.0) {
         detail.hasMatchScore = true;
@@ -419,6 +441,9 @@ void JobPage::loadJob(const Job &job, const Company &company, double matchScore)
     }
 
     loadJob(detail);
+    QString logoPath = StyleHelper::getCompanyLogoPath(company.getIDcompany());
+    QString compInitials = StyleHelper::getInitials(QString::fromStdString(company.getNameCompany()), "VT");
+    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 54, 12));
 }
 
 void JobPage::onBackClicked() {

@@ -1,0 +1,33 @@
+# candidateID|skillName|level
+1|C++|3
+1|Qt|4
+1|HTML|3
+1|CSS|3
+1|JavaScript|3
+2|C++|3
+2|OOP|3
+2|Git|3
+3|Python|3
+3|SQL|3
+4|SQL|3
+4|Database Design|3
+5|C++|3
+5|OOP|3
+5|Git|2
+6|Python|4
+6|Machine Learning|3
+6|Deep Learning|3
+7|Network Fundamentals|3
+7|Windows Server|3
+8|React|3
+8|JavaScript|3
+8|CSS|3
+9|Network Fundamentals|2
+9|Troubleshooting|3
+10|Java|3
+10|Spring Boot|3
+10|SQL|3
+11|Python|3
+11|Spark|2
+12|UML|3
+12|Requirements Analysis|3

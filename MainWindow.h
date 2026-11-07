@@ -36,12 +36,20 @@ private slots:
     void showCandidateProfileDialog();
     void showCandidateApplicationsDialog();
     void showCompanyProfileDialog();
+    void showCandidateProfilePage();
+    void showCompanyProfilePage();
     void showNotificationsDialog();
     void showSettingsDialog();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     void setupUI();
     void updateNavigationForRole(const QString &role);
+    void setActiveNavBtn(QPushButton *activeBtn);
+    void buildCandidateProfilePage();
+    void buildCompanyProfilePage();
 
     Data &m_data;
     JobSearchEngine m_searchEngine;
@@ -55,6 +63,8 @@ private:
     QLabel *sidebarSubtitle = nullptr;
     QVBoxLayout *navButtonsLayout = nullptr;
     QList<QPushButton*> navButtons;
+    QPushButton *btnHomeNav = nullptr;
+    QPushButton *btnProfileNav = nullptr;
 
     // Top Bar Widgets
     QLineEdit *searchEdit = nullptr;
@@ -67,6 +77,10 @@ private:
     CandidatePage *candidatePage = nullptr;
     CompanyPage *companyPage = nullptr;
     JobPage *jobPage = nullptr;
+    QWidget *candidateProfilePageWidget = nullptr;
+    QVBoxLayout *candidateProfileContentLayout = nullptr;
+    QWidget *companyProfilePageWidget = nullptr;
+    QVBoxLayout *companyProfileContentLayout = nullptr;
 };
 
 #endif // MAIN_WINDOW_H

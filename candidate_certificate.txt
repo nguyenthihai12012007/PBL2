@@ -1,1 +1,7 @@
-1|1|I|7
+# candidateID|certificateTypeID|organization|value
+1|1|British Council|7.0
+2|2|ETS TOEIC|800
+5|1|IDP Education|6.5
+6|1|British Council|7.5
+8|2|IIG Vietnam|750
+10|1|IDP Education|7.0
