@@ -253,12 +253,12 @@ void CandidatePage::buildProfileCard() {
 
     avatarCircleLabel = new QLabel(this);
     avatarCircleLabel->setAlignment(Qt::AlignCenter);
-    avatarCircleLabel->setFixedSize(54, 54);
+    avatarCircleLabel->setFixedSize(68, 68);
     avatarCircleLabel->setCursor(Qt::PointingHandCursor);
     avatarCircleLabel->setToolTip("Nhấn để đổi ảnh đại diện");
     avatarCircleLabel->installEventFilter(this);
     QString avPath = StyleHelper::getCandidateAvatarPath(m_candidate.getIDcandidate());
-    avatarCircleLabel->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 54));
+    avatarCircleLabel->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 68));
 
     QVBoxLayout *avatarCol = new QVBoxLayout();
     avatarCol->setSpacing(4);
@@ -610,10 +610,10 @@ void CandidatePage::buildRecentApplicationsCard() {
 
             QLabel *logo = new QLabel(this);
             logo->setAlignment(Qt::AlignCenter);
-            logo->setFixedSize(36, 36);
+            logo->setFixedSize(44, 44);
             QString logoPath = StyleHelper::getCompanyLogoPath(comp.getIDcompany());
             QString initials = StyleHelper::getInitials(compName, "DN");
-            logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 36, 8));
+            logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 44, 10));
 
             QVBoxLayout *txt = new QVBoxLayout();
             txt->setSpacing(2);
@@ -701,11 +701,11 @@ void CandidatePage::buildJobList() {
 
         QLabel *logoLabel = new QLabel(card);
         logoLabel->setAlignment(Qt::AlignCenter);
-        logoLabel->setFixedSize(48, 48);
+        logoLabel->setFixedSize(54, 54);
         QString qCompName = QString::fromStdString(comp.getNameCompany().empty() ? "Doanh nghiệp" : comp.getNameCompany());
         QString compInitials = StyleHelper::getInitials(qCompName, "DN");
         QString logoPath = StyleHelper::getCompanyLogoPath(comp.getIDcompany());
-        logoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 48, 10));
+        logoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 54, 12));
 
         QVBoxLayout *jobTitleLayout = new QVBoxLayout();
         jobTitleLayout->setSpacing(3);

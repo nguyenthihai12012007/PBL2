@@ -147,76 +147,85 @@ public:
     static QPixmap getCircularAvatar(const QString &imagePath, const QString &initials, int size,
                                      const QString &bgColorHex = "#EFE4DA",
                                      const QString &textColorHex = "#8A4E36") {
-        if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
-            QPixmap src(imagePath);
-            if (!src.isNull()) {
-                QPixmap out(size, size);
-                out.fill(Qt::transparent);
-                QPainter p(&out);
-                p.setRenderHint(QPainter::Antialiasing);
-                p.setRenderHint(QPainter::SmoothPixmapTransform);
-                QPainterPath path;
-                path.addEllipse(0, 0, size, size);
-                p.setClipPath(path);
-                QPixmap scaled = src.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-                int x = (scaled.width() - size) / 2;
-                int y = (scaled.height() - size) / 2;
-                p.drawPixmap(0, 0, scaled.copy(x, y, size, size));
-                return out;
+        int renderSize = size * 2; // Vẽ độ phân giải 2x cho màn hình Retina macOS siêu sắc nét
+        QPixmap out(renderSize, renderSize);
+        out.fill(Qt::transparent);
+        {
+            QPainter p(&out);
+            p.setRenderHint(QPainter::Antialiasing, true);
+            p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+            p.setRenderHint(QPainter::TextAntialiasing, true);
+
+            QPainterPath path;
+            path.addEllipse(0, 0, renderSize, renderSize);
+            p.setClipPath(path);
+
+            // 1. Luôn đổ màu nền đặc trước để avatar luôn phủ kín 100% khung hình
+            p.fillPath(path, QColor(bgColorHex));
+
+            bool imageDrawn = false;
+            if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
+                QPixmap src(imagePath);
+                if (!src.isNull() && src.width() > 0 && src.height() > 0) {
+                    QPixmap scaled = src.scaled(renderSize, renderSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+                    int x = (scaled.width() - renderSize) / 2;
+                    int y = (scaled.height() - renderSize) / 2;
+                    p.drawPixmap(0, 0, scaled.copy(x, y, renderSize, renderSize));
+                    imageDrawn = true;
+                }
+            }
+
+            if (!imageDrawn) {
+                p.setPen(QColor(textColorHex));
+                QFont f("Helvetica", renderSize * (initials.length() > 2 ? 0.32 : 0.38), QFont::Bold);
+                p.setFont(f);
+                p.drawText(QRect(0, 0, renderSize, renderSize), Qt::AlignCenter, initials);
             }
         }
-
-        QPixmap out(size, size);
-        out.fill(Qt::transparent);
-        QPainter p(&out);
-        p.setRenderHint(QPainter::Antialiasing);
-        QPainterPath path;
-        path.addEllipse(0, 0, size, size);
-        p.fillPath(path, QColor(bgColorHex));
-        p.setPen(QColor(textColorHex));
-        QFont f = p.font();
-        f.setPixelSize(size * 0.38);
-        f.setBold(true);
-        p.setFont(f);
-        p.drawText(QRect(0, 0, size, size), Qt::AlignCenter, initials);
+        out.setDevicePixelRatio(2.0);
         return out;
     }
 
     static QPixmap getRoundedBadge(const QString &imagePath, const QString &initials, int size, int radius = 10,
                                    const QString &bgColorHex = "#B95334",
                                    const QString &textColorHex = "#FFFFFF") {
-        if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
-            QPixmap src(imagePath);
-            if (!src.isNull()) {
-                QPixmap out(size, size);
-                out.fill(Qt::transparent);
-                QPainter p(&out);
-                p.setRenderHint(QPainter::Antialiasing);
-                p.setRenderHint(QPainter::SmoothPixmapTransform);
-                QPainterPath path;
-                path.addRoundedRect(0, 0, size, size, radius, radius);
-                p.setClipPath(path);
-                QPixmap scaled = src.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-                int x = (scaled.width() - size) / 2;
-                int y = (scaled.height() - size) / 2;
-                p.drawPixmap(0, 0, scaled.copy(x, y, size, size));
-                return out;
+        int renderSize = size * 2; // Vẽ độ phân giải 2x cho màn hình Retina macOS siêu sắc nét
+        int renderRadius = radius * 2;
+        QPixmap out(renderSize, renderSize);
+        out.fill(Qt::transparent);
+        {
+            QPainter p(&out);
+            p.setRenderHint(QPainter::Antialiasing, true);
+            p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+            p.setRenderHint(QPainter::TextAntialiasing, true);
+
+            QPainterPath path;
+            path.addRoundedRect(0, 0, renderSize, renderSize, renderRadius, renderRadius);
+            p.setClipPath(path);
+
+            // 1. Luôn đổ màu nền đặc trước
+            p.fillPath(path, QColor(bgColorHex));
+
+            bool imageDrawn = false;
+            if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
+                QPixmap src(imagePath);
+                if (!src.isNull() && src.width() > 0 && src.height() > 0) {
+                    QPixmap scaled = src.scaled(renderSize, renderSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+                    int x = (scaled.width() - renderSize) / 2;
+                    int y = (scaled.height() - renderSize) / 2;
+                    p.drawPixmap(0, 0, scaled.copy(x, y, renderSize, renderSize));
+                    imageDrawn = true;
+                }
+            }
+
+            if (!imageDrawn) {
+                p.setPen(QColor(textColorHex));
+                QFont f("Helvetica", renderSize * (initials.length() > 2 ? 0.32 : 0.38), QFont::Bold);
+                p.setFont(f);
+                p.drawText(QRect(0, 0, renderSize, renderSize), Qt::AlignCenter, initials);
             }
         }
-
-        QPixmap out(size, size);
-        out.fill(Qt::transparent);
-        QPainter p(&out);
-        p.setRenderHint(QPainter::Antialiasing);
-        QPainterPath path;
-        path.addRoundedRect(0, 0, size, size, radius, radius);
-        p.fillPath(path, QColor(bgColorHex));
-        p.setPen(QColor(textColorHex));
-        QFont f = p.font();
-        f.setPixelSize(size * 0.38);
-        f.setBold(true);
-        p.setFont(f);
-        p.drawText(QRect(0, 0, size, size), Qt::AlignCenter, initials);
+        out.setDevicePixelRatio(2.0);
         return out;
     }
     // Color Palette Definitions (Bám sát design_reference.png)
@@ -636,11 +645,12 @@ public:
                 background-color: #F5EBE1;
                 color: #6C757D;
                 font-weight: 600;
-                font-size: 12px;
-                padding: 8px 18px;
+                font-size: 13px;
+                padding: 9px 20px;
+                min-width: 140px;
                 border-top-left-radius: 8px;
                 border-top-right-radius: 8px;
-                margin-right: 4px;
+                margin-right: 6px;
                 border: 1px solid #ECE5DE;
                 border-bottom: none;
             }
@@ -713,4 +723,4 @@ public:
     }
 };
 
-#endif // STYLE_HELPER_H
+#endif 

@@ -93,7 +93,7 @@ void JobPage::setupUI() {
     brandHeaderRow->setAlignment(Qt::AlignVCenter);
 
     companyLogoLabel = new QLabel(headerCard);
-    companyLogoLabel->setFixedSize(54, 54);
+    companyLogoLabel->setFixedSize(64, 64);
     companyLogoLabel->setAlignment(Qt::AlignCenter);
 
     QVBoxLayout *titleTextCol = new QVBoxLayout();
@@ -242,7 +242,7 @@ void JobPage::setupUI() {
 void JobPage::loadJob(const MockJobDetail &job) {
     currentJob = job;
 
-    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge("", StyleHelper::getInitials(job.company, "VT"), 54, 12));
+    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge("", StyleHelper::getInitials(job.company, "VT"), 64, 14));
     jobTitleLabel->setText(job.title);
     companyNameLabel->setText(job.company);
     salaryLabel->setText(QString("💰 Lương: %1 VNĐ").arg(QLocale(QLocale::Vietnamese).toString(job.salary)));
@@ -443,7 +443,7 @@ void JobPage::loadJob(const Job &job, const Company &company, double matchScore)
     loadJob(detail);
     QString logoPath = StyleHelper::getCompanyLogoPath(company.getIDcompany());
     QString compInitials = StyleHelper::getInitials(QString::fromStdString(company.getNameCompany()), "VT");
-    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 54, 12));
+    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 64, 14));
 }
 
 void JobPage::onBackClicked() {

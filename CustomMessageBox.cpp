@@ -29,6 +29,7 @@ void CustomMessageBox::setupUI(const QString &title,
     // Outer layout with padding for shadow
     QVBoxLayout *outerLayout = new QVBoxLayout(this);
     outerLayout->setContentsMargins(16, 16, 16, 16);
+    outerLayout->setSizeConstraint(QLayout::SetFixedSize);
 
     // Card container
     QFrame *card = new QFrame(this);
@@ -101,9 +102,15 @@ void CustomMessageBox::setupUI(const QString &title,
 
     // 3. Message Text
     QLabel *msgLabel = new QLabel(message, card);
-    msgLabel->setAlignment(Qt::AlignCenter);
     msgLabel->setWordWrap(true);
-    msgLabel->setStyleSheet("font-size: 13px; color: #4A4A4A; line-height: 1.45;");
+    msgLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    if (message.contains('\n') || message.contains("•")) {
+        msgLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        msgLabel->setStyleSheet("font-size: 13px; color: #374151; padding: 4px 8px; line-height: 1.4;");
+    } else {
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setStyleSheet("font-size: 13px; color: #4A4A4A; padding: 2px 4px;");
+    }
     cardLayout->addWidget(msgLabel);
 
     cardLayout->addSpacing(6);
@@ -180,8 +187,7 @@ void CustomMessageBox::setupUI(const QString &title,
     cardLayout->addLayout(buttonsLayout);
     outerLayout->addWidget(card);
 
-    setMinimumWidth(380);
-    setMaximumWidth(450);
+    setFixedWidth(480);
 }
 
 void CustomMessageBox::information(QWidget *parent, const QString &title, const QString &message) {

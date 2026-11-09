@@ -19,6 +19,7 @@
 #include <QTextEdit>
 #include <QDateEdit>
 #include <QTabWidget>
+#include <QTabBar>
 #include <QListWidget>
 #include <QComboBox>
 #include <algorithm>
@@ -197,12 +198,12 @@ void CompanyPage::buildCompanyProfileHeader() {
 
     companyLogoLabel = new QLabel(card);
     companyLogoLabel->setAlignment(Qt::AlignCenter);
-    companyLogoLabel->setFixedSize(54, 54);
+    companyLogoLabel->setFixedSize(68, 68);
     companyLogoLabel->setCursor(Qt::PointingHandCursor);
     companyLogoLabel->setToolTip("Nhấn để đổi logo công ty");
     companyLogoLabel->installEventFilter(this);
     QString logoPath = StyleHelper::getCompanyLogoPath(m_company.getIDcompany());
-    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 54, 12));
+    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 68, 14));
 
     QVBoxLayout *logoCol = new QVBoxLayout();
     logoCol->setSpacing(4);
@@ -610,10 +611,10 @@ void CompanyPage::buildLatestApplicantsCard() {
 
         QLabel *avatar = new QLabel(this);
         avatar->setAlignment(Qt::AlignCenter);
-        avatar->setFixedSize(36, 36);
+        avatar->setFixedSize(44, 44);
         int candId = cand.getIDcandidate() > 0 ? cand.getIDcandidate() : app.getIDcandidate();
         QString avPath = StyleHelper::getCandidateAvatarPath(candId);
-        avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 36));
+        avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 44));
 
         QVBoxLayout *textLayout = new QVBoxLayout();
         textLayout->setSpacing(2);
@@ -820,10 +821,10 @@ void CompanyPage::showApplicantsDialog(int jobId, const QString &jobTitle) {
 
             QLabel *avatar = new QLabel(itemCard);
             avatar->setAlignment(Qt::AlignCenter);
-            avatar->setFixedSize(40, 40);
+            avatar->setFixedSize(48, 48);
             int candId = cand.getIDcandidate() > 0 ? cand.getIDcandidate() : app.getIDcandidate();
             QString avPath = StyleHelper::getCandidateAvatarPath(candId);
-            avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 40));
+            avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 48));
 
             // Thông tin ứng viên
             QVBoxLayout *candInfo = new QVBoxLayout();
@@ -1265,14 +1266,49 @@ bool CompanyPage::eventFilter(QObject *obj, QEvent *event) {
 void CompanyPage::onCreateJobClicked() {
     QDialog dialog(this);
     dialog.setWindowTitle("Đăng tin tuyển dụng mới");
-    dialog.setFixedSize(580, 580);
-    dialog.setStyleSheet("background-color: #FBF8F5;");
+    dialog.resize(620, 640);
+    dialog.setMinimumSize(580, 580);
+    dialog.setStyleSheet("QDialog { background-color: #FBF8F5; }");
 
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
     layout->setContentsMargins(18, 18, 18, 18);
     layout->setSpacing(12);
 
     QTabWidget *tabWidget = new QTabWidget(&dialog);
+    if (tabWidget->tabBar()) {
+        tabWidget->tabBar()->setElideMode(Qt::ElideNone);
+        tabWidget->tabBar()->setExpanding(false);
+    }
+    tabWidget->setStyleSheet(
+        "QTabWidget::pane {"
+        "    border: 1px solid #ECE5DE;"
+        "    border-radius: 8px;"
+        "    background-color: #FFFFFF;"
+        "    top: -1px;"
+        "}"
+        "QTabBar::tab {"
+        "    background-color: #F5EBE1;"
+        "    color: #6C757D;"
+        "    font-weight: 600;"
+        "    font-size: 13px;"
+        "    padding: 9px 20px;"
+        "    min-width: 140px;"
+        "    border-top-left-radius: 8px;"
+        "    border-top-right-radius: 8px;"
+        "    margin-right: 6px;"
+        "    border: 1px solid #ECE5DE;"
+        "    border-bottom: none;"
+        "}"
+        "QTabBar::tab:selected {"
+        "    background-color: #B95334;"
+        "    color: #FFFFFF;"
+        "    font-weight: 700;"
+        "}"
+        "QTabBar::tab:hover:!selected {"
+        "    background-color: #EFE4DA;"
+        "    color: #1E1E1E;"
+        "}"
+    );
 
     // =========================================================================
     // TAB 1: THÔNG TIN CHUNG
@@ -1434,7 +1470,7 @@ void CompanyPage::onCreateJobClicked() {
     removeCertBtn->setStyleSheet("background: transparent; color: #DC2626; border: none; font-size: 11px; text-align: left;");
     reqLayout->addWidget(removeCertBtn);
 
-    tabWidget->addTab(reqTab, "Kỹ năng & Chứng chỉ");
+    tabWidget->addTab(reqTab, "Kỹ năng / Chứng chỉ");
     layout->addWidget(tabWidget);
 
     // Xử lý thêm / xóa kỹ năng
@@ -1548,14 +1584,49 @@ void CompanyPage::onEditJobClicked(int jobId) {
 
     QDialog dialog(this);
     dialog.setWindowTitle("Chỉnh sửa tin tuyển dụng");
-    dialog.setFixedSize(580, 580);
-    dialog.setStyleSheet("background-color: #FBF8F5;");
+    dialog.resize(620, 640);
+    dialog.setMinimumSize(580, 580);
+    dialog.setStyleSheet("QDialog { background-color: #FBF8F5; }");
 
     QVBoxLayout *layout = new QVBoxLayout(&dialog);
     layout->setContentsMargins(18, 18, 18, 18);
     layout->setSpacing(12);
 
     QTabWidget *tabWidget = new QTabWidget(&dialog);
+    if (tabWidget->tabBar()) {
+        tabWidget->tabBar()->setElideMode(Qt::ElideNone);
+        tabWidget->tabBar()->setExpanding(false);
+    }
+    tabWidget->setStyleSheet(
+        "QTabWidget::pane {"
+        "    border: 1px solid #ECE5DE;"
+        "    border-radius: 8px;"
+        "    background-color: #FFFFFF;"
+        "    top: -1px;"
+        "}"
+        "QTabBar::tab {"
+        "    background-color: #F5EBE1;"
+        "    color: #6C757D;"
+        "    font-weight: 600;"
+        "    font-size: 13px;"
+        "    padding: 9px 20px;"
+        "    min-width: 140px;"
+        "    border-top-left-radius: 8px;"
+        "    border-top-right-radius: 8px;"
+        "    margin-right: 6px;"
+        "    border: 1px solid #ECE5DE;"
+        "    border-bottom: none;"
+        "}"
+        "QTabBar::tab:selected {"
+        "    background-color: #B95334;"
+        "    color: #FFFFFF;"
+        "    font-weight: 700;"
+        "}"
+        "QTabBar::tab:hover:!selected {"
+        "    background-color: #EFE4DA;"
+        "    color: #1E1E1E;"
+        "}"
+    );
 
     // =========================================================================
     // TAB 1: THÔNG TIN CHUNG
@@ -1736,7 +1807,7 @@ void CompanyPage::onEditJobClicked(int jobId) {
     removeCertBtn->setStyleSheet("background: transparent; color: #DC2626; border: none; font-size: 11px; text-align: left;");
     reqLayout->addWidget(removeCertBtn);
 
-    tabWidget->addTab(reqTab, "Kỹ năng & Chứng chỉ");
+    tabWidget->addTab(reqTab, "Kỹ năng / Chứng chỉ");
     layout->addWidget(tabWidget);
 
     // Xử lý thêm / xóa kỹ năng

@@ -511,8 +511,7 @@ void MainWindow::onApplyJobRequested(int jobId) {
                     "• Vị trí: %2\n"
                     "• Điểm phù hợp tính toán: %3%\n"
                     "• Trạng thái: Đang xem xét\n"
-                    "• Ngày nộp: %4\n\n"
-                    "Dữ liệu đã được lưu chính xác vào applications.txt.")
+                    "• Ngày nộp: %4")
             .arg(result.application.getIDappli())
             .arg(QString::fromStdString(result.job.getTitle()))
             .arg(QString::number(result.matchScore, 'f', 1))
@@ -976,9 +975,9 @@ void MainWindow::buildCandidateProfilePage() {
             QString initials = StyleHelper::getInitials(qCompName, "DN");
             QLabel *logo = new QLabel(item);
             logo->setAlignment(Qt::AlignCenter);
-            logo->setFixedSize(36, 36);
+            logo->setFixedSize(44, 44);
             QString logoPath = StyleHelper::getCompanyLogoPath(c.getIDcompany());
-            logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 36, 8));
+            logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 44, 10));
 
             QLabel *jTitle = new QLabel(QString::fromStdString(j.getTitle()), item);
             jTitle->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
@@ -1290,8 +1289,8 @@ void MainWindow::showCandidateProfileDialog() {
     QString avPath = StyleHelper::getCandidateAvatarPath(cand.getIDcandidate());
     QLabel *avatar = new QLabel(hCard);
     avatar->setAlignment(Qt::AlignCenter);
-    avatar->setFixedSize(54, 54);
-    avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 54, "#B95334", "#FFFFFF"));
+    avatar->setFixedSize(64, 64);
+    avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 64, "#B95334", "#FFFFFF"));
 
     QVBoxLayout *infoLayout = new QVBoxLayout();
     infoLayout->setSpacing(3);
@@ -1528,9 +1527,9 @@ void MainWindow::showCandidateApplicationsDialog() {
         QString compInitials = StyleHelper::getInitials(qCompName, "DN");
         QLabel *logo = new QLabel(card);
         logo->setAlignment(Qt::AlignCenter);
-        logo->setFixedSize(40, 40);
+        logo->setFixedSize(48, 48);
         QString logoPath = StyleHelper::getCompanyLogoPath(comp.getIDcompany());
-        logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 40, 8));
+        logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 48, 10));
 
         QVBoxLayout *tBox = new QVBoxLayout();
         tBox->setSpacing(2);
