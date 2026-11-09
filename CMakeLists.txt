@@ -57,6 +57,4 @@ target_include_directories(JobSystemQt PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(generate_avatars scratch/generate_avatars.cpp)
-target_link_libraries(generate_avatars PRIVATE Qt6::Widgets)
-target_include_directories(generate_avatars PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
