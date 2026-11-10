@@ -1,4 +1,5 @@
 #include "CompanyPage.h"
+#include "Matching.h"
 #include "CustomMessageBox.h"
 #include "StyleHelper.h"
 #include <QFileDialog>
@@ -22,6 +23,8 @@
 #include <QTabBar>
 #include <QListWidget>
 #include <QComboBox>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
 #include <algorithm>
 
 namespace {
@@ -315,15 +318,16 @@ void CompanyPage::onEditCompanyProfileClicked() {
     nameEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QLineEdit *phoneEdit = new QLineEdit(QString::fromStdString(m_company.getPhoneCompany()), formCard);
-    phoneEdit->setPlaceholderText("VD: 0243.888.9999");
+    phoneEdit->setPlaceholderText("VD: 0905123456 hoặc 02363880001");
+    phoneEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]{0,11}$"), phoneEdit));
     phoneEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QLineEdit *addrEdit = new QLineEdit(QString::fromStdString(m_company.getAddressCompany()), formCard);
-    addrEdit->setPlaceholderText("VD: Tòa nhà FPT, Cầu Giấy, Hà Nội");
+    addrEdit->setPlaceholderText("VD: 54 Nguyễn Lương Bằng, Đà Nẵng");
     addrEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QLineEdit *webEdit = new QLineEdit(QString::fromStdString(m_company.getWebsite()), formCard);
-    webEdit->setPlaceholderText("VD: https://viettech.vn");
+    webEdit->setPlaceholderText("VD: https://company.vn");
     webEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QTextEdit *descEdit = new QTextEdit(formCard);
@@ -334,7 +338,7 @@ void CompanyPage::onEditCompanyProfileClicked() {
 
     form->addRow("Tên doanh nghiệp *:", nameEdit);
     form->addRow("Số điện thoại liên hệ *:", phoneEdit);
-    form->addRow("Địa chỉ trụ sở *:", addrEdit);
+    form->addRow("Địa chỉ trụ sở:", addrEdit);
     form->addRow("Website chính thức:", webEdit);
     form->addRow("Giới thiệu doanh nghiệp:", descEdit);
     mainLayout->addWidget(formCard);
@@ -359,8 +363,19 @@ void CompanyPage::onEditCompanyProfileClicked() {
             return;
         }
 
+        QString phone = phoneEdit->text().trimmed();
+        if (phone.isEmpty()) {
+            CustomMessageBox::warning(&dialog, "Thiếu dữ liệu", "Số điện thoại liên hệ không được để trống.");
+            return;
+        }
+        if (!isValidPhoneNumber(phone.toStdString())) {
+            CustomMessageBox::warning(&dialog, "Số điện thoại không hợp lệ",
+                "Số điện thoại chỉ được chứa các chữ số, phải bắt đầu bằng số 0 và có độ dài từ 10 đến 11 số (ví dụ: 0905123456 hoặc 02363880001).");
+            return;
+        }
+
         if (m_company.updateCompany(newName.toStdString(),
-                                    phoneEdit->text().trimmed().toStdString(),
+                                    phone.toStdString(),
                                     addrEdit->text().trimmed().toStdString(),
                                     webEdit->text().trimmed().toStdString(),
                                     descEdit->toPlainText().trimmed().toStdString(),
@@ -455,7 +470,7 @@ void CompanyPage::buildJobsList() {
         // Metadata
         QHBoxLayout *metaLine = new QHBoxLayout();
         metaLine->setSpacing(14);
-        QString loc = QString::fromStdString(job.getLocation().empty() ? "Hà Nội" : job.getLocation());
+        QString loc = QString::fromStdString(job.getLocation().empty() ? "Chưa cập nhật" : job.getLocation());
         QLabel *locLbl = new QLabel("📍 " + loc, card);
         locLbl->setStyleSheet("color: #6C757D; font-size: 12px;");
 
@@ -463,7 +478,7 @@ void CompanyPage::buildJobsList() {
         typeLbl->setStyleSheet("color: #6C757D; font-size: 12px;");
 
         int exp = job.getMinExperience();
-        QString expStr = exp > 0 ? QString("%1 - %2 năm kinh nghiệm").arg(exp).arg(exp + 2) : "Mới tốt nghiệp";
+        QString expStr = exp > 0 ? QString("%1 tháng kinh nghiệm").arg(exp) : "Không yêu cầu kinh nghiệm";
         QLabel *expLbl = new QLabel("📊 " + expStr, card);
         expLbl->setStyleSheet("color: #6C757D; font-size: 12px;");
 
@@ -504,7 +519,7 @@ void CompanyPage::buildJobsList() {
         int jobId = job.getIDjob();
         QString jobTitle = QString::fromStdString(job.getTitle());
         connect(viewCandidatesBtn, &QPushButton::clicked, this, [this, jobId, jobTitle]() {
-            showApplicantsDialog(jobId, jobTitle);
+            emit viewApplicantsRequested(jobId, jobTitle);
         });
         actionLayout->addWidget(viewCandidatesBtn);
 
@@ -568,7 +583,7 @@ void CompanyPage::buildLatestApplicantsCard() {
     viewAllBtn->setCursor(Qt::PointingHandCursor);
     viewAllBtn->setStyleSheet("color: #B95334; font-size: 12px; font-weight: 600; background: transparent; border: none;");
     connect(viewAllBtn, &QPushButton::clicked, this, [this]() {
-        showApplicantsDialog(0, "Tất cả vị trí tuyển dụng");
+        emit viewApplicantsRequested(0, "Tất cả vị trí tuyển dụng");
     });
 
     header->addWidget(title);
@@ -697,7 +712,9 @@ void CompanyPage::showApplicantsDialog(int jobId, const QString &jobTitle) {
     QDialog dialog(this);
     QString dlgTitle = (jobId > 0) ? QString("Hồ sơ ứng tuyển — %1").arg(jobTitle) : "Tất cả hồ sơ ứng tuyển";
     dialog.setWindowTitle(dlgTitle);
-    dialog.resize(840, 600);
+    dialog.resize(1100, 720);
+    dialog.setMinimumSize(960, 640);
+    dialog.setWindowFlags(dialog.windowFlags() | Qt::WindowMaximizeButtonHint);
     dialog.setStyleSheet("background-color: #FBF8F5;");
 
     QVBoxLayout *mainLayout = new QVBoxLayout(&dialog);
@@ -822,6 +839,7 @@ void CompanyPage::showApplicantsDialog(int jobId, const QString &jobTitle) {
             QLabel *avatar = new QLabel(itemCard);
             avatar->setAlignment(Qt::AlignCenter);
             avatar->setFixedSize(48, 48);
+            avatar->setStyleSheet("background: transparent; border: none; padding: 0px;");
             int candId = cand.getIDcandidate() > 0 ? cand.getIDcandidate() : app.getIDcandidate();
             QString avPath = StyleHelper::getCandidateAvatarPath(candId);
             avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 48));
@@ -844,12 +862,16 @@ void CompanyPage::showApplicantsDialog(int jobId, const QString &jobTitle) {
             QVBoxLayout *scoreLayout = new QVBoxLayout();
             scoreLayout->setSpacing(0);
             scoreLayout->setAlignment(Qt::AlignCenter);
-            QLabel *scoreVal = new QLabel(QString::number(app.getAppropriateLevel(), 'f', 1) + "%", itemCard);
+            float cScore = app.getAppropriateLevel();
+            bool isHighScore = (cScore >= 70.0f);
+            QLabel *scoreVal = new QLabel(QString::number(cScore, 'f', 1) + "%", itemCard);
             scoreVal->setAlignment(Qt::AlignCenter);
-            scoreVal->setStyleSheet("font-size: 14px; font-weight: 800; color: #B95334;");
-            QLabel *scoreLbl = new QLabel("Phù hợp", itemCard);
+            scoreVal->setStyleSheet(isHighScore ? "font-size: 14px; font-weight: 800; color: #1B7F49;"
+                                           : "font-size: 14px; font-weight: 800; color: #B76E00;");
+            QLabel *scoreLbl = new QLabel(isHighScore ? "Phù hợp" : "Chưa đạt gợi ý", itemCard);
             scoreLbl->setAlignment(Qt::AlignCenter);
-            scoreLbl->setStyleSheet("font-size: 10px; color: #6C757D;");
+            scoreLbl->setStyleSheet(isHighScore ? "font-size: 10px; color: #1B7F49; font-weight: 600;"
+                                           : "font-size: 10px; color: #B76E00; font-weight: 600;");
             scoreLayout->addWidget(scoreVal);
             scoreLayout->addWidget(scoreLbl);
 
@@ -878,7 +900,6 @@ void CompanyPage::showApplicantsDialog(int jobId, const QString &jobTitle) {
                 "background-color: transparent; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600;"
             );
             int cId = app.getIDcandidate();
-            float cScore = app.getAppropriateLevel();
             QString qTitle = QString::fromStdString(jTitle);
             int appId = app.getIDappli();
             int currJobId = app.getIDjob();
@@ -995,7 +1016,7 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
 
     QDialog dialog(this);
     dialog.setWindowTitle("Hồ sơ ứng viên: " + candFullName);
-    dialog.resize(680, 580);
+    dialog.resize(760, 600);
     dialog.setStyleSheet("background-color: #FBF8F5;");
 
     QVBoxLayout *mainLayout = new QVBoxLayout(&dialog);
@@ -1004,8 +1025,16 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
 
     // Header card
     QFrame *headerCard = new QFrame(&dialog);
-    headerCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 16px;");
+    headerCard->setObjectName("candDetailHeaderCard");
+    headerCard->setStyleSheet(
+        "#candDetailHeaderCard {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 12px;"
+        "}"
+    );
     QHBoxLayout *headerLayout = new QHBoxLayout(headerCard);
+    headerLayout->setContentsMargins(18, 16, 18, 16);
     headerLayout->setSpacing(16);
     headerLayout->setAlignment(Qt::AlignVCenter);
 
@@ -1015,18 +1044,20 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
     else if (!parts.isEmpty()) initials = parts.first().left(2).toUpper();
 
     QLabel *avatar = new QLabel(headerCard);
+    avatar->setObjectName("candDetailAvatar");
     avatar->setAlignment(Qt::AlignCenter);
-    avatar->setFixedSize(54, 54);
+    avatar->setFixedSize(62, 62);
+    avatar->setStyleSheet("background: transparent; border: none; padding: 0px;");
     QString avPath = StyleHelper::getCandidateAvatarPath(cand.getIDcandidate());
-    avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 54, "#B95334", "#FFFFFF"));
+    avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 62, "#B95334", "#FFFFFF"));
 
     QVBoxLayout *headInfo = new QVBoxLayout();
     headInfo->setSpacing(4);
     headInfo->setAlignment(Qt::AlignVCenter);
     QLabel *nameLabel = new QLabel(candFullName, headerCard);
-    nameLabel->setStyleSheet("font-size: 18px; font-weight: 800; color: #1E1E1E;");
+    nameLabel->setStyleSheet("font-size: 18px; font-weight: 800; color: #1E1E1E; background: transparent; border: none;");
     QLabel *jobLabel = new QLabel("Vị trí ứng tuyển: " + jobTitle, headerCard);
-    jobLabel->setStyleSheet("font-size: 13px; font-weight: 600; color: #B95334;");
+    jobLabel->setStyleSheet("font-size: 13px; font-weight: 600; color: #B95334; background: transparent; border: none;");
 
     headInfo->addWidget(nameLabel);
     headInfo->addWidget(jobLabel);
@@ -1036,10 +1067,10 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
     scoreBox->setAlignment(Qt::AlignCenter);
     QLabel *scoreNum = new QLabel(QString::number(score, 'f', 1) + "%", headerCard);
     scoreNum->setAlignment(Qt::AlignCenter);
-    scoreNum->setStyleSheet("font-size: 20px; font-weight: 800; color: #B95334;");
+    scoreNum->setStyleSheet("font-size: 20px; font-weight: 800; color: #B95334; background: transparent; border: none;");
     QLabel *scoreLbl = new QLabel("Độ phù hợp", headerCard);
     scoreLbl->setAlignment(Qt::AlignCenter);
-    scoreLbl->setStyleSheet("font-size: 11px; color: #6C757D;");
+    scoreLbl->setStyleSheet("font-size: 11px; color: #6C757D; background: transparent; border: none;");
     scoreBox->addWidget(scoreNum);
     scoreBox->addWidget(scoreLbl);
 
@@ -1060,11 +1091,69 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
     contentLayout->setContentsMargins(0, 0, 0, 0);
     contentLayout->setSpacing(14);
 
-    // Thẻ thông tin hợp nhất, loại bỏ các ô trắng phân mục rời rạc chiếm diện tích
+    // Thẻ thông tin hợp nhất
     QFrame *detailCard = new QFrame(scrollContent);
-    detailCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 16px;");
+    detailCard->setObjectName("candDetailCard");
+    detailCard->setStyleSheet(
+        "#candDetailCard {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 12px;"
+        "}"
+        "#candDetailCard QLabel {"
+        "   background: transparent;"
+        "   border: none;"
+        "}"
+    );
     QVBoxLayout *dLayout = new QVBoxLayout(detailCard);
-    dLayout->setSpacing(12);
+    dLayout->setContentsMargins(20, 18, 20, 18);
+    dLayout->setSpacing(14);
+
+    // 1 & 2: Thông tin cá nhân & Học vấn nằm trên cùng một ô (2 cột cân đối, mở rộng đẹp khi phóng to)
+    QHBoxLayout *personalEduRow = new QHBoxLayout();
+    personalEduRow->setSpacing(24);
+
+    // Cột 1: Thông tin cá nhân & Liên hệ
+    QVBoxLayout *pCol = new QVBoxLayout();
+    pCol->setSpacing(8);
+    QLabel *pTitle = new QLabel("👤 Thông tin cá nhân & Liên hệ", detailCard);
+    pTitle->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
+    pCol->addWidget(pTitle);
+
+    QFormLayout *pForm = new QFormLayout();
+    pForm->setSpacing(8);
+    pForm->addRow("Email:", new QLabel(QString::fromStdString(cand.getEmail().empty() ? "Chưa cập nhật" : cand.getEmail()), detailCard));
+    pForm->addRow("Điện thoại:", new QLabel(QString::fromStdString(p.phoneCandidate.empty() ? "Chưa cập nhật" : p.phoneCandidate), detailCard));
+    pForm->addRow("Ngày sinh:", new QLabel(QString::fromStdString(formatDateDisplay(p.birthday)) + " (" + QString::fromStdString(p.gender.empty() ? "Chưa cập nhật" : p.gender) + ")", detailCard));
+    pForm->addRow("Địa chỉ:", new QLabel(QString::fromStdString(p.addressCandidate.empty() ? "Chưa cập nhật" : p.addressCandidate), detailCard));
+    pCol->addLayout(pForm);
+
+    // Đường kẻ phân cách dọc giữa 2 cột
+    QFrame *vDivider = new QFrame(detailCard);
+    vDivider->setFrameShape(QFrame::VLine);
+    vDivider->setFrameShadow(QFrame::Sunken);
+    vDivider->setStyleSheet("background-color: #F0EAE4; max-width: 1px; border: none;");
+
+    // Cột 2: Học vấn & Trình độ
+    QVBoxLayout *eduCol = new QVBoxLayout();
+    eduCol->setSpacing(8);
+    QLabel *eduTitle = new QLabel("🎓 Học vấn & Trình độ", detailCard);
+    eduTitle->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
+    eduCol->addWidget(eduTitle);
+
+    QFormLayout *eduForm = new QFormLayout();
+    eduForm->setSpacing(8);
+    eduForm->addRow("Ngành học:", new QLabel(QString::fromStdString(prof.major.empty() ? "Chưa cập nhật" : prof.major), detailCard));
+    eduForm->addRow("Trường đào tạo:", new QLabel(QString::fromStdString(prof.school.empty() ? "Chưa cập nhật" : prof.school), detailCard));
+    eduForm->addRow("Trình độ:", new QLabel(QString::fromStdString(prof.educationLevel.empty() ? "Chưa cập nhật" : prof.educationLevel), detailCard));
+    eduForm->addRow("Điểm GPA:", new QLabel(QString::number(prof.GPA, 'f', 2), detailCard));
+    eduCol->addLayout(eduForm);
+
+    personalEduRow->addLayout(pCol, 1);
+    personalEduRow->addWidget(vDivider);
+    personalEduRow->addLayout(eduCol, 1);
+
+    dLayout->addLayout(personalEduRow);
 
     auto makeSection = [detailCard](QVBoxLayout *parentLayout, const QString &secTitle, const QString &icon, bool addDivider) -> QVBoxLayout* {
         if (addDivider) {
@@ -1082,26 +1171,6 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
         parentLayout->addLayout(secLayout);
         return secLayout;
     };
-
-    // 1. Thông tin cá nhân & Liên hệ
-    QVBoxLayout *pLayout = makeSection(dLayout, "Thông tin cá nhân & Liên hệ", "👤", false);
-    QFormLayout *pForm = new QFormLayout();
-    pForm->setSpacing(6);
-    pForm->addRow("Email:", new QLabel(QString::fromStdString(cand.getEmail().empty() ? "Chưa cập nhật" : cand.getEmail()), detailCard));
-    pForm->addRow("Điện thoại:", new QLabel(QString::fromStdString(p.phoneCandidate.empty() ? "Chưa cập nhật" : p.phoneCandidate), detailCard));
-    pForm->addRow("Ngày sinh:", new QLabel(QString::fromStdString(p.birthday.empty() ? "Chưa cập nhật" : p.birthday) + " (" + QString::fromStdString(p.gender) + ")", detailCard));
-    pForm->addRow("Địa chỉ:", new QLabel(QString::fromStdString(p.addressCandidate.empty() ? "Chưa cập nhật" : p.addressCandidate), detailCard));
-    pLayout->addLayout(pForm);
-
-    // 2. Học vấn & Bằng cấp
-    QVBoxLayout *eduLayout = makeSection(dLayout, "Học vấn & Trình độ", "🎓", true);
-    QFormLayout *eduForm = new QFormLayout();
-    eduForm->setSpacing(6);
-    eduForm->addRow("Ngành học:", new QLabel(QString::fromStdString(prof.major.empty() ? "Chưa cập nhật" : prof.major), detailCard));
-    eduForm->addRow("Trường đào tạo:", new QLabel(QString::fromStdString(prof.school.empty() ? "Chưa cập nhật" : prof.school), detailCard));
-    eduForm->addRow("Trình độ:", new QLabel(QString::fromStdString(prof.educationLevel.empty() ? "Đại học" : prof.educationLevel), detailCard));
-    eduForm->addRow("Điểm GPA:", new QLabel(QString::number(prof.GPA, 'f', 2), detailCard));
-    eduLayout->addLayout(eduForm);
 
     // 3. Kỹ năng chuyên môn
     const auto &skills = cand.getSkill();
@@ -1143,7 +1212,7 @@ void CompanyPage::viewCandidateDetails(int candidateId, const QString &jobTitle,
                 valStr = (c.value == static_cast<int>(c.value)) ? QString::number(static_cast<int>(c.value)) : QString::number(c.value, 'f', 1);
             }
 
-            QString orgStr = c.organization.empty() ? "Tổ chức uy tín" : QString::fromStdString(c.organization);
+            QString orgStr = c.organization.empty() ? "Chưa cập nhật" : QString::fromStdString(c.organization);
             QString cText = QString("• %1: %2 (%3)").arg(typeName).arg(valStr).arg(orgStr);
             QLabel *cLbl = new QLabel(cText, detailCard);
             cLbl->setStyleSheet("font-size: 12px; color: #333;");
@@ -1333,8 +1402,10 @@ void CompanyPage::onCreateJobClicked() {
     salarySpin->setValue(15000000);
 
     QSpinBox *expSpin = new QSpinBox(generalTab);
-    expSpin->setRange(0, 10);
-    expSpin->setValue(1);
+    expSpin->setRange(0, 120);
+    expSpin->setSingleStep(6);
+    expSpin->setSuffix(" tháng");
+    expSpin->setValue(0);
 
     QDoubleSpinBox *gpaSpin = new QDoubleSpinBox(generalTab);
     gpaSpin->setRange(0.0, 4.0);
@@ -1354,7 +1425,7 @@ void CompanyPage::onCreateJobClicked() {
     form->addRow("Địa điểm làm việc:", locEdit);
     form->addRow("Ngành yêu cầu:", majorEdit);
     form->addRow("Mức lương (VNĐ):", salarySpin);
-    form->addRow("Kinh nghiệm (năm):", expSpin);
+    form->addRow("Kinh nghiệm yêu cầu (tháng):", expSpin);
     form->addRow("GPA tối thiểu:", gpaSpin);
     form->addRow("Hạn nộp hồ sơ:", deadlineEdit);
     form->addRow("Mô tả công việc:", descEdit);
@@ -1547,7 +1618,7 @@ void CompanyPage::onCreateJobClicked() {
         newJob.setIDcompany(m_company.getIDcompany());
         newJob.setTitle(titleEdit->text().trimmed().toStdString());
         newJob.setLocation(locEdit->text().trimmed().toStdString());
-        newJob.setNameMajor(majorEdit->text().trimmed().toStdString());
+        newJob.setNameMajor(formatMajorDisplay(majorEdit->text().trimmed().toStdString()));
         newJob.setSalary(salarySpin->value());
         newJob.setMinExperience(expSpin->value());
         newJob.setMinGPA(static_cast<float>(gpaSpin->value()));
@@ -1651,7 +1722,9 @@ void CompanyPage::onEditJobClicked(int jobId) {
     salarySpin->setValue(targetJob.getSalary() > 0 ? targetJob.getSalary() : 15000000);
 
     QSpinBox *expSpin = new QSpinBox(generalTab);
-    expSpin->setRange(0, 10);
+    expSpin->setRange(0, 120);
+    expSpin->setSingleStep(6);
+    expSpin->setSuffix(" tháng");
     expSpin->setValue(targetJob.getMinExperience());
 
     QDoubleSpinBox *gpaSpin = new QDoubleSpinBox(generalTab);
@@ -1674,7 +1747,7 @@ void CompanyPage::onEditJobClicked(int jobId) {
     form->addRow("Địa điểm làm việc:", locEdit);
     form->addRow("Ngành yêu cầu:", majorEdit);
     form->addRow("Mức lương (VNĐ):", salarySpin);
-    form->addRow("Kinh nghiệm (năm):", expSpin);
+    form->addRow("Kinh nghiệm yêu cầu (tháng):", expSpin);
     form->addRow("GPA tối thiểu:", gpaSpin);
     form->addRow("Hạn nộp hồ sơ:", deadlineEdit);
     form->addRow("Mô tả công việc:", descEdit);
@@ -1880,7 +1953,7 @@ void CompanyPage::onEditJobClicked(int jobId) {
 
         targetJob.setTitle(titleEdit->text().trimmed().toStdString());
         targetJob.setLocation(locEdit->text().trimmed().toStdString());
-        targetJob.setNameMajor(majorEdit->text().trimmed().toStdString());
+        targetJob.setNameMajor(formatMajorDisplay(majorEdit->text().trimmed().toStdString()));
         targetJob.setSalary(salarySpin->value());
         targetJob.setMinExperience(expSpin->value());
         targetJob.setMinGPA(static_cast<float>(gpaSpin->value()));

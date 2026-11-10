@@ -1,4 +1,5 @@
 #include "class.h"
+#include "Matching.h"
 #include <iostream>
 #include <ctime>
 #include <cstdio>
@@ -47,7 +48,7 @@ bool Job::isEligible(const Candidate& candidate) const {
     if (candidate.getTimeExperience() < minExperience) {
         return false;
     }
-    if (!nameMajor.empty() && candidate.getProfessionalInfo().major != nameMajor) {
+    if (!nameMajor.empty() && !isSameMajor(candidate.getProfessionalInfo().major, nameMajor)) {
         return false;
     }
     const vector<Skill>& candidateSkills = candidate.getSkill();

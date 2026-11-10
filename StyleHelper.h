@@ -203,27 +203,38 @@ public:
             path.addRoundedRect(0, 0, renderSize, renderSize, renderRadius, renderRadius);
             p.setClipPath(path);
 
-            // 1. Luôn đổ màu nền đặc trước
-            p.fillPath(path, QColor(bgColorHex));
-
             bool imageDrawn = false;
             if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
                 QPixmap src(imagePath);
                 if (!src.isNull() && src.width() > 0 && src.height() > 0) {
-                    QPixmap scaled = src.scaled(renderSize, renderSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-                    int x = (scaled.width() - renderSize) / 2;
-                    int y = (scaled.height() - renderSize) / 2;
-                    p.drawPixmap(0, 0, scaled.copy(x, y, renderSize, renderSize));
+                    // Đổ nền trắng tinh khôi cho logo công ty
+                    p.fillPath(path, QColor("#FFFFFF"));
+
+                    // Tạo khoảng đệm (padding) êm ái để logo không bị chạm mép hoặc bị cắt góc bo tròn
+                    int pad = qMax(4, renderSize / 14);
+                    QRect targetRect(pad, pad, renderSize - 2 * pad, renderSize - 2 * pad);
+                    QPixmap scaled = src.scaled(targetRect.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+                    int drawX = targetRect.x() + (targetRect.width() - scaled.width()) / 2;
+                    int drawY = targetRect.y() + (targetRect.height() - scaled.height()) / 2;
+                    p.drawPixmap(drawX, drawY, scaled);
                     imageDrawn = true;
                 }
             }
 
             if (!imageDrawn) {
-                p.setPen(QColor(textColorHex));
+                // Đổ màu nền thương hiệu cho avatar dạng chữ viết tắt (initials)
+                p.fillPath(path, QColor(bgColorHex.isEmpty() ? "#B95334" : bgColorHex));
+                p.setPen(QColor(textColorHex.isEmpty() ? "#FFFFFF" : textColorHex));
                 QFont f("Helvetica", renderSize * (initials.length() > 2 ? 0.32 : 0.38), QFont::Bold);
                 p.setFont(f);
                 p.drawText(QRect(0, 0, renderSize, renderSize), Qt::AlignCenter, initials);
             }
+
+            // Vẽ viền bo góc sắc nét bao quanh card badge
+            p.setClipping(false);
+            p.setPen(QPen(QColor("#ECE5DE"), 2));
+            p.drawRoundedRect(QRectF(0.5, 0.5, renderSize - 1.0, renderSize - 1.0), renderRadius, renderRadius);
         }
         out.setDevicePixelRatio(2.0);
         return out;

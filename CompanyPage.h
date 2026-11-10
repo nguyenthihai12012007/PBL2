@@ -25,6 +25,7 @@ public:
 
 signals:
     void viewJobRequested(int jobId);
+    void viewApplicantsRequested(int jobId, const QString &jobTitle);
 
 public slots:
     void onCreateJobClicked();
@@ -32,6 +33,8 @@ public slots:
     void onEditCompanyProfileClicked();
     void onRefreshData();
     void onChangeLogoClicked();
+    void viewCandidateDetails(int candidateId, const QString &jobTitle, float score, int appId = 0, const QString &currentStatus = "", int jobId = 0);
+    bool processApplicationDecision(int appId, int jobId, const QString &candidateName, const QString &newStatus, QWidget *parentDialog = nullptr);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -42,8 +45,6 @@ private:
     void buildCompanyProfileHeader();
     void buildJobsList();
     void buildLatestApplicantsCard();
-    void viewCandidateDetails(int candidateId, const QString &jobTitle, float score, int appId = 0, const QString &currentStatus = "", int jobId = 0);
-    bool processApplicationDecision(int appId, int jobId, const QString &candidateName, const QString &newStatus, QWidget *parentDialog = nullptr);
 
     Data &m_data;
     JobSearchEngine &m_searchEngine;

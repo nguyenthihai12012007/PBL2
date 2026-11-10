@@ -7,6 +7,22 @@
 
 using namespace std;
 
+static vector<string> splitLine(const string& line) {
+    vector<string> fields;
+    size_t start = 0;
+    while (start <= line.size()) {
+        size_t pos = line.find('|', start);
+        if (pos == string::npos) {
+            fields.push_back(line.substr(start));
+            break;
+        } else {
+            fields.push_back(line.substr(start, pos - start));
+            start = pos + 1;
+        }
+    }
+    return fields;
+}
+
 bool Data::readFile(const string& filename, vector<string>& lines) {
     ifstream file(filename);
     if (!file.is_open()) 
@@ -130,45 +146,30 @@ bool Data::getCandidateByUserID(int userID, Candidate& candidate) {
     for (const string& line : lines) {
         if (line.empty() || line[0] == '#')
             continue;
-        stringstream ss(line);
-        string candidateIDText, userIDText;
-        string fullName, birthday, gender;
-        string phone, address, major, school, educationLevel;
-        string gpaText;
-
-        if (!getline(ss, candidateIDText, '|') ||
-            !getline(ss, userIDText, '|') ||
-            !getline(ss, fullName, '|') ||
-            !getline(ss, birthday, '|') ||
-            !getline(ss, gender, '|') ||
-            !getline(ss, phone, '|') ||
-            !getline(ss, address, '|') ||
-            !getline(ss, major, '|') ||
-            !getline(ss, school, '|') ||
-            !getline(ss, educationLevel, '|') ||
-            !getline(ss, gpaText)) {
+        vector<string> fields = splitLine(line);
+        if (fields.size() < 11) {
             continue;
         }
 
         try {
-            int savedUserID = stoi(userIDText);
+            int savedUserID = stoi(fields[1]);
             if (savedUserID != userID) {
                 continue;
             }
-            candidate.IDcandidate = stoi(candidateIDText);
+            candidate.IDcandidate = stoi(fields[0]);
             candidate.setIDuser(savedUserID);
             candidate.setRole("CANDIDATE");
 
-            candidate.personal.fullName = fullName;
-            candidate.personal.birthday = birthday;
-            candidate.personal.gender = gender;
-            candidate.personal.phoneCandidate = phone;
-            candidate.personal.addressCandidate = address;
+            candidate.personal.fullName = fields[2];
+            candidate.personal.birthday = fields[3];
+            candidate.personal.gender = fields[4];
+            candidate.personal.phoneCandidate = fields[5];
+            candidate.personal.addressCandidate = fields[6];
 
-            candidate.professional.major = major;
-            candidate.professional.school = school;
-            candidate.professional.educationLevel = educationLevel;
-            candidate.professional.GPA = stod(gpaText);
+            candidate.professional.major = fields[7];
+            candidate.professional.school = fields[8];
+            candidate.professional.educationLevel = fields[9];
+            candidate.professional.GPA = fields[10].empty() ? 0.0 : stod(fields[10]);
             return true;
         }
         catch (...) {
@@ -213,36 +214,26 @@ bool Data::getCompanyByUserID(int userID, Company& company) {
     for (const string& line : lines) {
         if (line.empty() || line[0] == '#')
             continue;
-        stringstream ss(line);
-        string companyIDText, userIDText;
-        string nameCompany, phoneCompany;
-        string addressCompany, description, website;
-
-        if (!getline(ss, companyIDText, '|') ||
-            !getline(ss, userIDText, '|') ||
-            !getline(ss, nameCompany, '|') ||
-            !getline(ss, phoneCompany, '|') ||
-            !getline(ss, addressCompany, '|') ||
-            !getline(ss, description, '|') ||
-            !getline(ss, website)) {
+        vector<string> fields = splitLine(line);
+        if (fields.size() < 7) {
             continue;
         }
 
         try {
-            int savedUserID = stoi(userIDText);
+            int savedUserID = stoi(fields[1]);
             if (savedUserID != userID) {
                 continue;
             }
 
-            company.IDcompany = stoi(companyIDText);
+            company.IDcompany = stoi(fields[0]);
             company.setIDuser(savedUserID);
             company.setRole("COMPANY");
 
-            company.nameCompany = nameCompany;
-            company.phoneCompany = phoneCompany;
-            company.addressCompany = addressCompany;
-            company.description = description;
-            company.website = website;
+            company.nameCompany = fields[2];
+            company.phoneCompany = fields[3];
+            company.addressCompany = fields[4];
+            company.description = fields[5];
+            company.website = fields[6];
             return true;
         }
         catch (...) {
@@ -261,31 +252,22 @@ bool Data::getCompanyByID(int companyID, Company& company) {
         if (line.empty() || line[0] == '#') {
             continue;
         }
-        stringstream ss(line);
-        string companyIDText, userIDText;
-        string nameCompany, phoneCompany;
-        string addressCompany, description, website;
-        if (!getline(ss, companyIDText, '|') ||
-            !getline(ss, userIDText, '|') ||
-            !getline(ss, nameCompany, '|') ||
-            !getline(ss, phoneCompany, '|') ||
-            !getline(ss, addressCompany, '|') ||
-            !getline(ss, description, '|') ||
-            !getline(ss, website)) {
+        vector<string> fields = splitLine(line);
+        if (fields.size() < 7) {
             continue;
         }
         try {
-            if (stoi(companyIDText) != companyID) {
+            if (stoi(fields[0]) != companyID) {
                 continue;
             }
             company.IDcompany = companyID;
-            company.setIDuser(stoi(userIDText));
+            company.setIDuser(stoi(fields[1]));
             company.setRole("COMPANY");
-            company.nameCompany = nameCompany;
-            company.phoneCompany = phoneCompany;
-            company.addressCompany = addressCompany;
-            company.description = description;
-            company.website = website;
+            company.nameCompany = fields[2];
+            company.phoneCompany = fields[3];
+            company.addressCompany = fields[4];
+            company.description = fields[5];
+            company.website = fields[6];
             return true;
         }
         catch (...) {
@@ -295,40 +277,31 @@ bool Data::getCompanyByID(int companyID, Company& company) {
     return false;
 }
 
-static vector<string> splitLine(const string& line) {
-    vector<string> fields;
-    string field;
-    stringstream ss(line);
-    while (getline(ss, field, '|')) {
-        fields.push_back(field);
-    }
-    return fields;
-}
-
 bool Data::saveCompany(const Company& company) {
     vector<string> lines;
     if (!readFile("companies.txt", lines)) {
         return false;
     }
     bool found = false;
-    for (int i = 0; i < lines.size(); i++) {
+    stringstream ss;
+    ss << company.IDcompany << '|'
+       << company.getIDuser() << '|'
+       << company.nameCompany << '|'
+       << company.phoneCompany << '|'
+       << company.addressCompany << '|'
+       << company.description << '|'
+       << company.website;
+
+    for (size_t i = 0; i < lines.size(); i++) {
         if (lines[i].empty() || lines[i][0] == '#') {
             continue;
         }
         vector<string> fields = splitLine(lines[i]);
-        if (fields.size() < 7 || fields[0].empty()) {
+        if (fields.empty()) {
             continue;
         }
         try {
             if (stoi(fields[0]) == company.IDcompany) {
-                stringstream ss;
-                ss << company.IDcompany << '|'
-                   << company.getIDuser() << '|'
-                   << company.nameCompany << '|'
-                   << company.phoneCompany << '|'
-                   << company.addressCompany << '|'
-                   << company.description << '|'
-                   << company.website;
                 lines[i] = ss.str();
                 found = true;
                 break;
@@ -339,14 +312,6 @@ bool Data::saveCompany(const Company& company) {
         }    
     }
     if (!found) {
-        stringstream ss;
-        ss << company.IDcompany << '|'
-           << company.getIDuser() << '|'
-           << company.nameCompany << '|'
-           << company.phoneCompany << '|'
-           << company.addressCompany << '|'
-           << company.description << '|'
-           << company.website;
         lines.push_back(ss.str());
     }
     return writeFile("companies.txt", lines);

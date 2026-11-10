@@ -1,4 +1,3 @@
-
 # userID|email|password|role
 1|nguyenvanan@gmail.com|123456|CANDIDATE
 2|tranthibinh@gmail.com|123456|CANDIDATE
@@ -21,3 +20,6 @@
 19|recruitment@sunriseit.vn|123456|COMPANY
 20|hr@greenfuture.vn|123456|COMPANY
 21|hb@gmail.com|102|COMPANY
+22|moimoi@gmail.com|123456|CANDIDATE
+23|aaa@gmail.com|123456|CANDIDATE
+24|a@gmail.com|123456|COMPANY

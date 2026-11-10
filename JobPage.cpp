@@ -95,6 +95,7 @@ void JobPage::setupUI() {
     companyLogoLabel = new QLabel(headerCard);
     companyLogoLabel->setFixedSize(64, 64);
     companyLogoLabel->setAlignment(Qt::AlignCenter);
+    companyLogoLabel->setStyleSheet("background: transparent; border: none; padding: 0px;");
 
     QVBoxLayout *titleTextCol = new QVBoxLayout();
     titleTextCol->setSpacing(3);
@@ -275,7 +276,7 @@ void JobPage::loadJob(const MockJobDetail &job) {
         QString border = meetsThreshold ? "#C4EDD4" : "#F5D9A8";
     
         QString status = meetsThreshold
-            ? "Đạt ngưỡng gợi ý"
+            ? "Phù hợp"
             : "Chưa đạt ngưỡng gợi ý";
     
         scoreLabel->setText(

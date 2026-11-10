@@ -11,6 +11,7 @@ class QLabel;
 class QPushButton;
 class QLineEdit;
 class QVBoxLayout;
+class QFrame;
 class CandidatePage;
 class CompanyPage;
 class JobPage;
@@ -23,6 +24,10 @@ public:
     ~MainWindow() override = default;
 
     void setSession(int userId, const QString &email, const QString &role);
+
+public slots:
+    void showCandidateApplicationsPage();
+    void showCompanyApplicationsPage(int jobId = 0, const QString &jobTitle = "Tất cả vị trí tuyển dụng");
 
 signals:
     void logoutRequested();
@@ -50,6 +55,8 @@ private:
     void setActiveNavBtn(QPushButton *activeBtn);
     void buildCandidateProfilePage();
     void buildCompanyProfilePage();
+    void buildCandidateApplicationsPage();
+    void buildCompanyApplicationsPage(int jobId = 0, const QString &jobTitle = "Tất cả vị trí tuyển dụng");
 
     Data &m_data;
     JobSearchEngine m_searchEngine;
@@ -65,8 +72,11 @@ private:
     QList<QPushButton*> navButtons;
     QPushButton *btnHomeNav = nullptr;
     QPushButton *btnProfileNav = nullptr;
+    QPushButton *btnAppsNav = nullptr;
 
     // Top Bar Widgets
+    QFrame *topDatePill = nullptr;
+    QLabel *topDateLabel = nullptr;
     QLineEdit *searchEdit = nullptr;
     QLabel *avatarCircleLabel = nullptr;
     QLabel *topUserNameLabel = nullptr;
@@ -81,6 +91,10 @@ private:
     QVBoxLayout *candidateProfileContentLayout = nullptr;
     QWidget *companyProfilePageWidget = nullptr;
     QVBoxLayout *companyProfileContentLayout = nullptr;
+    QWidget *candidateAppsPageWidget = nullptr;
+    QVBoxLayout *candidateAppsContentLayout = nullptr;
+    QWidget *companyAppsPageWidget = nullptr;
+    QVBoxLayout *companyAppsContentLayout = nullptr;
 };
 
 #endif // MAIN_WINDOW_H

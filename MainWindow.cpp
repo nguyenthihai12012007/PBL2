@@ -18,6 +18,8 @@
 #include <QTextEdit>
 #include <QDate>
 #include <QFileDialog>
+#include <QComboBox>
+#include <QListView>
 #include <cmath>
 #include <cctype>
 #include <sstream>
@@ -128,6 +130,33 @@ void MainWindow::setupUI() {
     topBarLayout->setContentsMargins(28, 12, 28, 12);
     topBarLayout->setSpacing(16);
 
+    // Khối ngày giờ ở bên trái top bar ở trang ứng viên
+    topDatePill = new QFrame(topBar);
+    topDatePill->setObjectName("topDatePill");
+    topDatePill->setStyleSheet(
+        "#topDatePill {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 18px;"
+        "   padding: 5px 16px;"
+        "}"
+    );
+    QHBoxLayout *datePillLay = new QHBoxLayout(topDatePill);
+    datePillLay->setContentsMargins(0, 0, 0, 0);
+    datePillLay->setSpacing(6);
+
+    QDate curDate = QDate::currentDate();
+    static const QString vietnameseDays[] = {"", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"};
+    int dow = curDate.dayOfWeek();
+    QString dowStr = (dow >= 1 && dow <= 7) ? vietnameseDays[dow] : "Hôm nay";
+    QString dateStr = QString("📅  %1, ngày %2").arg(dowStr, curDate.toString("dd/MM/yyyy"));
+
+    topDateLabel = new QLabel(dateStr, topDatePill);
+    topDateLabel->setStyleSheet("font-size: 13px; font-weight: 600; color: #4A4A4A; background: transparent;");
+    datePillLay->addWidget(topDateLabel);
+    topDatePill->setVisible(false);
+    topBarLayout->addWidget(topDatePill);
+
     // Thanh tìm kiếm Search Pill
     searchEdit = new QLineEdit(topBar);
     searchEdit->setObjectName("topSearchBar");
@@ -217,11 +246,49 @@ void MainWindow::setupUI() {
     compScroll->setWidget(compContent);
     compProfileRoot->addWidget(compScroll);
 
+    // Dedicated Candidate Applications Page (Full view, Index 5)
+    candidateAppsPageWidget = new QWidget(stackedWidget);
+    QVBoxLayout *candAppsRoot = new QVBoxLayout(candidateAppsPageWidget);
+    candAppsRoot->setContentsMargins(0, 0, 0, 0);
+    candAppsRoot->setSpacing(0);
+    QScrollArea *candAppsScroll = new QScrollArea(candidateAppsPageWidget);
+    candAppsScroll->setWidgetResizable(true);
+    candAppsScroll->setFrameShape(QFrame::NoFrame);
+    candAppsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    candAppsScroll->setStyleSheet("background-color: transparent; border: none;");
+    QWidget *candAppsContent = new QWidget(candAppsScroll);
+    candAppsContent->setStyleSheet("background-color: transparent;");
+    candidateAppsContentLayout = new QVBoxLayout(candAppsContent);
+    candidateAppsContentLayout->setContentsMargins(28, 24, 28, 28);
+    candidateAppsContentLayout->setSpacing(20);
+    candAppsScroll->setWidget(candAppsContent);
+    candAppsRoot->addWidget(candAppsScroll);
+
+    // Dedicated Company Applications Page (Full view, Index 6)
+    companyAppsPageWidget = new QWidget(stackedWidget);
+    QVBoxLayout *compAppsRoot = new QVBoxLayout(companyAppsPageWidget);
+    compAppsRoot->setContentsMargins(0, 0, 0, 0);
+    compAppsRoot->setSpacing(0);
+    QScrollArea *compAppsScroll = new QScrollArea(companyAppsPageWidget);
+    compAppsScroll->setWidgetResizable(true);
+    compAppsScroll->setFrameShape(QFrame::NoFrame);
+    compAppsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    compAppsScroll->setStyleSheet("background-color: transparent; border: none;");
+    QWidget *compAppsContent = new QWidget(compAppsScroll);
+    compAppsContent->setStyleSheet("background-color: transparent;");
+    companyAppsContentLayout = new QVBoxLayout(compAppsContent);
+    companyAppsContentLayout->setContentsMargins(28, 24, 28, 28);
+    companyAppsContentLayout->setSpacing(20);
+    compAppsScroll->setWidget(compAppsContent);
+    compAppsRoot->addWidget(compAppsScroll);
+
     stackedWidget->addWidget(candidatePage);               // Index 0
     stackedWidget->addWidget(companyPage);                 // Index 1
     stackedWidget->addWidget(jobPage);                     // Index 2
     stackedWidget->addWidget(candidateProfilePageWidget);  // Index 3
     stackedWidget->addWidget(companyProfilePageWidget);    // Index 4
+    stackedWidget->addWidget(candidateAppsPageWidget);     // Index 5
+    stackedWidget->addWidget(companyAppsPageWidget);       // Index 6
 
     rightLayout->addWidget(stackedWidget);
     rootLayout->addWidget(rightContainer, 1);
@@ -230,8 +297,9 @@ void MainWindow::setupUI() {
     connect(logoutBtn, &QPushButton::clicked, this, &MainWindow::onLogoutClicked);
     connect(searchEdit, &QLineEdit::textChanged, this, &MainWindow::onSearchTextChanged);
     connect(candidatePage, &CandidatePage::viewJobRequested, this, &MainWindow::onShowJobDetail);
-    connect(candidatePage, &CandidatePage::viewAllApplicationsRequested, this, &MainWindow::showCandidateApplicationsDialog);
+    connect(candidatePage, &CandidatePage::viewAllApplicationsRequested, this, &MainWindow::showCandidateApplicationsPage);
     connect(companyPage, &CompanyPage::viewJobRequested, this, &MainWindow::onShowJobDetail);
+    connect(companyPage, &CompanyPage::viewApplicantsRequested, this, &MainWindow::showCompanyApplicationsPage);
     connect(jobPage, &JobPage::backRequested, this, &MainWindow::onBackFromJobPage);
     connect(jobPage, &JobPage::applyRequested, this, &MainWindow::onApplyJobRequested);
 }
@@ -270,6 +338,8 @@ void MainWindow::setSession(int userId, const QString &email, const QString &rol
         topUserRoleLabel->setText("Nhà tuyển dụng");
         sidebarSubtitle->setText("Kết nối nhà tuyển dụng với nhân tài");
         searchEdit->setPlaceholderText("🔍  Tìm kiếm ứng viên, kỹ năng, vị trí...");
+        searchEdit->setVisible(true);
+        if (topDatePill) topDatePill->setVisible(false);
 
         QString logoPath = StyleHelper::getCompanyLogoPath(comp.getIDcompany());
         avatarCircleLabel->setFixedSize(36, 36);
@@ -291,7 +361,9 @@ void MainWindow::setSession(int userId, const QString &email, const QString &rol
         topUserNameLabel->setText(displayName + " ▾");
         topUserRoleLabel->setText("Ứng viên");
         sidebarSubtitle->setText("Kết nối tài năng với cơ hội");
-        searchEdit->setPlaceholderText("🔍  Tìm kiếm việc làm, công ty, kỹ năng...");
+        // Ẩn thanh tìm kiếm trên topBar vì trang ứng viên đã có thanh tìm kiếm & bộ lọc riêng
+        searchEdit->setVisible(false);
+        if (topDatePill) topDatePill->setVisible(true);
 
         QString avPath = StyleHelper::getCandidateAvatarPath(cand.getIDcandidate());
         avatarCircleLabel->setFixedSize(36, 36);
@@ -352,8 +424,7 @@ void MainWindow::updateNavigationForRole(const QString &role) {
     if (role == "COMPANY") {
         btnHomeNav = createNavBtn("🏠  Trang chủ", true);
         btnProfileNav = createNavBtn("🏢  Hồ sơ công ty", false);
-        QPushButton *btnJobs = createNavBtn("💼  Quản lý việc làm", false);
-        QPushButton *btnApps = createNavBtn("📄  Hồ sơ ứng tuyển", false);
+        btnAppsNav = createNavBtn("📄  Hồ sơ ứng tuyển", false);
 
         // Divider
         QFrame *line = new QFrame(this);
@@ -372,13 +443,9 @@ void MainWindow::updateNavigationForRole(const QString &role) {
             setActiveNavBtn(btnProfileNav);
             showCompanyProfilePage();
         });
-        connect(btnJobs, &QPushButton::clicked, this, [this, btnJobs]() {
-            setActiveNavBtn(btnJobs);
-            stackedWidget->setCurrentIndex(1);
-        });
-        connect(btnApps, &QPushButton::clicked, this, [this, btnApps]() {
-            setActiveNavBtn(btnApps);
-            companyPage->showApplicantsDialog(0, "Tất cả vị trí tuyển dụng");
+        connect(btnAppsNav, &QPushButton::clicked, this, [this]() {
+            setActiveNavBtn(btnAppsNav);
+            showCompanyApplicationsPage(0, "Tất cả vị trí tuyển dụng");
         });
         connect(btnNotif, &QPushButton::clicked, this, [this]() {
             showNotificationsDialog();
@@ -391,7 +458,7 @@ void MainWindow::updateNavigationForRole(const QString &role) {
         btnHomeNav = createNavBtn("🏠  Trang chủ", true);
         btnProfileNav = createNavBtn("👤  Hồ sơ của tôi", false);
         QPushButton *btnJobs = createNavBtn("💼  Việc làm phù hợp", false);
-        QPushButton *btnApps = createNavBtn("📄  Đơn ứng tuyển", false);
+        btnAppsNav = createNavBtn("📄  Đơn ứng tuyển", false);
 
         // Divider
         QFrame *line = new QFrame(this);
@@ -404,6 +471,7 @@ void MainWindow::updateNavigationForRole(const QString &role) {
 
         connect(btnHomeNav, &QPushButton::clicked, this, [this]() {
             setActiveNavBtn(btnHomeNav);
+            candidatePage->setViewMode(CandidatePage::ViewMode::AllJobs);
             stackedWidget->setCurrentIndex(0);
         });
         connect(btnProfileNav, &QPushButton::clicked, this, [this]() {
@@ -412,11 +480,12 @@ void MainWindow::updateNavigationForRole(const QString &role) {
         });
         connect(btnJobs, &QPushButton::clicked, this, [this, btnJobs]() {
             setActiveNavBtn(btnJobs);
+            candidatePage->setViewMode(CandidatePage::ViewMode::MatchedJobs);
             stackedWidget->setCurrentIndex(0);
         });
-        connect(btnApps, &QPushButton::clicked, this, [this, btnApps]() {
-            setActiveNavBtn(btnApps);
-            showCandidateApplicationsDialog();
+        connect(btnAppsNav, &QPushButton::clicked, this, [this]() {
+            setActiveNavBtn(btnAppsNav);
+            showCandidateApplicationsPage();
         });
         connect(btnNotif, &QPushButton::clicked, this, [this]() {
             showNotificationsDialog();
@@ -577,6 +646,8 @@ void MainWindow::onBackFromJobPage() {
     stackedWidget->setCurrentIndex(previousPageIndex);
     if (previousPageIndex == 3 || previousPageIndex == 4) {
         setActiveNavBtn(btnProfileNav);
+    } else if (previousPageIndex == 5 || previousPageIndex == 6) {
+        if (btnAppsNav) setActiveNavBtn(btnAppsNav);
     } else {
         setActiveNavBtn(btnHomeNav);
     }
@@ -983,8 +1054,12 @@ void MainWindow::buildCandidateProfilePage() {
             jTitle->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
             QLabel *cName = new QLabel(qCompName, item);
             cName->setStyleSheet("font-size: 12px; color: #6C757D;");
-            QLabel *scoreLbl = new QLabel(QString("🎯 %1%").arg(QString::number(a.getAppropriateLevel(), 'f', 1)), item);
-            scoreLbl->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px;");
+            float aScore = a.getAppropriateLevel();
+            bool isHighScore = (aScore >= 70.0f);
+            QLabel *scoreLbl = new QLabel(QString("🎯 %1%").arg(QString::number(aScore, 'f', 1)), item);
+            scoreLbl->setStyleSheet(isHighScore
+                ? "background-color: #E3F7EB; color: #1B7F49; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px;"
+                : "background-color: #FEF3E2; color: #B76E00; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px;");
             QLabel *dText = new QLabel("📅 " + QString::fromStdString(a.getAppliedAt()), item);
             dText->setStyleSheet("font-size: 11px; color: #6C757D;");
 
@@ -1227,7 +1302,7 @@ void MainWindow::buildCompanyProfilePage() {
             int jId = j.getIDjob();
             QString qTitle = QString::fromStdString(j.getTitle());
             connect(viewBtn, &QPushButton::clicked, this, [this, jId, qTitle]() {
-                companyPage->showApplicantsDialog(jId, qTitle);
+                showCompanyApplicationsPage(jId, qTitle);
             });
 
             iLay->addLayout(tBox, 1);
@@ -1468,132 +1543,7 @@ void MainWindow::showCandidateProfileDialog() {
 }
 
 void MainWindow::showCandidateApplicationsDialog() {
-    Candidate cand;
-    if (!m_data.getCandidateByUserID(currentUserId, cand) || cand.getIDcandidate() <= 0) {
-        CustomMessageBox::warning(this, "Thông báo", "Chưa tìm thấy thông tin hồ sơ ứng viên.");
-        return;
-    }
-    int candId = cand.getIDcandidate();
-
-    std::vector<Application> apps = m_searchEngine.getApplicationsForCandidate(candId);
-
-    QDialog dialog(this);
-    dialog.setWindowTitle("Đơn ứng tuyển của tôi");
-    dialog.resize(750, 520);
-    dialog.setStyleSheet("background-color: #FBF8F5;");
-
-    QVBoxLayout *mainLayout = new QVBoxLayout(&dialog);
-    mainLayout->setContentsMargins(24, 20, 24, 20);
-    mainLayout->setSpacing(16);
-
-    QLabel *titleLbl = new QLabel("📄 Danh sách đơn ứng tuyển đã nộp", &dialog);
-    titleLbl->setStyleSheet("font-size: 18px; font-weight: 700; color: #1E1E1E;");
-    QLabel *subLbl = new QLabel("Theo dõi tiến độ và kết quả xét duyệt từ các nhà tuyển dụng", &dialog);
-    subLbl->setStyleSheet("font-size: 12px; color: #6C757D;");
-    mainLayout->addWidget(titleLbl);
-    mainLayout->addWidget(subLbl);
-
-    QScrollArea *scrollArea = new QScrollArea(&dialog);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setFrameShape(QFrame::NoFrame);
-    scrollArea->setStyleSheet("background-color: transparent; border: none;");
-
-    QWidget *content = new QWidget(scrollArea);
-    content->setStyleSheet("background-color: transparent;");
-    QVBoxLayout *cLayout = new QVBoxLayout(content);
-    cLayout->setContentsMargins(0, 0, 0, 0);
-    cLayout->setSpacing(10);
-
-    for (const auto &app : apps) {
-        int jobId = app.getIDjob();
-        Job job;
-        std::string jTitle = "Vị trí tuyển dụng #" + std::to_string(jobId);
-        std::string compName = "Doanh nghiệp";
-        Company comp;
-        if (m_data.getJobByID(jobId, job)) {
-            jTitle = job.getTitle();
-            if (m_data.getCompanyByID(job.getIDcompany(), comp)) {
-                compName = comp.getNameCompany();
-            }
-        }
-
-        QFrame *card = new QFrame(content);
-        card->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 12px 16px;");
-        QHBoxLayout *row = new QHBoxLayout(card);
-        row->setSpacing(14);
-        row->setAlignment(Qt::AlignVCenter);
-
-        QString qCompName = QString::fromStdString(compName);
-        QString compInitials = StyleHelper::getInitials(qCompName, "DN");
-        QLabel *logo = new QLabel(card);
-        logo->setAlignment(Qt::AlignCenter);
-        logo->setFixedSize(48, 48);
-        QString logoPath = StyleHelper::getCompanyLogoPath(comp.getIDcompany());
-        logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 48, 10));
-
-        QVBoxLayout *tBox = new QVBoxLayout();
-        tBox->setSpacing(2);
-        tBox->setAlignment(Qt::AlignVCenter);
-        QLabel *jLbl = new QLabel(QString::fromStdString(jTitle), card);
-        jLbl->setStyleSheet("font-size: 14px; font-weight: 700; color: #1E1E1E;");
-        QLabel *cNameLbl = new QLabel("🏢 " + QString::fromStdString(compName) + "  |  Ngày nộp: " + QString::fromStdString(app.getAppliedAt()), card);
-        cNameLbl->setStyleSheet("font-size: 11px; color: #6C757D;");
-        tBox->addWidget(jLbl);
-        tBox->addWidget(cNameLbl);
-
-        QLabel *scoreBadge = new QLabel(QString("Điểm: %1%").arg(QString::number(app.getAppropriateLevel(), 'f', 1)), card);
-        scoreBadge->setStyleSheet("color: #B95334; font-weight: 700; font-size: 13px;");
-
-        QLabel *stBadge = new QLabel(card);
-        std::string statusStr = app.getStatus();
-        if (statusStr == "ACCEPTED") {
-            stBadge->setText("Đã chấp nhận");
-            stBadge->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-weight: 600; font-size: 11px; border-radius: 6px; padding: 4px 10px;");
-        } else if (statusStr == "REJECTED") {
-            stBadge->setText("Đã từ chối");
-            stBadge->setStyleSheet("background-color: #FEE2E2; color: #DC2626; font-weight: 600; font-size: 11px; border-radius: 6px; padding: 4px 10px;");
-        } else {
-            stBadge->setText("Đang xem xét");
-            stBadge->setStyleSheet("background-color: #FEF3E2; color: #B76E00; font-weight: 600; font-size: 11px; border-radius: 6px; padding: 4px 10px;");
-        }
-
-        QPushButton *viewJobBtn = new QPushButton("Xem tin", card);
-        viewJobBtn->setCursor(Qt::PointingHandCursor);
-        viewJobBtn->setStyleSheet("background-color: transparent; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600;");
-        connect(viewJobBtn, &QPushButton::clicked, this, [this, jobId, &dialog]() {
-            dialog.accept();
-            onShowJobDetail(jobId);
-        });
-
-        row->addWidget(logo, 0, Qt::AlignVCenter);
-        row->addLayout(tBox, 1);
-        row->addWidget(scoreBadge, 0, Qt::AlignVCenter);
-        row->addWidget(stBadge, 0, Qt::AlignVCenter);
-        row->addWidget(viewJobBtn, 0, Qt::AlignVCenter);
-        cLayout->addWidget(card);
-    }
-
-    if (apps.empty()) {
-        QLabel *emptyLbl = new QLabel("Bạn chưa nộp đơn ứng tuyển vào vị trí nào.", content);
-        emptyLbl->setStyleSheet("color: #6C757D; font-size: 13px; padding: 40px;");
-        emptyLbl->setAlignment(Qt::AlignCenter);
-        cLayout->addWidget(emptyLbl);
-    }
-    cLayout->addStretch();
-
-    scrollArea->setWidget(content);
-    mainLayout->addWidget(scrollArea, 1);
-
-    QPushButton *closeBtn = new QPushButton("Đóng", &dialog);
-    closeBtn->setCursor(Qt::PointingHandCursor);
-    closeBtn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 600; border: none; border-radius: 6px; padding: 8px 24px;");
-    connect(closeBtn, &QPushButton::clicked, &dialog, &QDialog::accept);
-    QHBoxLayout *botLay = new QHBoxLayout();
-    botLay->addStretch();
-    botLay->addWidget(closeBtn);
-    mainLayout->addLayout(botLay);
-
-    dialog.exec();
+    showCandidateApplicationsPage();
 }
 
 void MainWindow::showCompanyProfileDialog() {
@@ -1813,4 +1763,728 @@ void MainWindow::showSettingsDialog() {
     mainLayout->addLayout(botLay);
 
     dialog.exec();
+}
+
+void MainWindow::showCandidateApplicationsPage() {
+    buildCandidateApplicationsPage();
+    stackedWidget->setCurrentIndex(5);
+    setActiveNavBtn(btnAppsNav);
+}
+
+void MainWindow::buildCandidateApplicationsPage() {
+    safeClearLayout(candidateAppsContentLayout);
+
+    Candidate cand;
+    if (!m_data.getCandidateByUserID(currentUserId, cand) || cand.getIDcandidate() <= 0) {
+        QFrame *errCard = new QFrame(candidateAppsPageWidget);
+        errCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 32px;");
+        QVBoxLayout *errLay = new QVBoxLayout(errCard);
+        errLay->setSpacing(12);
+        errLay->setAlignment(Qt::AlignCenter);
+
+        QLabel *errTitle = new QLabel("Chưa tìm thấy thông tin hồ sơ ứng viên", errCard);
+        errTitle->setStyleSheet("font-size: 18px; font-weight: 700; color: #1E1E1E;");
+        QLabel *errSub = new QLabel("Vui lòng cập nhật hồ sơ cá nhân trước khi theo dõi đơn ứng tuyển.", errCard);
+        errSub->setStyleSheet("font-size: 13px; color: #6C757D;");
+        QPushButton *goProfBtn = new QPushButton("Cập nhật hồ sơ ngay", errCard);
+        goProfBtn->setCursor(Qt::PointingHandCursor);
+        goProfBtn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: none; font-size: 13px;");
+        connect(goProfBtn, &QPushButton::clicked, this, [this]() {
+            setActiveNavBtn(btnProfileNav);
+            showCandidateProfilePage();
+        });
+
+        errLay->addWidget(errTitle, 0, Qt::AlignCenter);
+        errLay->addWidget(errSub, 0, Qt::AlignCenter);
+        errLay->addWidget(goProfBtn, 0, Qt::AlignCenter);
+        candidateAppsContentLayout->addWidget(errCard);
+        return;
+    }
+
+    std::vector<Application> apps = m_searchEngine.getApplicationsForCandidate(cand.getIDcandidate());
+
+    // 1. Header Row
+    QHBoxLayout *headerRow = new QHBoxLayout();
+    headerRow->setSpacing(16);
+
+    QPushButton *backBtn = new QPushButton("← Quay lại trang chủ", candidateAppsPageWidget);
+    backBtn->setCursor(Qt::PointingHandCursor);
+    backBtn->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 8px; padding: 8px 16px; font-weight: 600; color: #1E1E1E; font-size: 13px;");
+    connect(backBtn, &QPushButton::clicked, this, [this]() {
+        setActiveNavBtn(btnHomeNav);
+        candidatePage->setViewMode(CandidatePage::ViewMode::AllJobs);
+        stackedWidget->setCurrentIndex(0);
+    });
+
+    QVBoxLayout *headerText = new QVBoxLayout();
+    headerText->setSpacing(2);
+    QLabel *headerTitle = new QLabel("📄 Đơn ứng tuyển của tôi", candidateAppsPageWidget);
+    headerTitle->setStyleSheet("font-size: 22px; font-weight: 800; color: #1E1E1E;");
+    QLabel *headerSubtitle = new QLabel("Theo dõi tiến độ, trạng thái xét duyệt và phản hồi từ nhà tuyển dụng theo thời gian thực", candidateAppsPageWidget);
+    headerSubtitle->setStyleSheet("font-size: 13px; color: #6C757D;");
+    headerText->addWidget(headerTitle);
+    headerText->addWidget(headerSubtitle);
+
+    headerRow->addWidget(backBtn, 0, Qt::AlignVCenter);
+    headerRow->addLayout(headerText, 1);
+    headerRow->addStretch();
+    candidateAppsContentLayout->addLayout(headerRow);
+
+    // Tính thống kê
+    int totalCount = static_cast<int>(apps.size());
+    int pendingCount = 0;
+    int acceptedCount = 0;
+    int rejectedCount = 0;
+    for (const auto &a : apps) {
+        if (a.getStatus() == "ACCEPTED") acceptedCount++;
+        else if (a.getStatus() == "REJECTED") rejectedCount++;
+        else pendingCount++;
+    }
+
+    // 2. Metrics Bar Row
+    QHBoxLayout *metricsRow = new QHBoxLayout();
+    metricsRow->setSpacing(16);
+
+    auto makeMetricCard = [this](const QString &count, const QString &label, const QString &numColor) -> QFrame* {
+        QFrame *card = new QFrame(candidateAppsPageWidget);
+        card->setObjectName("candMetricCard");
+        card->setStyleSheet("#candMetricCard { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 14px 18px; } #candMetricCard QLabel { border: none; background: transparent; }");
+        QVBoxLayout *l = new QVBoxLayout(card);
+        l->setSpacing(2);
+        QLabel *valLbl = new QLabel(count, card);
+        valLbl->setStyleSheet(QString("font-size: 24px; font-weight: 800; color: %1; border: none; background: transparent;").arg(numColor));
+        QLabel *titleLbl = new QLabel(label, card);
+        titleLbl->setStyleSheet("font-size: 12px; color: #6C757D; font-weight: 600; border: none; background: transparent;");
+        l->addWidget(valLbl);
+        l->addWidget(titleLbl);
+        return card;
+    };
+
+    metricsRow->addWidget(makeMetricCard(QString::number(totalCount), "Tổng số đơn đã nộp", "#1E1E1E"), 1);
+    metricsRow->addWidget(makeMetricCard(QString::number(pendingCount), "⏳ Đang chờ xét duyệt", "#B76E00"), 1);
+    metricsRow->addWidget(makeMetricCard(QString::number(acceptedCount), "✓ Đã được chấp nhận", "#1B7F49"), 1);
+    metricsRow->addWidget(makeMetricCard(QString::number(rejectedCount), "✕ Đã bị từ chối", "#DC2626"), 1);
+    candidateAppsContentLayout->addLayout(metricsRow);
+
+    // 3. Filter tabs bar
+    QFrame *filterFrame = new QFrame(candidateAppsPageWidget);
+    filterFrame->setObjectName("candFilterFrame");
+    filterFrame->setStyleSheet("#candFilterFrame { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 10px 16px; } #candFilterFrame QLabel { border: none; background: transparent; }");
+    QHBoxLayout *filterLayout = new QHBoxLayout(filterFrame);
+    filterLayout->setContentsMargins(0, 0, 0, 0);
+    filterLayout->setSpacing(10);
+
+    QLabel *filterTitle = new QLabel("Lọc trạng thái:", filterFrame);
+    filterTitle->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E; border: none; background: transparent;");
+    filterLayout->addWidget(filterTitle);
+
+    auto makeTabBtn = [filterFrame](const QString &text, bool active) -> QPushButton* {
+        QPushButton *btn = new QPushButton(text, filterFrame);
+        btn->setCursor(Qt::PointingHandCursor);
+        if (active) {
+            btn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 700; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+        } else {
+            btn->setStyleSheet("background-color: #F8F4F0; color: #6C757D; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+        }
+        return btn;
+    };
+
+    QPushButton *tabAll = makeTabBtn(QString("Tất cả (%1)").arg(totalCount), true);
+    QPushButton *tabPending = makeTabBtn(QString("⏳ Chờ duyệt (%1)").arg(pendingCount), false);
+    QPushButton *tabAccepted = makeTabBtn(QString("✓ Đã nhận (%1)").arg(acceptedCount), false);
+    QPushButton *tabRejected = makeTabBtn(QString("✕ Từ chối (%1)").arg(rejectedCount), false);
+
+    filterLayout->addWidget(tabAll);
+    filterLayout->addWidget(tabPending);
+    filterLayout->addWidget(tabAccepted);
+    filterLayout->addWidget(tabRejected);
+    filterLayout->addStretch();
+    candidateAppsContentLayout->addWidget(filterFrame);
+
+    // 4. List container
+    QWidget *cardsContainer = new QWidget(candidateAppsPageWidget);
+    cardsContainer->setStyleSheet("background-color: transparent;");
+    QVBoxLayout *cardsLayout = new QVBoxLayout(cardsContainer);
+    cardsLayout->setContentsMargins(0, 0, 0, 0);
+    cardsLayout->setSpacing(12);
+
+    auto renderCards = [this, apps, cardsLayout, cardsContainer](const QString &filterStatus) {
+        safeClearLayout(cardsLayout);
+
+        int count = 0;
+        for (const auto &app : apps) {
+            if (filterStatus != "ALL" && app.getStatus() != filterStatus.toStdString()) {
+                continue;
+            }
+            count++;
+
+            int jobId = app.getIDjob();
+            Job job;
+            std::string jTitle = "Vị trí #" + std::to_string(jobId);
+            std::string compName = "Doanh nghiệp";
+            Company comp;
+            if (m_data.getJobByID(jobId, job)) {
+                jTitle = job.getTitle();
+                if (m_data.getCompanyByID(job.getIDcompany(), comp)) {
+                    compName = comp.getNameCompany();
+                }
+            }
+
+            QFrame *card = new QFrame(cardsContainer);
+            card->setObjectName("candAppCard");
+            card->setStyleSheet("#candAppCard { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; } #candAppCard QLabel { border: none; background: transparent; }");
+            QHBoxLayout *row = new QHBoxLayout(card);
+            row->setContentsMargins(18, 14, 18, 14);
+            row->setSpacing(18);
+            row->setAlignment(Qt::AlignVCenter);
+
+            // Logo
+            QString qCompName = QString::fromStdString(compName);
+            QString compInitials = StyleHelper::getInitials(qCompName, "DN");
+            QLabel *logo = new QLabel(card);
+            logo->setAlignment(Qt::AlignCenter);
+            logo->setFixedSize(54, 54);
+            QString logoPath = StyleHelper::getCompanyLogoPath(comp.getIDcompany());
+            logo->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 54, 12));
+
+            // Job info
+            QVBoxLayout *tBox = new QVBoxLayout();
+            tBox->setSpacing(4);
+            tBox->setAlignment(Qt::AlignVCenter);
+
+            QLabel *jLbl = new QLabel(QString::fromStdString(jTitle), card);
+            jLbl->setStyleSheet("font-size: 16px; font-weight: 700; color: #1E1E1E; border: none; background: transparent;");
+
+            QHBoxLayout *meta1 = new QHBoxLayout();
+            meta1->setSpacing(14);
+            QLabel *cNameLbl = new QLabel("🏢 " + qCompName, card);
+            cNameLbl->setStyleSheet("font-size: 13px; font-weight: 600; color: #B95334; border: none; background: transparent;");
+            QLabel *locLbl = new QLabel("📍 " + QString::fromStdString(job.getLocation().empty() ? "Toàn quốc" : job.getLocation()), card);
+            locLbl->setStyleSheet("font-size: 12px; color: #6C757D; border: none; background: transparent;");
+            meta1->addWidget(cNameLbl);
+            meta1->addWidget(locLbl);
+            meta1->addStretch();
+
+            QHBoxLayout *meta2 = new QHBoxLayout();
+            meta2->setSpacing(14);
+            QLabel *salLbl = new QLabel("💰 " + (job.getSalary() > 0 ? QLocale(QLocale::Vietnamese).toString(job.getSalary()) + " VNĐ" : "Thương lượng"), card);
+            salLbl->setStyleSheet("font-size: 12px; color: #1B7F49; font-weight: 600; border: none; background: transparent;");
+            QLabel *dateLbl = new QLabel("📅 Nộp: " + QString::fromStdString(app.getAppliedAt()), card);
+            dateLbl->setStyleSheet("font-size: 12px; color: #6C757D; border: none; background: transparent;");
+            meta2->addWidget(salLbl);
+            meta2->addWidget(dateLbl);
+            meta2->addStretch();
+
+            tBox->addWidget(jLbl);
+            tBox->addLayout(meta1);
+            tBox->addLayout(meta2);
+
+            // Match Score Pill
+            float appScore = app.getAppropriateLevel();
+            bool isHighScore = (appScore >= 70.0f);
+            QString scoreText;
+            if (appScore <= 0.0f) {
+                scoreText = "🎯 Chưa đủ điều kiện";
+            } else if (isHighScore) {
+                scoreText = QString("🎯 %1% Phù hợp").arg(QString::number(appScore, 'f', 1));
+            } else {
+                scoreText = QString("🎯 %1% Chưa đạt gợi ý").arg(QString::number(appScore, 'f', 1));
+            }
+            QLabel *scoreBadge = new QLabel(scoreText, card);
+            scoreBadge->setStyleSheet(isHighScore
+                ? "background-color: #E3F7EB; color: #1B7F49; font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: none;"
+                : "background-color: #FEF3E2; color: #B76E00; font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: none;");
+
+            // Status Badge
+            QLabel *stBadge = new QLabel(card);
+            stBadge->setAlignment(Qt::AlignCenter);
+            std::string statusStr = app.getStatus();
+            if (statusStr == "ACCEPTED") {
+                stBadge->setText("✓ Đã chấp nhận");
+                stBadge->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 14px;");
+            } else if (statusStr == "REJECTED") {
+                stBadge->setText("✕ Đã từ chối");
+                stBadge->setStyleSheet("background-color: #FEE2E2; color: #DC2626; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 14px;");
+            } else {
+                stBadge->setText("⏳ Đang chờ duyệt");
+                stBadge->setStyleSheet("background-color: #FEF3E2; color: #B76E00; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 14px;");
+            }
+
+            // Action: Xem chi tiết việc làm
+            QPushButton *viewJobBtn = new QPushButton("Xem tin tuyển dụng →", card);
+            viewJobBtn->setCursor(Qt::PointingHandCursor);
+            viewJobBtn->setStyleSheet("background-color: #FFF4ED; color: #B95334; border: 1px solid #F5D3C7; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700;");
+            connect(viewJobBtn, &QPushButton::clicked, this, [this, jobId]() {
+                onShowJobDetail(jobId);
+            });
+
+            row->addWidget(logo, 0, Qt::AlignVCenter);
+            row->addLayout(tBox, 1);
+            row->addWidget(scoreBadge, 0, Qt::AlignVCenter);
+            row->addWidget(stBadge, 0, Qt::AlignVCenter);
+            row->addWidget(viewJobBtn, 0, Qt::AlignVCenter);
+            cardsLayout->addWidget(card);
+        }
+
+        if (count == 0) {
+            QFrame *emptyCard = new QFrame(cardsContainer);
+            emptyCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 40px;");
+            QVBoxLayout *emptyLay = new QVBoxLayout(emptyCard);
+            emptyLay->setSpacing(10);
+            emptyLay->setAlignment(Qt::AlignCenter);
+
+            QLabel *emptyIcon = new QLabel("📭", emptyCard);
+            emptyIcon->setStyleSheet("font-size: 40px;");
+            emptyIcon->setAlignment(Qt::AlignCenter);
+            QLabel *emptyText = new QLabel("Không tìm thấy đơn ứng tuyển nào trong mục này.", emptyCard);
+            emptyText->setStyleSheet("font-size: 14px; font-weight: 600; color: #6C757D;");
+            emptyText->setAlignment(Qt::AlignCenter);
+
+            emptyLay->addWidget(emptyIcon);
+            emptyLay->addWidget(emptyText);
+            cardsLayout->addWidget(emptyCard);
+        }
+    };
+
+    auto setTabStyles = [=](QPushButton *activeBtn) {
+        for (QPushButton *btn : {tabAll, tabPending, tabAccepted, tabRejected}) {
+            if (btn == activeBtn) {
+                btn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 700; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+            } else {
+                btn->setStyleSheet("background-color: #F8F4F0; color: #6C757D; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+            }
+        }
+    };
+
+    connect(tabAll, &QPushButton::clicked, this, [=]() { setTabStyles(tabAll); renderCards("ALL"); });
+    connect(tabPending, &QPushButton::clicked, this, [=]() { setTabStyles(tabPending); renderCards("PENDING"); });
+    connect(tabAccepted, &QPushButton::clicked, this, [=]() { setTabStyles(tabAccepted); renderCards("ACCEPTED"); });
+    connect(tabRejected, &QPushButton::clicked, this, [=]() { setTabStyles(tabRejected); renderCards("REJECTED"); });
+
+    renderCards("ALL");
+    candidateAppsContentLayout->addWidget(cardsContainer);
+    candidateAppsContentLayout->addStretch();
+}
+
+void MainWindow::showCompanyApplicationsPage(int jobId, const QString &jobTitle) {
+    buildCompanyApplicationsPage(jobId, jobTitle);
+    stackedWidget->setCurrentIndex(6);
+    setActiveNavBtn(btnAppsNav);
+}
+
+void MainWindow::buildCompanyApplicationsPage(int jobId, const QString &jobTitle) {
+    safeClearLayout(companyAppsContentLayout);
+
+    Company comp;
+    if (!m_data.getCompanyByUserID(currentUserId, comp) || comp.getIDcompany() <= 0) {
+        QFrame *errCard = new QFrame(companyAppsPageWidget);
+        errCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 32px;");
+        QVBoxLayout *errLay = new QVBoxLayout(errCard);
+        errLay->setSpacing(12);
+        errLay->setAlignment(Qt::AlignCenter);
+
+        QLabel *errTitle = new QLabel("Chưa tìm thấy thông tin doanh nghiệp", errCard);
+        errTitle->setStyleSheet("font-size: 18px; font-weight: 700; color: #1E1E1E;");
+        QLabel *errSub = new QLabel("Vui lòng hoàn tất thông tin công ty trước khi quản lý hồ sơ ứng viên.", errCard);
+        errSub->setStyleSheet("font-size: 13px; color: #6C757D;");
+        errLay->addWidget(errTitle, 0, Qt::AlignCenter);
+        errLay->addWidget(errSub, 0, Qt::AlignCenter);
+        companyAppsContentLayout->addWidget(errCard);
+        return;
+    }
+
+    std::vector<Job> companyJobs;
+    m_data.getJobsByCompanyID(comp.getIDcompany(), companyJobs);
+
+    std::vector<Application> allApps;
+    m_data.getApplicationsByCompanyID(comp.getIDcompany(), allApps);
+
+    // Filter target apps by jobId
+    std::vector<Application> targetApps;
+    for (const auto &app : allApps) {
+        if (jobId == 0 || app.getIDjob() == jobId) {
+            targetApps.push_back(app);
+        }
+    }
+
+    // 1. Header Row
+    QHBoxLayout *headerRow = new QHBoxLayout();
+    headerRow->setSpacing(16);
+
+    QPushButton *backBtn = new QPushButton("← Quay lại trang chủ", companyAppsPageWidget);
+    backBtn->setCursor(Qt::PointingHandCursor);
+    backBtn->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 8px; padding: 8px 16px; font-weight: 600; color: #1E1E1E; font-size: 13px;");
+    connect(backBtn, &QPushButton::clicked, this, [this]() {
+        setActiveNavBtn(btnHomeNav);
+        stackedWidget->setCurrentIndex(1);
+    });
+
+    QVBoxLayout *headerText = new QVBoxLayout();
+    headerText->setSpacing(2);
+    QLabel *headerTitle = new QLabel("📥 Quản lý hồ sơ ứng tuyển", companyAppsPageWidget);
+    headerTitle->setStyleSheet("font-size: 22px; font-weight: 800; color: #1E1E1E;");
+    QString subText = (jobId > 0)
+        ? QString("Xem xét và xét duyệt hồ sơ ứng viên ứng tuyển vị trí: %1").arg(jobTitle)
+        : "Đánh giá mức độ phù hợp và ra quyết định tuyển dụng đối với toàn bộ hồ sơ ứng viên";
+    QLabel *headerSubtitle = new QLabel(subText, companyAppsPageWidget);
+    headerSubtitle->setStyleSheet("font-size: 13px; color: #6C757D;");
+    headerText->addWidget(headerTitle);
+    headerText->addWidget(headerSubtitle);
+
+    headerRow->addWidget(backBtn, 0, Qt::AlignVCenter);
+    headerRow->addLayout(headerText, 1);
+    headerRow->addStretch();
+    companyAppsContentLayout->addLayout(headerRow);
+
+    // Tính thống kê
+    int totalCount = static_cast<int>(targetApps.size());
+    int pendingCount = 0;
+    int acceptedCount = 0;
+    int rejectedCount = 0;
+    for (const auto &a : targetApps) {
+        if (a.getStatus() == "ACCEPTED") acceptedCount++;
+        else if (a.getStatus() == "REJECTED") rejectedCount++;
+        else pendingCount++;
+    }
+
+    // 2. Metrics Bar Row
+    QHBoxLayout *metricsRow = new QHBoxLayout();
+    metricsRow->setSpacing(16);
+
+    auto makeMetricCard = [this](const QString &count, const QString &label, const QString &numColor) -> QFrame* {
+        QFrame *card = new QFrame(companyAppsPageWidget);
+        card->setObjectName("compMetricCard");
+        card->setStyleSheet("#compMetricCard { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 14px 18px; } #compMetricCard QLabel { border: none; background: transparent; }");
+        QVBoxLayout *l = new QVBoxLayout(card);
+        l->setSpacing(2);
+        QLabel *valLbl = new QLabel(count, card);
+        valLbl->setStyleSheet(QString("font-size: 24px; font-weight: 800; color: %1; border: none; background: transparent;").arg(numColor));
+        QLabel *titleLbl = new QLabel(label, card);
+        titleLbl->setStyleSheet("font-size: 12px; color: #6C757D; font-weight: 600; border: none; background: transparent;");
+        l->addWidget(valLbl);
+        l->addWidget(titleLbl);
+        return card;
+    };
+
+    metricsRow->addWidget(makeMetricCard(QString::number(totalCount), "Tổng hồ sơ đã nhận", "#1E1E1E"), 1);
+    metricsRow->addWidget(makeMetricCard(QString::number(pendingCount), "⏳ Chờ xét duyệt", "#B76E00"), 1);
+    metricsRow->addWidget(makeMetricCard(QString::number(acceptedCount), "✓ Đã chấp thuận", "#1B7F49"), 1);
+    metricsRow->addWidget(makeMetricCard(QString::number(rejectedCount), "✕ Đã từ chối", "#DC2626"), 1);
+    companyAppsContentLayout->addLayout(metricsRow);
+
+    // 3. Filter Bar (Job Selector Combobox + Status Filter Tabs)
+    QFrame *filterFrame = new QFrame(companyAppsPageWidget);
+    filterFrame->setObjectName("compFilterFrame");
+    filterFrame->setStyleSheet("#compFilterFrame { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 10px; padding: 10px 16px; } #compFilterFrame QLabel { border: none; background: transparent; }");
+    QHBoxLayout *filterLayout = new QHBoxLayout(filterFrame);
+    filterLayout->setContentsMargins(0, 0, 0, 0);
+    filterLayout->setSpacing(12);
+
+    QLabel *jobFilterLbl = new QLabel("Lọc theo vị trí:", filterFrame);
+    jobFilterLbl->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
+    filterLayout->addWidget(jobFilterLbl);
+
+    QComboBox *jobCombo = new QComboBox(filterFrame);
+    jobCombo->setView(new QListView(jobCombo));
+    jobCombo->setStyleSheet(
+        "QComboBox {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 8px;"
+        "   padding: 7px 12px;"
+        "   font-size: 13px;"
+        "   font-weight: 600;"
+        "   color: #1E1E1E;"
+        "   min-width: 250px;"
+        "}"
+        "QComboBox:hover {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #B95334;"
+        "}"
+        "QComboBox:on, QComboBox:pressed, QComboBox:focus {"
+        "   background-color: #FFFFFF;"
+        "   color: #1E1E1E;"
+        "   border: 1.5px solid #B95334;"
+        "}"
+        "QComboBox::drop-down {"
+        "   border: none;"
+        "   background: transparent;"
+        "   width: 24px;"
+        "}"
+        "QComboBox QAbstractItemView {"
+        "   background-color: #FFFFFF;"
+        "   color: #1E1E1E;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 8px;"
+        "   padding: 4px;"
+        "   outline: none;"
+        "   selection-background-color: #FFF4ED;"
+        "   selection-color: #B95334;"
+        "}"
+        "QComboBox QAbstractItemView::item {"
+        "   color: #1E1E1E;"
+        "   background-color: #FFFFFF;"
+        "   padding: 8px 12px;"
+        "   min-height: 24px;"
+        "   border-radius: 4px;"
+        "}"
+        "QComboBox QAbstractItemView::item:hover,"
+        "QComboBox QAbstractItemView::item:selected {"
+        "   background-color: #FFF4ED;"
+        "   color: #B95334;"
+        "}"
+    );
+    jobCombo->addItem("Tất cả vị trí tuyển dụng", 0);
+    int selectedComboIndex = 0;
+    for (size_t i = 0; i < companyJobs.size(); ++i) {
+        const auto &j = companyJobs[i];
+        jobCombo->addItem(QString::fromStdString(j.getTitle()), j.getIDjob());
+        if (j.getIDjob() == jobId) {
+            selectedComboIndex = static_cast<int>(i) + 1;
+        }
+    }
+    jobCombo->setCurrentIndex(selectedComboIndex);
+    connect(jobCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, jobCombo](int index) {
+        int newJobId = jobCombo->itemData(index).toInt();
+        QString newTitle = jobCombo->itemText(index);
+        buildCompanyApplicationsPage(newJobId, newTitle);
+    });
+    filterLayout->addWidget(jobCombo);
+
+    QFrame *sep = new QFrame(filterFrame);
+    sep->setFrameShape(QFrame::VLine);
+    sep->setStyleSheet("background-color: #ECE5DE; margin: 4px 6px;");
+    filterLayout->addWidget(sep);
+
+    auto makeTabBtn = [filterFrame](const QString &text, bool active) -> QPushButton* {
+        QPushButton *btn = new QPushButton(text, filterFrame);
+        btn->setCursor(Qt::PointingHandCursor);
+        if (active) {
+            btn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 700; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+        } else {
+            btn->setStyleSheet("background-color: #F8F4F0; color: #6C757D; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+        }
+        return btn;
+    };
+
+    QPushButton *tabAll = makeTabBtn(QString("Tất cả (%1)").arg(totalCount), true);
+    QPushButton *tabPending = makeTabBtn(QString("⏳ Chờ duyệt (%1)").arg(pendingCount), false);
+    QPushButton *tabAccepted = makeTabBtn(QString("✓ Đã nhận (%1)").arg(acceptedCount), false);
+    QPushButton *tabRejected = makeTabBtn(QString("✕ Từ chối (%1)").arg(rejectedCount), false);
+
+    filterLayout->addWidget(tabAll);
+    filterLayout->addWidget(tabPending);
+    filterLayout->addWidget(tabAccepted);
+    filterLayout->addWidget(tabRejected);
+    filterLayout->addStretch();
+    companyAppsContentLayout->addWidget(filterFrame);
+
+    // 4. Applicants Cards List
+    QWidget *cardsContainer = new QWidget(companyAppsPageWidget);
+    cardsContainer->setStyleSheet("background-color: transparent;");
+    QVBoxLayout *cardsLayout = new QVBoxLayout(cardsContainer);
+    cardsLayout->setContentsMargins(0, 0, 0, 0);
+    cardsLayout->setSpacing(12);
+
+    auto renderApplicants = [this, targetApps, cardsLayout, cardsContainer, jobId, jobTitle](const QString &filterStatus) {
+        safeClearLayout(cardsLayout);
+
+        int count = 0;
+        for (const auto &app : targetApps) {
+            if (filterStatus != "ALL" && app.getStatus() != filterStatus.toStdString()) {
+                continue;
+            }
+            count++;
+
+            Candidate cand;
+            std::string cname = "Ứng viên #" + std::to_string(app.getIDcandidate());
+            std::string cmajor = "Chưa cập nhật";
+            std::string cuni = "";
+            if (m_data.getCandidateByID(app.getIDcandidate(), cand)) {
+                cname = cand.getPersonalInfo().fullName;
+                cmajor = cand.getProfessionalInfo().major;
+                cuni = cand.getProfessionalInfo().school;
+            }
+            QString qCandName = QString::fromStdString(cname.empty() ? "Ứng viên" : cname);
+
+            Job job;
+            std::string jTitle = "Vị trí tuyển dụng";
+            if (m_data.getJobByID(app.getIDjob(), job)) {
+                jTitle = job.getTitle();
+            }
+
+            QFrame *card = new QFrame(cardsContainer);
+            card->setObjectName("candAppCard");
+            card->setStyleSheet("#candAppCard { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; } #candAppCard QLabel { border: none; background: transparent; }");
+            QHBoxLayout *row = new QHBoxLayout(card);
+            row->setContentsMargins(18, 14, 18, 14);
+            row->setSpacing(18);
+            row->setAlignment(Qt::AlignVCenter);
+
+            // Candidate Avatar
+            QString initials = StyleHelper::getInitials(qCandName, "UV");
+            QLabel *avatar = new QLabel(card);
+            avatar->setAlignment(Qt::AlignCenter);
+            avatar->setFixedSize(54, 54);
+            int candId = cand.getIDcandidate() > 0 ? cand.getIDcandidate() : app.getIDcandidate();
+            QString avPath = StyleHelper::getCandidateAvatarPath(candId);
+            avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 54));
+
+            // Info column
+            QVBoxLayout *tBox = new QVBoxLayout();
+            tBox->setSpacing(4);
+            tBox->setAlignment(Qt::AlignVCenter);
+
+            QLabel *nameLbl = new QLabel(qCandName, card);
+            nameLbl->setStyleSheet("font-size: 16px; font-weight: 700; color: #1E1E1E; border: none; background: transparent;");
+
+            QHBoxLayout *meta1 = new QHBoxLayout();
+            meta1->setSpacing(14);
+            QLabel *jobLbl = new QLabel("💼 Vị trí: " + QString::fromStdString(jTitle), card);
+            jobLbl->setStyleSheet("font-size: 13px; font-weight: 600; color: #B95334; border: none; background: transparent;");
+            QLabel *dateLbl = new QLabel("📅 Nộp: " + QString::fromStdString(app.getAppliedAt()), card);
+            dateLbl->setStyleSheet("font-size: 12px; color: #6C757D; border: none; background: transparent;");
+            meta1->addWidget(jobLbl);
+            meta1->addWidget(dateLbl);
+            meta1->addStretch();
+
+            QHBoxLayout *meta2 = new QHBoxLayout();
+            meta2->setSpacing(14);
+            QLabel *majorLbl = new QLabel("🎓 Ngành: " + QString::fromStdString(cmajor.empty() ? "Chưa cập nhật" : cmajor), card);
+            majorLbl->setStyleSheet("font-size: 12px; color: #4A4A4A; border: none; background: transparent;");
+            meta2->addWidget(majorLbl);
+            if (!cuni.empty()) {
+                QLabel *uniLbl = new QLabel("🏫 " + QString::fromStdString(cuni), card);
+                uniLbl->setStyleSheet("font-size: 12px; color: #6C757D; border: none; background: transparent;");
+                meta2->addWidget(uniLbl);
+            }
+            meta2->addStretch();
+
+            tBox->addWidget(nameLbl);
+            tBox->addLayout(meta1);
+            tBox->addLayout(meta2);
+
+            // Match Score Pill
+            float appScore = app.getAppropriateLevel();
+            bool isHighScore = (appScore >= 70.0f);
+            QString scoreText;
+            if (appScore <= 0.0f) {
+                scoreText = "🎯 Chưa đủ điều kiện";
+            } else if (isHighScore) {
+                scoreText = QString("🎯 %1% Phù hợp").arg(QString::number(appScore, 'f', 1));
+            } else {
+                scoreText = QString("🎯 %1% Chưa đạt gợi ý").arg(QString::number(appScore, 'f', 1));
+            }
+            QLabel *scoreBadge = new QLabel(scoreText, card);
+            scoreBadge->setStyleSheet(isHighScore
+                ? "background-color: #E3F7EB; color: #1B7F49; font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: none;"
+                : "background-color: #FEF3E2; color: #B76E00; font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: none;");
+
+            // Status Badge
+            QLabel *stBadge = new QLabel(card);
+            stBadge->setAlignment(Qt::AlignCenter);
+            std::string st = app.getStatus();
+            if (st == "ACCEPTED") {
+                stBadge->setText("✓ Đã chấp thuận");
+                stBadge->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 14px;");
+            } else if (st == "REJECTED") {
+                stBadge->setText("✕ Đã từ chối");
+                stBadge->setStyleSheet("background-color: #FEE2E2; color: #DC2626; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 14px;");
+            } else {
+                stBadge->setText("⏳ Đang chờ xét duyệt");
+                stBadge->setStyleSheet("background-color: #FEF3E2; color: #B76E00; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 14px;");
+            }
+
+            // Buttons layout
+            QHBoxLayout *btnsRow = new QHBoxLayout();
+            btnsRow->setSpacing(8);
+
+            QPushButton *viewDetailBtn = new QPushButton("👤 Xem hồ sơ", card);
+            viewDetailBtn->setCursor(Qt::PointingHandCursor);
+            viewDetailBtn->setStyleSheet("background-color: #FFFFFF; color: #1E1E1E; border: 1px solid #ECE5DE; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600;");
+
+            int cId = app.getIDcandidate();
+            float cScore = app.getAppropriateLevel();
+            QString qTitle = QString::fromStdString(jTitle);
+            int appId = app.getIDappli();
+            int currJobId = app.getIDjob();
+            QString qSt = QString::fromStdString(st);
+
+            connect(viewDetailBtn, &QPushButton::clicked, this, [this, cId, qTitle, cScore, appId, qSt, currJobId, jobId, jobTitle]() {
+                companyPage->viewCandidateDetails(cId, qTitle, cScore, appId, qSt, currJobId);
+                buildCompanyApplicationsPage(jobId, jobTitle);
+            });
+            btnsRow->addWidget(viewDetailBtn);
+
+            if (st == "PENDING") {
+                QPushButton *acceptBtn = new QPushButton("✓ Chấp thuận", card);
+                acceptBtn->setCursor(Qt::PointingHandCursor);
+                acceptBtn->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; border: 1px solid #C4EDD4; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700;");
+
+                QPushButton *rejectBtn = new QPushButton("✕ Từ chối", card);
+                rejectBtn->setCursor(Qt::PointingHandCursor);
+                rejectBtn->setStyleSheet("background-color: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700;");
+
+                connect(acceptBtn, &QPushButton::clicked, this, [this, appId, currJobId, qCandName, jobId, jobTitle]() {
+                    if (companyPage->processApplicationDecision(appId, currJobId, qCandName, "ACCEPTED", this)) {
+                        buildCompanyApplicationsPage(jobId, jobTitle);
+                    }
+                });
+
+                connect(rejectBtn, &QPushButton::clicked, this, [this, appId, currJobId, qCandName, jobId, jobTitle]() {
+                    if (companyPage->processApplicationDecision(appId, currJobId, qCandName, "REJECTED", this)) {
+                        buildCompanyApplicationsPage(jobId, jobTitle);
+                    }
+                });
+
+                btnsRow->addWidget(acceptBtn);
+                btnsRow->addWidget(rejectBtn);
+            }
+
+            row->addWidget(avatar, 0, Qt::AlignVCenter);
+            row->addLayout(tBox, 1);
+            row->addWidget(scoreBadge, 0, Qt::AlignVCenter);
+            row->addWidget(stBadge, 0, Qt::AlignVCenter);
+            row->addLayout(btnsRow);
+            cardsLayout->addWidget(card);
+        }
+
+        if (count == 0) {
+            QFrame *emptyCard = new QFrame(cardsContainer);
+            emptyCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 40px;");
+            QVBoxLayout *emptyLay = new QVBoxLayout(emptyCard);
+            emptyLay->setSpacing(10);
+            emptyLay->setAlignment(Qt::AlignCenter);
+
+            QLabel *emptyIcon = new QLabel("📭", emptyCard);
+            emptyIcon->setStyleSheet("font-size: 40px;");
+            emptyIcon->setAlignment(Qt::AlignCenter);
+            QLabel *emptyText = new QLabel("Không có hồ sơ ứng tuyển nào trong danh mục này.", emptyCard);
+            emptyText->setStyleSheet("font-size: 14px; font-weight: 600; color: #6C757D;");
+            emptyText->setAlignment(Qt::AlignCenter);
+
+            emptyLay->addWidget(emptyIcon);
+            emptyLay->addWidget(emptyText);
+            cardsLayout->addWidget(emptyCard);
+        }
+    };
+
+    auto setTabStyles = [=](QPushButton *activeBtn) {
+        for (QPushButton *btn : {tabAll, tabPending, tabAccepted, tabRejected}) {
+            if (btn == activeBtn) {
+                btn->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-weight: 700; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+            } else {
+                btn->setStyleSheet("background-color: #F8F4F0; color: #6C757D; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 14px; font-size: 12px;");
+            }
+        }
+    };
+
+    connect(tabAll, &QPushButton::clicked, this, [=]() { setTabStyles(tabAll); renderApplicants("ALL"); });
+    connect(tabPending, &QPushButton::clicked, this, [=]() { setTabStyles(tabPending); renderApplicants("PENDING"); });
+    connect(tabAccepted, &QPushButton::clicked, this, [=]() { setTabStyles(tabAccepted); renderApplicants("ACCEPTED"); });
+    connect(tabRejected, &QPushButton::clicked, this, [=]() { setTabStyles(tabRejected); renderApplicants("REJECTED"); });
+
+    renderApplicants("ALL");
+    companyAppsContentLayout->addWidget(cardsContainer);
+    companyAppsContentLayout->addStretch();
 }

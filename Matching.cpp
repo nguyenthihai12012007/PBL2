@@ -1,10 +1,101 @@
 #include "class.h"
 #include "Matching.h"
+#include "JobSearch.h"
 #include <unordered_map>
 #include <ctime>
 #include <algorithm>
 #include <iostream>
+#include <QString>
+#include <QStringList>
+#include <QDate>
+#include <QRegularExpression>
 using namespace std;
+
+bool isSameMajor(const std::string& major1, const std::string& major2) {
+    QString m1 = QString::fromStdString(major1).trimmed().simplified();
+    QString m2 = QString::fromStdString(major2).trimmed().simplified();
+    if (m1.isEmpty() && m2.isEmpty()) return true;
+    if (m1.isEmpty() || m2.isEmpty()) return false;
+    if (QString::compare(m1, m2, Qt::CaseInsensitive) == 0) return true;
+    return JobSearchEngine::normalizeText(major1) == JobSearchEngine::normalizeText(major2);
+}
+
+std::string formatMajorDisplay(const std::string& major) {
+    QString qm = QString::fromStdString(major).trimmed().simplified();
+    if (qm.isEmpty()) return "";
+
+    static const std::vector<QString> standardMajors = {
+        "Công nghệ thông tin",
+        "Kỹ thuật phần mềm",
+        "Khoa học máy tính",
+        "Hệ thống thông tin",
+        "Trí tuệ nhân tạo",
+        "Mạng máy tính",
+        "An toàn thông tin",
+        "Khoa học dữ liệu"
+    };
+
+    for (const auto& sm : standardMajors) {
+        if (QString::compare(qm, sm, Qt::CaseInsensitive) == 0) {
+            return sm.toStdString();
+        }
+    }
+
+    QStringList words = qm.split(' ', Qt::SkipEmptyParts);
+    for (int i = 0; i < words.size(); ++i) {
+        QString w = words[i].toLower();
+        if (!w.isEmpty()) {
+            w[0] = w[0].toUpper();
+            words[i] = w;
+        }
+    }
+    return words.join(" ").toStdString();
+}
+
+bool isValidPhoneNumber(const std::string& phone) {
+    if (phone.empty()) return false;
+    for (char c : phone) {
+        if (c < '0' || c > '9') return false;
+    }
+    if (phone[0] != '0') return false;
+    if (phone.length() != 10 && phone.length() != 11) return false;
+    return true;
+}
+
+bool isValidDateOfBirth(const std::string& dateStr) {
+    if (dateStr.empty()) return false;
+    QString qstr = QString::fromStdString(dateStr).trimmed();
+
+    static const QRegularExpression bdayRegex("^(\\d{2})/(\\d{2})/(\\d{4})$");
+    QRegularExpressionMatch match = bdayRegex.match(qstr);
+    if (!match.hasMatch()) {
+        return false;
+    }
+
+    QDate d = QDate::fromString(qstr, "dd/MM/yyyy");
+    if (!d.isValid()) {
+        return false;
+    }
+
+    if (d > QDate::currentDate() || d.year() < 1900) {
+        return false;
+    }
+
+    return true;
+}
+
+std::string formatDateDisplay(const std::string& dateStr) {
+    if (dateStr.empty()) return "Chưa cập nhật";
+    QString qstr = QString::fromStdString(dateStr).trimmed();
+    QDate d = QDate::fromString(qstr, "dd/MM/yyyy");
+    if (!d.isValid()) {
+        d = QDate::fromString(qstr, "yyyy-MM-dd");
+    }
+    if (d.isValid()) {
+        return d.toString("dd/MM/yyyy").toStdString();
+    }
+    return qstr.toStdString();
+}
 
 double calculaterSkillMath(const Candidate& candidate,const Job& job) {
     const vector<Skill>& candidateSkills = candidate.getSkill();
@@ -147,7 +238,10 @@ bool meetsMajorRequirement(const Candidate& candidate, const Job& job) {
     string candidateMajor = candidate.getProfessionalInfo().major;
     string requiredMajor = job.getNameMajor();
 
-    return candidateMajor == requiredMajor;
+    if (requiredMajor.empty()) {
+        return true;
+    }
+    return isSameMajor(candidateMajor, requiredMajor);
 }
 
 bool check (const Candidate& candidate, const Job& job) {

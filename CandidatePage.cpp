@@ -14,12 +14,15 @@
 #include <QDialog>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QListView>
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QDateEdit>
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QTextEdit>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
 #include <sstream>
 #include <cmath>
 #include <algorithm>
@@ -52,13 +55,158 @@ void CandidatePage::setupUI() {
     QScrollArea *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setStyleSheet("background-color: transparent; border: none;");
 
     QWidget *scrollContent = new QWidget(scrollArea);
     scrollContent->setStyleSheet("background-color: transparent;");
     QVBoxLayout *contentLayout = new QVBoxLayout(scrollContent);
     contentLayout->setContentsMargins(28, 20, 28, 28);
-    contentLayout->setSpacing(24);
+    contentLayout->setSpacing(20);
+
+    // =========================================================================
+    // THANH TÌM KIẾM & BỘ LỌC TOÀN DIỆN (FULL-WIDTH ACTION BAR)
+    // Duy nhất một thanh tìm kiếm trên trang chủ ứng viên, bố trí rộng rãi & hợp lý
+    // =========================================================================
+    filterBarCard = new QFrame(scrollContent);
+    filterBarCard->setObjectName("candidateFilterCard");
+    filterBarCard->setStyleSheet(
+        "#candidateFilterCard {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 12px;"
+        "}"
+    );
+    QHBoxLayout *filterLayout = new QHBoxLayout(filterBarCard);
+    filterLayout->setSpacing(12);
+    filterLayout->setContentsMargins(12, 10, 12, 10);
+
+    inpageSearchEdit = new QLineEdit(filterBarCard);
+    inpageSearchEdit->setPlaceholderText("🔍  Tìm kiếm việc làm theo vị trí, kỹ năng, công ty...");
+    inpageSearchEdit->setStyleSheet(
+        "QLineEdit {"
+        "   background-color: #FBF8F5;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 8px;"
+        "   padding: 8px 14px;"
+        "   font-size: 13px;"
+        "   color: #1E1E1E;"
+        "}"
+        "QLineEdit:focus {"
+        "   border: 1px solid #B95334;"
+        "   background-color: #FFFFFF;"
+        "}"
+    );
+
+    const QString comboStyle =
+        "QComboBox {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 8px;"
+        "   padding: 7px 10px;"
+        "   font-size: 12px;"
+        "   color: #1E1E1E;"
+        "}"
+        "QComboBox:hover {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #B95334;"
+        "}"
+        "QComboBox:on, QComboBox:pressed, QComboBox:focus {"
+        "   background-color: #FFFFFF;"
+        "   color: #1E1E1E;"
+        "   border: 1.5px solid #B95334;"
+        "}"
+        "QComboBox::drop-down {"
+        "   border: none;"
+        "   background: transparent;"
+        "   width: 18px;"
+        "}"
+        "QComboBox QAbstractItemView {"
+        "   background-color: #FFFFFF;"
+        "   color: #1E1E1E;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 8px;"
+        "   padding: 4px;"
+        "   outline: none;"
+        "   selection-background-color: #FFF4ED;"
+        "   selection-color: #B95334;"
+        "}"
+        "QComboBox QAbstractItemView::item {"
+        "   color: #1E1E1E;"
+        "   background-color: #FFFFFF;"
+        "   padding: 6px 10px;"
+        "   min-height: 24px;"
+        "   border-radius: 4px;"
+        "}"
+        "QComboBox QAbstractItemView::item:hover,"
+        "QComboBox QAbstractItemView::item:selected {"
+        "   background-color: #FFF4ED;"
+        "   color: #B95334;"
+        "}";
+
+    inpageLocCombo = new QComboBox(filterBarCard);
+    inpageLocCombo->setView(new QListView(inpageLocCombo));
+    inpageLocCombo->addItem("📍 Tất cả địa điểm", "");
+    inpageLocCombo->addItem("📍 Đà Nẵng", "Đà Nẵng");
+    inpageLocCombo->addItem("📍 Hà Nội", "Hà Nội");
+    inpageLocCombo->addItem("📍 TP. Hồ Chí Minh", "Hồ Chí Minh");
+    inpageLocCombo->setStyleSheet(comboStyle);
+
+    inpageMajorCombo = new QComboBox(filterBarCard);
+    inpageMajorCombo->setView(new QListView(inpageMajorCombo));
+    inpageMajorCombo->addItem("🎓 Tất cả chuyên ngành", "");
+    inpageMajorCombo->addItem("🎓 Công nghệ thông tin", "Công nghệ thông tin");
+    inpageMajorCombo->addItem("🎓 Kỹ thuật phần mềm", "Kỹ thuật phần mềm");
+    inpageMajorCombo->addItem("🎓 Khoa học máy tính", "Khoa học máy tính");
+    inpageMajorCombo->addItem("🎓 Hệ thống thông tin", "Hệ thống thông tin");
+    inpageMajorCombo->addItem("🎓 Trí tuệ nhân tạo", "Trí tuệ nhân tạo");
+    inpageMajorCombo->addItem("🎓 Mạng máy tính", "Mạng máy tính");
+    inpageMajorCombo->addItem("🎓 An toàn thông tin", "An toàn thông tin");
+    inpageMajorCombo->setStyleSheet(comboStyle);
+
+    clearFilterBtn = new QPushButton("✕ Đặt lại", filterBarCard);
+    clearFilterBtn->setCursor(Qt::PointingHandCursor);
+    clearFilterBtn->setToolTip("Xóa bộ lọc và hiển thị lại toàn bộ việc làm");
+    clearFilterBtn->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #F8F9FA;"
+        "   color: #6C757D;"
+        "   border: 1px solid #D1D5DB;"
+        "   border-radius: 8px;"
+        "   padding: 7px 14px;"
+        "   font-size: 12px;"
+        "   font-weight: 600;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #FEE2E2;"
+        "   color: #DC2626;"
+        "   border-color: #FCA5A5;"
+        "}"
+    );
+
+    filterLayout->addWidget(inpageSearchEdit, 1);
+    filterLayout->addWidget(inpageLocCombo, 0);
+    filterLayout->addWidget(inpageMajorCombo, 0);
+    filterLayout->addWidget(clearFilterBtn, 0);
+    contentLayout->addWidget(filterBarCard);
+
+    connect(inpageSearchEdit, &QLineEdit::textChanged, this, [this](const QString &text) {
+        m_filterKeyword = text;
+        buildJobList();
+    });
+    connect(inpageLocCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        buildJobList();
+    });
+    connect(inpageMajorCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        buildJobList();
+    });
+    connect(clearFilterBtn, &QPushButton::clicked, this, [this]() {
+        inpageSearchEdit->clear();
+        inpageLocCombo->setCurrentIndex(0);
+        inpageMajorCombo->setCurrentIndex(0);
+        m_filterKeyword.clear();
+        buildJobList();
+    });
 
     // Main 2-Column Dashboard Layout
     QHBoxLayout *dashboardLayout = new QHBoxLayout();
@@ -80,16 +228,17 @@ void CandidatePage::setupUI() {
 
     QVBoxLayout *titleTextLayout = new QVBoxLayout();
     titleTextLayout->setSpacing(2);
-    QLabel *secTitle = new QLabel("Việc làm phù hợp với bạn", scrollContent);
+    secTitle = new QLabel("Cơ hội việc làm đang tuyển dụng", scrollContent);
     secTitle->setStyleSheet("font-size: 17px; font-weight: 700; color: #1E1E1E;");
-    QLabel *secSub = new QLabel("Dựa trên hồ sơ, kỹ năng và kinh nghiệm của bạn", scrollContent);
+    secSub = new QLabel("Khám phá tất cả các vị trí việc làm còn hiệu lực trong hệ thống", scrollContent);
     secSub->setStyleSheet("font-size: 12px; color: #6C757D;");
     titleTextLayout->addWidget(secTitle);
     titleTextLayout->addWidget(secSub);
 
-    QPushButton *viewAllBtn = new QPushButton("Xem tất cả →", scrollContent);
+    viewAllBtn = new QPushButton("Xem tất cả →", scrollContent);
     viewAllBtn->setCursor(Qt::PointingHandCursor);
     viewAllBtn->setStyleSheet("color: #B95334; font-size: 13px; font-weight: 600; background: transparent; border: none;");
+    viewAllBtn->setVisible(false); // Bỏ nút "Xem tất cả" theo Yêu cầu 4
 
     secHeaderLayout->addWidget(iconBadge);
     secHeaderLayout->addLayout(titleTextLayout);
@@ -103,10 +252,10 @@ void CandidatePage::setupUI() {
     leftCol->addLayout(jobsListLayout);
     leftCol->addStretch();
 
-    dashboardLayout->addLayout(leftCol, 70);
+    dashboardLayout->addLayout(leftCol, 64);
 
     // =========================================================================
-    // RIGHT COLUMN (~30%): Hồ sơ cá nhân & Đơn ứng tuyển gần đây
+    // RIGHT COLUMN (~36%): Hồ sơ cá nhân & Đơn ứng tuyển gần đây
     // =========================================================================
     QVBoxLayout *rightCol = new QVBoxLayout();
     rightCol->setSpacing(16);
@@ -142,7 +291,7 @@ void CandidatePage::setupUI() {
     rightCol->addWidget(recentAppsCard);
 
     rightCol->addStretch();
-    dashboardLayout->addLayout(rightCol, 30);
+    dashboardLayout->addLayout(rightCol, 36);
 
     contentLayout->addLayout(dashboardLayout);
     scrollArea->setWidget(scrollContent);
@@ -371,8 +520,8 @@ void CandidatePage::buildProfileCard() {
     skillsHeader->addWidget(addSkillBtn);
     skillsBox->addLayout(skillsHeader);
 
-    skillsTagsLayout = new QHBoxLayout();
-    skillsTagsLayout->setSpacing(6);
+    QGridLayout *skillsTagsGrid = new QGridLayout();
+    skillsTagsGrid->setSpacing(6);
 
     const auto &candSkills = m_candidate.getSkill();
     if (!candSkills.empty()) {
@@ -404,15 +553,14 @@ void CandidatePage::buildProfileCard() {
 
             pillLay->addWidget(skillBtn);
             pillLay->addWidget(delBtn);
-            skillsTagsLayout->addWidget(pill);
+            skillsTagsGrid->addWidget(pill, i / 2, i % 2);
         }
+        skillsBox->addLayout(skillsTagsGrid);
     } else {
         QLabel *emptySkillLbl = new QLabel("Chưa cập nhật kỹ năng chuyên môn", this);
         emptySkillLbl->setStyleSheet("color: #6C757D; font-size: 11px; font-style: italic;");
-        skillsTagsLayout->addWidget(emptySkillLbl);
+        skillsBox->addWidget(emptySkillLbl);
     }
-    skillsTagsLayout->addStretch();
-    skillsBox->addLayout(skillsTagsLayout);
     profileContentLayout->addLayout(skillsBox);
 
     // Khối Chứng chỉ ngoại ngữ & Tin học
@@ -659,22 +807,38 @@ void CandidatePage::buildJobList() {
 
     JobSearchFilter filter;
     filter.keyword = m_filterKeyword.trimmed().toStdString();
+    if (inpageSearchEdit && !inpageSearchEdit->text().trimmed().isEmpty()) {
+        filter.keyword = inpageSearchEdit->text().trimmed().toStdString();
+    }
+    if (inpageLocCombo && !inpageLocCombo->currentData().toString().isEmpty()) {
+        filter.location = inpageLocCombo->currentData().toString().toStdString();
+    }
+    if (inpageMajorCombo && !inpageMajorCombo->currentData().toString().isEmpty()) {
+        filter.major = inpageMajorCombo->currentData().toString().toStdString();
+    }
     filter.onlyOpenJobs = true;
 
     // Toàn bộ logic tìm kiếm, Inverted Index, lọc từ khóa, lọc hạn nộp,
     // tính điểm matching/calculatorTotal và sắp xếp kết quả được xử lý trong JobSearchEngine
     std::vector<SearchResultItem> results = m_searchEngine.searchForCandidate(filter, m_candidate);
 
-    for (auto it = results.begin(); it != results.end(); ) {
-        if (!it->isEligible || it->matchScore < 70.0) {
-            it = results.erase(it);
-        } else {
-            ++it;
+    if (m_viewMode == ViewMode::MatchedJobs) {
+        // TRANG VIỆC LÀM PHÙ HỢP (Yêu cầu 4 & 11.B): Chỉ hiển thị việc đạt matching >= 70% và đủ điều kiện
+        for (auto it = results.begin(); it != results.end(); ) {
+            if (!it->isEligible || it->matchScore < 70.0) {
+                it = results.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
-    
+    // TRANG CHỦ (Yêu cầu 11.A): Hiển thị tất cả công việc còn hiệu lực và đang tuyển dụng
+
     if (results.empty()) {
-        QLabel *emptyLabel = new QLabel("Hiện chưa có tin tuyển dụng nào phù hợp.", this);
+        QString emptyMsg = (m_viewMode == ViewMode::MatchedJobs)
+            ? "Hiện chưa có tin tuyển dụng nào đạt ngưỡng phù hợp (≥ 70%)."
+            : "Không tìm thấy tin tuyển dụng nào phù hợp với bộ lọc.";
+        QLabel *emptyLabel = new QLabel(emptyMsg, this);
         emptyLabel->setStyleSheet("color: #6C757D; font-size: 14px; padding: 30px;");
         emptyLabel->setAlignment(Qt::AlignCenter);
         jobsListLayout->addWidget(emptyLabel);
@@ -731,14 +895,18 @@ void CandidatePage::buildJobList() {
         scoreLayout->setSpacing(0);
 
         if (item.isEligible && item.matchScore >= 0.0) {
-            scoreBox->setStyleSheet("background-color: #E3F7EB; border-radius: 8px; padding: 6px 12px;");
             int score = static_cast<int>(std::round(item.matchScore));
+            bool isHigh = score >= 70;
+            scoreBox->setStyleSheet(isHigh ? "background-color: #E3F7EB; border-radius: 8px; padding: 6px 12px;"
+                                           : "background-color: #FEF3E2; border-radius: 8px; padding: 6px 12px;");
             QLabel *scoreVal = new QLabel(QString::number(score) + "%", scoreBox);
             scoreVal->setAlignment(Qt::AlignCenter);
-            scoreVal->setStyleSheet("color: #1B7F49; font-size: 17px; font-weight: 800; background: transparent;");
-            QLabel *scoreTxt = new QLabel("Phù hợp", scoreBox);
+            scoreVal->setStyleSheet(isHigh ? "color: #1B7F49; font-size: 17px; font-weight: 800; background: transparent;"
+                                           : "color: #B76E00; font-size: 17px; font-weight: 800; background: transparent;");
+            QLabel *scoreTxt = new QLabel(isHigh ? "Phù hợp" : "Chưa đạt gợi ý", scoreBox);
             scoreTxt->setAlignment(Qt::AlignCenter);
-            scoreTxt->setStyleSheet("color: #1B7F49; font-size: 10px; font-weight: 600; background: transparent;");
+            scoreTxt->setStyleSheet(isHigh ? "color: #1B7F49; font-size: 10px; font-weight: 600; background: transparent;"
+                                           : "color: #B76E00; font-size: 10px; font-weight: 600; background: transparent;");
             scoreLayout->addWidget(scoreVal);
             scoreLayout->addWidget(scoreTxt);
         } else {
@@ -762,7 +930,7 @@ void CandidatePage::buildJobList() {
         QHBoxLayout *metaRow = new QHBoxLayout();
         metaRow->setSpacing(16);
 
-        QString loc = QString::fromStdString(job.getLocation().empty() ? "Hà Nội" : job.getLocation());
+        QString loc = QString::fromStdString(job.getLocation().empty() ? "Chưa cập nhật" : job.getLocation());
         QLabel *locLabel = new QLabel("📍 " + loc, card);
         locLabel->setStyleSheet("color: #6C757D; font-size: 12px; font-weight: 500;");
 
@@ -770,7 +938,7 @@ void CandidatePage::buildJobList() {
         typeLabel->setStyleSheet("color: #6C757D; font-size: 12px; font-weight: 500;");
 
         int exp = job.getMinExperience();
-        QString expStr = exp > 0 ? QString("%1 - %2 năm kinh nghiệm").arg(exp).arg(exp + 2) : "Không yêu cầu kinh nghiệm";
+        QString expStr = exp > 0 ? QString("%1 tháng kinh nghiệm").arg(exp) : "Không yêu cầu kinh nghiệm";
         QLabel *expLabel = new QLabel("📊 " + expStr, card);
         expLabel->setStyleSheet("color: #6C757D; font-size: 12px; font-weight: 500;");
 
@@ -783,7 +951,7 @@ void CandidatePage::buildJobList() {
         // Hàng 3: Mô tả công việc
         QString desc = QString::fromStdString(job.getDescription());
         if (desc.isEmpty()) {
-            desc = "Tham gia phát triển các hệ thống phần mềm hiệu suất cao bằng C++. Làm việc trong môi trường chuyên nghiệp với các dự án lớn.";
+            desc = "Chưa cập nhật mô tả chi tiết công việc.";
         }
         QLabel *descLabel = new QLabel(desc, card);
         descLabel->setWordWrap(true);
@@ -794,19 +962,14 @@ void CandidatePage::buildJobList() {
         QHBoxLayout *bottomRow = new QHBoxLayout();
         bottomRow->setSpacing(8);
 
-        // Danh sách tag
-        QStringList tags;
+        // Danh sách tag kỹ năng thực tế (chỉ hiển thị kỹ năng thực tế được yêu cầu, không gán mặc định giả)
         const auto &reqSkills = job.getRequiredSkill();
-        if (!reqSkills.empty()) {
-            for (const auto &sk : reqSkills) tags.append(QString::fromStdString(sk.name));
-        } else {
-            tags << "C++" << "OOP" << "Multithreading" << "STL";
-        }
-
-        for (const QString &t : tags) {
-            QLabel *tagLabel = new QLabel(t, card);
-            tagLabel->setStyleSheet("background-color: #F5EBE1; color: #754533; font-size: 11px; font-weight: 600; border-radius: 12px; padding: 4px 10px;");
-            bottomRow->addWidget(tagLabel);
+        for (const auto &sk : reqSkills) {
+            if (!sk.name.empty()) {
+                QLabel *tagLabel = new QLabel(QString::fromStdString(sk.name), card);
+                tagLabel->setStyleSheet("background-color: #F5EBE1; color: #754533; font-size: 11px; font-weight: 600; border-radius: 12px; padding: 4px 10px;");
+                bottomRow->addWidget(tagLabel);
+            }
         }
         bottomRow->addStretch();
 
@@ -829,6 +992,24 @@ void CandidatePage::buildJobList() {
 
 void CandidatePage::filterJobs(const QString &keyword) {
     m_filterKeyword = keyword;
+    if (inpageSearchEdit && inpageSearchEdit->text() != keyword) {
+        inpageSearchEdit->setText(keyword);
+    } else {
+        buildJobList();
+    }
+}
+
+void CandidatePage::setViewMode(ViewMode mode) {
+    m_viewMode = mode;
+    if (m_viewMode == ViewMode::AllJobs) {
+        if (secTitle) secTitle->setText("Cơ hội việc làm đang tuyển dụng");
+        if (secSub) secSub->setText("Khám phá tất cả các vị trí việc làm còn hiệu lực trong hệ thống");
+        if (viewAllBtn) viewAllBtn->setVisible(false);
+    } else {
+        if (secTitle) secTitle->setText("Việc làm phù hợp với bạn");
+        if (secSub) secSub->setText("Được chọn lọc dựa trên chuyên ngành, kỹ năng và kinh nghiệm đạt chuẩn (Điểm phù hợp ≥ 70%)");
+        if (viewAllBtn) viewAllBtn->setVisible(false); // Bỏ mục "Xem tất cả" theo Yêu cầu 4
+    }
     buildJobList();
 }
 
@@ -882,6 +1063,7 @@ void CandidatePage::onEditProfileClicked() {
     QScrollArea *scrollArea = new QScrollArea(&dialog);
     scrollArea->setWidgetResizable(true);
     scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setStyleSheet("background-color: transparent; border: none;");
 
     QWidget *formContainer = new QWidget(scrollArea);
@@ -909,8 +1091,8 @@ void CandidatePage::onEditProfileClicked() {
     nameEdit->setPlaceholderText("VD: Nguyễn Văn An");
     nameEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
-    QLineEdit *bdayEdit = new QLineEdit(QString::fromStdString(curP.birthday), pCard);
-    bdayEdit->setPlaceholderText("YYYY-MM-DD (VD: 2002-05-18)");
+    QLineEdit *bdayEdit = new QLineEdit(QString::fromStdString(formatDateDisplay(curP.birthday)), pCard);
+    bdayEdit->setPlaceholderText("dd/MM/yyyy (VD: 18/05/2002)");
     bdayEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QComboBox *genderCombo = new QComboBox(pCard);
@@ -924,7 +1106,8 @@ void CandidatePage::onEditProfileClicked() {
     genderCombo->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 5px 8px;");
 
     QLineEdit *phoneEdit = new QLineEdit(QString::fromStdString(curP.phoneCandidate), pCard);
-    phoneEdit->setPlaceholderText("VD: 0912345678");
+    phoneEdit->setPlaceholderText("VD: 0905123456");
+    phoneEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]{0,11}$"), phoneEdit));
     phoneEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QLineEdit *addrEdit = new QLineEdit(QString::fromStdString(curP.addressCandidate), pCard);
@@ -932,7 +1115,7 @@ void CandidatePage::onEditProfileClicked() {
     addrEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     pForm->addRow("Họ và tên *:", nameEdit);
-    pForm->addRow("Ngày sinh:", bdayEdit);
+    pForm->addRow("Ngày sinh (dd/MM/yyyy):", bdayEdit);
     pForm->addRow("Giới tính:", genderCombo);
     pForm->addRow("Số điện thoại:", phoneEdit);
     pForm->addRow("Địa chỉ cư trú:", addrEdit);
@@ -960,11 +1143,12 @@ void CandidatePage::onEditProfileClicked() {
     majorEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 6px 10px;");
 
     QComboBox *eduCombo = new QComboBox(eduCard);
-    eduCombo->addItem("Đại học");
-    eduCombo->addItem("Cao đẳng");
-    eduCombo->addItem("Thạc sĩ");
-    eduCombo->addItem("Kỹ sư");
-    eduCombo->addItem("Cử nhân");
+    eduCombo->addItem("Chưa chọn", "");
+    eduCombo->addItem("Đại học", "Đại học");
+    eduCombo->addItem("Cao đẳng", "Cao đẳng");
+    eduCombo->addItem("Thạc sĩ", "Thạc sĩ");
+    eduCombo->addItem("Kỹ sư", "Kỹ sư");
+    eduCombo->addItem("Cử nhân", "Cử nhân");
     if (!curProf.educationLevel.empty()) {
         int idx = eduCombo->findText(QString::fromStdString(curProf.educationLevel));
         if (idx >= 0) eduCombo->setCurrentIndex(idx);
@@ -975,7 +1159,7 @@ void CandidatePage::onEditProfileClicked() {
     gpaSpin->setRange(0.00, 4.00);
     gpaSpin->setSingleStep(0.05);
     gpaSpin->setDecimals(2);
-    gpaSpin->setValue(curProf.GPA > 0.0f ? curProf.GPA : 3.20);
+    gpaSpin->setValue(curProf.GPA > 0.0f ? curProf.GPA : 0.0);
     gpaSpin->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 5px 8px;");
 
     eduForm->addRow("Trường đào tạo:", schoolEdit);
@@ -1009,18 +1193,36 @@ void CandidatePage::onEditProfileClicked() {
             return;
         }
 
+        QString bdayText = bdayEdit->text().trimmed();
+        if (!bdayText.isEmpty()) {
+            if (!isValidDateOfBirth(bdayText.toStdString())) {
+                CustomMessageBox::warning(&dialog, "Ngày sinh không hợp lệ",
+                    "Ngày sinh phải đúng định dạng dd/MM/yyyy (ví dụ: 18/05/2002) và phải là ngày có thực trong lịch (đúng năm nhuận, không quá ngày hiện tại).");
+                return;
+            }
+        }
+
+        QString phoneText = phoneEdit->text().trimmed();
+        if (!phoneText.isEmpty()) {
+            if (!isValidPhoneNumber(phoneText.toStdString())) {
+                CustomMessageBox::warning(&dialog, "Số điện thoại không hợp lệ",
+                    "Số điện thoại chỉ được chứa chữ số, bắt đầu bằng số 0 và có độ dài từ 10 đến 11 số (ví dụ: 0905123456).");
+                return;
+            }
+        }
+
         PersonalInfo p = m_candidate.getPersonalInfo();
         p.fullName = newName.toStdString();
-        p.birthday = bdayEdit->text().trimmed().toStdString();
+        p.birthday = bdayText.toStdString();
         p.gender = genderCombo->currentText().toStdString();
-        p.phoneCandidate = phoneEdit->text().trimmed().toStdString();
+        p.phoneCandidate = phoneText.toStdString();
         p.addressCandidate = addrEdit->text().trimmed().toStdString();
         m_candidate.setPersonalInfo(p);
 
         ProfessionalInfo prof = m_candidate.getProfessionalInfo();
         prof.school = schoolEdit->text().trimmed().toStdString();
-        prof.major = majorEdit->text().trimmed().toStdString();
-        prof.educationLevel = eduCombo->currentText().toStdString();
+        prof.major = formatMajorDisplay(majorEdit->text().trimmed().toStdString());
+        prof.educationLevel = eduCombo->currentData().toString().toStdString();
         prof.GPA = static_cast<float>(gpaSpin->value());
         m_candidate.setProfessionalInfo(prof);
 
@@ -1149,7 +1351,6 @@ void CandidatePage::onAddCertificateClicked() {
     typeCombo->addItem("TOEFL (Tiếng Anh)", 3);
     typeCombo->addItem("JLPT (Tiếng Nhật)", 4);
     typeCombo->addItem("AWS / Cloud Certification", 5);
-    typeCombo->addItem("Chứng chỉ chuyên ngành khác", 6);
     typeCombo->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 5px 8px;");
 
     QLineEdit *orgEdit = new QLineEdit(formCard);
@@ -1514,7 +1715,9 @@ void CandidatePage::onEditCertificateClicked(int index) {
     typeCombo->addItem("TOEFL (Tiếng Anh)", 3);
     typeCombo->addItem("JLPT (Tiếng Nhật)", 4);
     typeCombo->addItem("AWS / Cloud Certification", 5);
-    typeCombo->addItem("Chứng chỉ chuyên ngành khác", 6);
+    if (curCert.certificateTypeID == 6) {
+        typeCombo->addItem("Chứng chỉ chuyên môn khác", 6);
+    }
     int typeIdx = typeCombo->findData(curCert.certificateTypeID);
     if (typeIdx >= 0) typeCombo->setCurrentIndex(typeIdx);
     typeCombo->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 5px 8px;");
@@ -1879,6 +2082,7 @@ void CandidatePage::showAllJobsDialog() {
     QScrollArea *scrollArea = new QScrollArea(&dialog);
     scrollArea->setWidgetResizable(true);
     scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setStyleSheet("background-color: transparent; border: none;");
 
     QWidget *listContainer = new QWidget(scrollArea);
@@ -1970,7 +2174,7 @@ void CandidatePage::showAllJobsDialog() {
                 );
             
                 QLabel *t = new QLabel(
-                    meetsThreshold ? "Đạt ngưỡng gợi ý" : "Chưa đạt ngưỡng gợi ý",
+                    meetsThreshold ? "Phù hợp" : "Chưa đạt gợi ý",
                     scBox
                 );
             
@@ -2021,7 +2225,7 @@ void CandidatePage::showAllJobsDialog() {
             QHBoxLayout *infoRow = new QHBoxLayout();
             QLabel *loc = new QLabel("📍 " + QString::fromStdString(job.getLocation()), card);
             loc->setStyleSheet("color: #6C757D; font-size: 11px;");
-            QLabel *exp = new QLabel(QString("📊 %1 năm KN").arg(job.getMinExperience()), card);
+            QLabel *exp = new QLabel(job.getMinExperience() > 0 ? QString("📊 %1 tháng KN").arg(job.getMinExperience()) : "📊 Không yêu cầu KN", card);
             exp->setStyleSheet("color: #6C757D; font-size: 11px;");
             infoRow->addWidget(loc);
             infoRow->addWidget(exp);
