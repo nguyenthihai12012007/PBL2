@@ -1941,20 +1941,67 @@ void CandidatePage::showAllJobsDialog() {
             scLay->setContentsMargins(6, 3, 6, 3);
             scLay->setSpacing(0);
             if (item.isEligible && item.matchScore >= 0.0) {
-                scBox->setStyleSheet("background-color: #E3F7EB; border-radius: 6px; padding: 4px 10px;");
-                QLabel *v = new QLabel(QString::number(static_cast<int>(std::round(item.matchScore))) + "%", scBox);
+                bool meetsThreshold = item.matchScore >= 70.0;
+            
+                QString background = meetsThreshold ? "#E3F7EB" : "#FEF3E2";
+                QString color = meetsThreshold ? "#1B7F49" : "#B76E00";
+            
+                scBox->setStyleSheet(
+                    QString(
+                        "background-color: %1;"
+                        "border-radius: 6px;"
+                        "padding: 4px 10px;"
+                    ).arg(background)
+                );
+            
+                QLabel *v = new QLabel(
+                    QString::number(item.matchScore, 'f', 2) + "%",
+                    scBox
+                );
+            
                 v->setAlignment(Qt::AlignCenter);
-                v->setStyleSheet("color: #1B7F49; font-size: 14px; font-weight: 800; background: transparent;");
-                QLabel *t = new QLabel("Phù hợp", scBox);
+                v->setStyleSheet(
+                    QString(
+                        "color: %1;"
+                        "font-size: 14px;"
+                        "font-weight: 800;"
+                        "background: transparent;"
+                    ).arg(color)
+                );
+            
+                QLabel *t = new QLabel(
+                    meetsThreshold ? "Đạt ngưỡng gợi ý" : "Chưa đạt ngưỡng gợi ý",
+                    scBox
+                );
+            
                 t->setAlignment(Qt::AlignCenter);
-                t->setStyleSheet("color: #1B7F49; font-size: 9px; font-weight: 600; background: transparent;");
+                t->setStyleSheet(
+                    QString(
+                        "color: %1;"
+                        "font-size: 9px;"
+                        "font-weight: 600;"
+                        "background: transparent;"
+                    ).arg(color)
+                );
+            
                 scLay->addWidget(v);
                 scLay->addWidget(t);
             } else {
-                scBox->setStyleSheet("background-color: #FEF3E2; border-radius: 6px; padding: 4px 8px;");
-                QLabel *v = new QLabel("Chưa đủ ĐK", scBox);
+                scBox->setStyleSheet(
+                    "background-color: #FEF3E2;"
+                    "border-radius: 6px;"
+                    "padding: 4px 8px;"
+                );
+            
+                QLabel *v = new QLabel("Không đạt tiên quyết", scBox);
                 v->setAlignment(Qt::AlignCenter);
-                v->setStyleSheet("color: #B76E00; font-size: 11px; font-weight: 700; background: transparent;");
+                v->setStyleSheet(
+                    "color: #B76E00;"
+                    "font-size: 11px;"
+                    "font-weight: 700;"
+                    "background: transparent;"
+                );
+            
                 scLay->addWidget(v);
             }
 
