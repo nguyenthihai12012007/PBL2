@@ -29,7 +29,7 @@ struct MockJobDetail {
     QStringList certs;
     QStringList requiredCerts;  // Nhóm chứng chỉ bắt buộc (tiên quyết)
     QStringList preferredCerts; // Nhóm chứng chỉ ưu tiên (điểm cộng)
-    int matchScore = 92;
+    double matchScore = 0.0;
 };
 
 class JobPage : public QWidget {
