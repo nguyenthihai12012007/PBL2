@@ -266,8 +266,34 @@ void JobPage::loadJob(const MockJobDetail &job) {
     }
 
     scoreLabel->setVisible(job.hasMatchScore);
+    
     if (job.hasMatchScore) {
-        scoreLabel->setText(QString("🎯 Phù hợp: %1%").arg(job.matchScore));
+        bool meetsThreshold = job.matchScore >= 70.0;
+    
+        QString background = meetsThreshold ? "#E3F7EB" : "#FEF3E2";
+        QString color = meetsThreshold ? "#1B7F49" : "#B76E00";
+        QString border = meetsThreshold ? "#C4EDD4" : "#F5D9A8";
+    
+        QString status = meetsThreshold
+            ? "Đạt ngưỡng gợi ý"
+            : "Chưa đạt ngưỡng gợi ý";
+    
+        scoreLabel->setText(
+            QString("%1% — %2")
+                .arg(QString::number(job.matchScore, 'f', 2))
+                .arg(status)
+        );
+    
+        scoreLabel->setStyleSheet(
+            QString(
+                "background: %1;"
+                "color: %2;"
+                "border: 1px solid %3;"
+                "padding: 6px 12px;"
+                "border-radius: 6px;"
+                "font-weight: 700;"
+            ).arg(background).arg(color).arg(border)
+        );
     }
 
     applyBtn->setEnabled(job.isOpen);
@@ -405,7 +431,7 @@ void JobPage::loadJob(const Job &job, const Company &company, double matchScore)
     detail.isOpen = job.getStatus();
     if (matchScore >= 0.0) {
         detail.hasMatchScore = true;
-        detail.matchScore = static_cast<int>(std::round(matchScore));
+        detail.matchScore = matchScore;
     } else {
         detail.hasMatchScore = false;
     }
