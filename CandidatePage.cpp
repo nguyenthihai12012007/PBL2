@@ -665,6 +665,14 @@ void CandidatePage::buildJobList() {
     // tính điểm matching/calculatorTotal và sắp xếp kết quả được xử lý trong JobSearchEngine
     std::vector<SearchResultItem> results = m_searchEngine.searchForCandidate(filter, m_candidate);
 
+    for (auto it = results.begin(); it != results.end(); ) {
+        if (!it->isEligible || it->matchScore < 70.0) {
+            it = results.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    
     if (results.empty()) {
         QLabel *emptyLabel = new QLabel("Hiện chưa có tin tuyển dụng nào phù hợp.", this);
         emptyLabel->setStyleSheet("color: #6C757D; font-size: 14px; padding: 30px;");
