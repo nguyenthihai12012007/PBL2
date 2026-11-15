@@ -55,7 +55,7 @@ bool Job::isEligible(const Candidate& candidate) const {
     for (const Skill& required : requiredSkills) {
         bool found = false;
         for (const Skill& skill : candidateSkills) {
-            if (skill.name == required.name &&
+            if (isSameSkill(skill.name, required.name) &&
                 skill.level >= required.level) {
                 found = true;
                 break;

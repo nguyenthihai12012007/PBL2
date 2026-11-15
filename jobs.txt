@@ -14,4 +14,4 @@
 13|4|Thực tập sinh Lập trình C++|Tham gia lập trình các module giải thuật, cấu trúc dữ liệu và kiểm thử mã nguồn C++|Đà Nẵng|2.80|0|2027-02-20|4000000|1|Kỹ thuật phần mềm
 14|6|Kỹ sư Dữ liệu (Data Engineer)|Xây dựng quy trình ETL xử lý luồng dữ liệu lớn với Apache Spark và Data Pipeline|Đà Nẵng|3.30|3|2027-04-01|16000000|1|Khoa học máy tính
 15|8|Kỹ sư Đảm bảo chất lượng (QA)|Thiết lập quy trình kiểm thử tự động với Selenium và quản lý tiến độ kiểm thử trên Jira|Đà Nẵng|2.80|2|2027-03-10|9000000|1|Công nghệ thông tin
-16|9|moimoi||Đà Nẵng|2.50|1|2027-02-10|15000000|1|Công nghệ thông tin
+16|9|Lập trình viên Ứng dụng Di động (Mobile Developer)|Tham gia phát triển và tối ưu ứng dụng di động trên nền tảng Flutter/React Native, kết nối API và tối ưu trải nghiệm người dùng|Đà Nẵng|2.50|1|2027-02-10|15000000|1|Công nghệ thông tin

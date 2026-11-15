@@ -11,3 +11,4 @@
 10|10|Nguyễn Thị Linh|2003-03-11|Nữ|0905123010|Sơn Trà, Đà Nẵng|Công nghệ thông tin|Đại học FPT Đà Nẵng|Đại học|3.90
 11|11|Trần Quốc Bảo|2002-10-30|Nam|0905123011|Cẩm Lệ, Đà Nẵng|Khoa học máy tính|Đại học Bách Khoa - ĐH Đà Nẵng|Đại học|3.15
 12|12|Phan Ngọc Trâm|2003-01-22|Nữ|0905123012|Ngũ Hành Sơn, Đà Nẵng|Hệ thống thông tin|Đại học Duy Tân|Đại học|3.65
+13|23|Nguyễn Thị Hải|11/11/2001|Nữ|0377699373|Hải Châu, Đà Nẵng|Công nghệ thông tin|Đại học Bách Khoa - ĐH Đà Nẵng|Đại học|3.2

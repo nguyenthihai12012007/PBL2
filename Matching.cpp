@@ -1,58 +1,57 @@
 #include "class.h"
 #include "Matching.h"
-#include "JobSearch.h"
+#include <iostream>
+#include <string>
+#include <vector>
 #include <unordered_map>
+#include <cctype>
+#include <cstdio>
 #include <ctime>
 #include <algorithm>
-#include <iostream>
-#include <QString>
-#include <QStringList>
-#include <QDate>
-#include <QRegularExpression>
+
 using namespace std;
 
-bool isSameMajor(const std::string& major1, const std::string& major2) {
-    QString m1 = QString::fromStdString(major1).trimmed().simplified();
-    QString m2 = QString::fromStdString(major2).trimmed().simplified();
-    if (m1.isEmpty() && m2.isEmpty()) return true;
-    if (m1.isEmpty() || m2.isEmpty()) return false;
-    if (QString::compare(m1, m2, Qt::CaseInsensitive) == 0) return true;
-    return JobSearchEngine::normalizeText(major1) == JobSearchEngine::normalizeText(major2);
+string normalizeSkillName(const string& str) {
+    string result = str;
+    while (!result.empty() && isspace(static_cast<unsigned char>(result[0]))) {
+        result.erase(0, 1);
+    }
+    while (!result.empty() && isspace(static_cast<unsigned char>(result[result.size() - 1]))) {
+        result.erase(result.size() - 1, 1);
+    }
+    for (int i = 0; i < result.size(); i++) {
+        result[i] = tolower(static_cast<unsigned char>(result[i]));
+    }
+    return result;
 }
 
-std::string formatMajorDisplay(const std::string& major) {
-    QString qm = QString::fromStdString(major).trimmed().simplified();
-    if (qm.isEmpty()) return "";
+bool isSameSkill(const string& skill1, const string& skill2) {
+    return normalizeSkillName(skill1) == normalizeSkillName(skill2);
+}
 
-    static const std::vector<QString> standardMajors = {
-        "Công nghệ thông tin",
-        "Kỹ thuật phần mềm",
-        "Khoa học máy tính",
-        "Hệ thống thông tin",
-        "Trí tuệ nhân tạo",
-        "Mạng máy tính",
-        "An toàn thông tin",
-        "Khoa học dữ liệu"
+bool isSameMajor(const string& major1, const string& major2) {
+    string m1 = normalizeSkillName(major1);
+    string m2 = normalizeSkillName(major2);
+    return m1 == m2;
+}
+
+string formatMajorDisplay(const string& major) {
+    if (major.empty()) return "";
+    static const vector<string> standardMajors = {
+        "Công nghệ thông tin", "Kỹ thuật phần mềm", "Khoa học máy tính",
+        "Hệ thống thông tin", "Trí tuệ nhân tạo", "Mạng máy tính",
+        "An toàn thông tin", "Khoa học dữ liệu"
     };
-
+    string norm = normalizeSkillName(major);
     for (const auto& sm : standardMajors) {
-        if (QString::compare(qm, sm, Qt::CaseInsensitive) == 0) {
-            return sm.toStdString();
+        if (normalizeSkillName(sm) == norm) {
+            return sm;
         }
     }
-
-    QStringList words = qm.split(' ', Qt::SkipEmptyParts);
-    for (int i = 0; i < words.size(); ++i) {
-        QString w = words[i].toLower();
-        if (!w.isEmpty()) {
-            w[0] = w[0].toUpper();
-            words[i] = w;
-        }
-    }
-    return words.join(" ").toStdString();
+    return major;
 }
 
-bool isValidPhoneNumber(const std::string& phone) {
+bool isValidPhoneNumber(const string& phone) {
     if (phone.empty()) return false;
     for (char c : phone) {
         if (c < '0' || c > '9') return false;
@@ -62,80 +61,102 @@ bool isValidPhoneNumber(const std::string& phone) {
     return true;
 }
 
-bool isValidDateOfBirth(const std::string& dateStr) {
+bool isValidDateOfBirth(const string& dateStr) {
     if (dateStr.empty()) return false;
-    QString qstr = QString::fromStdString(dateStr).trimmed();
-
-    static const QRegularExpression bdayRegex("^(\\d{2})/(\\d{2})/(\\d{4})$");
-    QRegularExpressionMatch match = bdayRegex.match(qstr);
-    if (!match.hasMatch()) {
-        return false;
+    int day, month, year;
+    if (dateStr.find('/') != string::npos) {
+        if (sscanf(dateStr.c_str(), "%d/%d/%d", &day, &month, &year) != 3)
+            return false;
     }
-
-    QDate d = QDate::fromString(qstr, "dd/MM/yyyy");
-    if (!d.isValid()) {
-        return false;
+    else {
+        if (sscanf(dateStr.c_str(), "%d-%d-%d", &year, &month, &day) != 3)
+            return false;
     }
-
-    if (d > QDate::currentDate() || d.year() < 1900) {
+    if (year < 1900 || month < 1 || month > 12)
         return false;
-    }
+
+    int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0))
+        daysInMonth[1] = 29;
+    if (day < 1 || day > daysInMonth[month - 1])
+        return false;
+
+    time_t now = time(nullptr);
+    tm* today = localtime(&now);
+    if (today == nullptr) return false;
+
+    int currentYear = today->tm_year + 1900;
+    int currentMonth = today->tm_mon + 1;
+    int currentDay = today->tm_mday;
+
+    if (year > currentYear) return false;
+    if (year == currentYear && month > currentMonth) return false;
+    if (year == currentYear && month == currentMonth && day > currentDay) return false;
 
     return true;
 }
 
-std::string formatDateDisplay(const std::string& dateStr) {
-    if (dateStr.empty()) return "Chưa cập nhật";
-    QString qstr = QString::fromStdString(dateStr).trimmed();
-    QDate d = QDate::fromString(qstr, "dd/MM/yyyy");
-    if (!d.isValid()) {
-        d = QDate::fromString(qstr, "yyyy-MM-dd");
+string formatDateDisplay(const string& dateStr) {
+    if (dateStr.empty())
+        return "Chưa cập nhật";
+    int day, month, year;
+    if (dateStr.find('-') != string::npos) {
+        if (sscanf(dateStr.c_str(), "%d-%d-%d", &year, &month, &day) != 3)
+            return dateStr;
     }
-    if (d.isValid()) {
-        return d.toString("dd/MM/yyyy").toStdString();
+    else if (dateStr.find('/') != string::npos) {
+        if (sscanf(dateStr.c_str(), "%d/%d/%d", &day, &month, &year) != 3)
+            return dateStr;
     }
-    return qstr.toStdString();
+    else {
+        return dateStr;
+    }
+    char buffer[16];
+    snprintf(buffer, sizeof(buffer), "%02d/%02d/%04d", day, month, year);
+
+    return string(buffer);
 }
 
 double calculaterSkillMath(const Candidate& candidate,const Job& job) {
     const vector<Skill>& candidateSkills = candidate.getSkill();
     const vector<Skill>& requiredSkills = job.getRequiredSkill();
 
-    unordered_map<string, int> skillLevels;
-
-    for(const Skill& skill : candidateSkills) {
-        skillLevels[skill.name] = skill.level;
+    if (requiredSkills.empty()) {
+        return 100.0;
     }
 
-    double totalScore = 0.0;
-
-    for (const Skill& requiredSkill : requiredSkills) {
-        auto it = skillLevels.find(requiredSkill.name);
-
-        if (it != skillLevels.end()) {
-            double score = double(it->second) / requiredSkill.level;
-
-            if (score > 1.0) {
-                score = 1.0;
+    unordered_map<string, int> skillLevels;
+    for (const Skill& skill : candidateSkills) {
+        string key = normalizeSkillName(skill.name);
+        if (!key.empty()) {
+            if (skillLevels.find(key) == skillLevels.end() || skill.level > skillLevels[key]) {
+                skillLevels[key] = skill.level;
             }
-
-            totalScore += score;
         }
     }
 
+    double totalScore = 0.0;
+    for (const Skill& requiredSkill : requiredSkills) {
+        string reqKey = normalizeSkillName(requiredSkill.name);
+        auto it = skillLevels.find(reqKey);
+        if (it != skillLevels.end()) {
+            double score = double(it->second) / requiredSkill.level;
+            if (score > 1.0) {
+                score = 1.0;
+            }
+            totalScore += score;
+        }
+    }
     return 100.0 * totalScore / requiredSkills.size(); 
 }
 
 double caculaterExperience (const Candidate& candidate, const Job& job) {
     int timeRequired = job.getMinExperience();
     int timeCandidate = candidate.getTimeExperience();
-
     if (timeRequired == 0) {
         return 100.0;
     }
-
     double score = 100.0 * timeCandidate / timeRequired;
-
     if (score > 100.0) {
         return 100.0;
     }

@@ -7,3 +7,4 @@
 6|18|Blue Ocean|02363880006|Sơn Trà, Đà Nẵng|Phát triển nền tảng dữ liệu lớn Big Data và điện toán đám mây|https://blueocean.vn
 7|19|Sunrise IT|02363880007|Cẩm Lệ, Đà Nẵng|Cung cấp dịch vụ hạ tầng công nghệ thông tin, quản trị mạng và bảo mật|https://sunriseit.vn
 8|20|Green Future|02363880008|Liên Chiểu, Đà Nẵng|Nghiên cứu và phát triển giải pháp công nghệ xanh và phát triển bền vững|https://greenfuture.vn
+9|24|An Khang Software|0905999888|Hải Châu, Đà Nẵng|Cung cấp dịch vụ phát triển phần mềm và ứng dụng di động chất lượng cao|https://ankhangtech.vn

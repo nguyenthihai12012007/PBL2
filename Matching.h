@@ -24,11 +24,13 @@ double caculaterExperience(
 
 double calculatorTotal (const Candidate& candidate, const Job& job);
 
-// Chuẩn hóa và xác thực dữ liệu dùng chung trong hệ thống
 bool isSameMajor(const std::string& major1, const std::string& major2);
 std::string formatMajorDisplay(const std::string& major);
 bool isValidPhoneNumber(const std::string& phone);
 bool isValidDateOfBirth(const std::string& dateStr);
 std::string formatDateDisplay(const std::string& dateStr);
+
+std::string normalizeSkillName(const std::string& skillName);
+bool isSameSkill(const std::string& skill1, const std::string& skill2);
 
 #endif

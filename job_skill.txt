@@ -1,7 +1,4 @@
 # jobID|skillName|requiredLevel
-1|HTML|2
-1|CSS|2
-1|JavaScript|2
 2|C++|3
 2|OOP|3
 2|Git|2
@@ -43,3 +40,6 @@
 15|Automation Testing|2
 15|Selenium|2
 15|Jira|2
+1|HTML|2
+1|CSS|2
+1|JavaScript|2

@@ -55,13 +55,14 @@ void CompanyPage::setupUI() {
     QScrollArea *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setStyleSheet("background-color: transparent; border: none;");
 
     QWidget *scrollContent = new QWidget(scrollArea);
     scrollContent->setStyleSheet("background-color: transparent;");
     QVBoxLayout *contentLayout = new QVBoxLayout(scrollContent);
-    contentLayout->setContentsMargins(28, 20, 28, 28);
-    contentLayout->setSpacing(20);
+    contentLayout->setContentsMargins(20, 16, 20, 20);
+    contentLayout->setSpacing(16);
 
     // Profile Banner Header Doanh nghiệp
     companyHeaderLayout = new QVBoxLayout();
@@ -70,14 +71,14 @@ void CompanyPage::setupUI() {
 
     // Main 2-Column Dashboard Layout
     QHBoxLayout *dashboardLayout = new QHBoxLayout();
-    dashboardLayout->setSpacing(24);
+    dashboardLayout->setSpacing(18);
     dashboardLayout->setAlignment(Qt::AlignTop);
 
     // =========================================================================
-    // LEFT COLUMN (~65%): Danh sách việc làm đang tuyển
+    // LEFT COLUMN (~58%): Danh sách việc làm đang tuyển
     // =========================================================================
     QVBoxLayout *leftCol = new QVBoxLayout();
-    leftCol->setSpacing(16);
+    leftCol->setSpacing(14);
 
     // Header
     QHBoxLayout *secHeaderLayout = new QHBoxLayout();
@@ -89,7 +90,7 @@ void CompanyPage::setupUI() {
     QVBoxLayout *titleTextLayout = new QVBoxLayout();
     titleTextLayout->setSpacing(2);
     QLabel *secTitle = new QLabel("Danh sách việc làm đang tuyển", scrollContent);
-    secTitle->setStyleSheet("font-size: 17px; font-weight: 700; color: #1E1E1E;");
+    secTitle->setStyleSheet("font-size: 16px; font-weight: 700; color: #1E1E1E;");
     QLabel *secSub = new QLabel("Quản lý các tin tuyển dụng của công ty", scrollContent);
     secSub->setStyleSheet("font-size: 12px; color: #6C757D;");
     titleTextLayout->addWidget(secTitle);
@@ -98,8 +99,8 @@ void CompanyPage::setupUI() {
     QPushButton *createJobBtn = new QPushButton("+ Đăng tin tuyển dụng", scrollContent);
     createJobBtn->setCursor(Qt::PointingHandCursor);
     createJobBtn->setStyleSheet(
-        "background-color: #B95334; color: #FFFFFF; font-size: 13px; font-weight: 600; "
-        "border: none; border-radius: 8px; padding: 8px 18px;"
+        "background-color: #B95334; color: #FFFFFF; font-size: 12px; font-weight: 600; "
+        "border: none; border-radius: 8px; padding: 7px 16px;"
     );
     connect(createJobBtn, &QPushButton::clicked, this, &CompanyPage::onCreateJobClicked);
 
@@ -111,17 +112,17 @@ void CompanyPage::setupUI() {
 
     // Jobs container
     jobsListLayout = new QVBoxLayout();
-    jobsListLayout->setSpacing(14);
+    jobsListLayout->setSpacing(12);
     leftCol->addLayout(jobsListLayout);
     leftCol->addStretch();
 
-    dashboardLayout->addLayout(leftCol, 65);
+    dashboardLayout->addLayout(leftCol, 58);
 
     // =========================================================================
-    // RIGHT COLUMN (~35%): Hồ sơ ứng tuyển mới nhất
+    // RIGHT COLUMN (~42%): Hồ sơ ứng tuyển mới nhất
     // =========================================================================
     QVBoxLayout *rightCol = new QVBoxLayout();
-    rightCol->setSpacing(16);
+    rightCol->setSpacing(14);
 
     QFrame *applicantsCard = new QFrame(scrollContent);
     applicantsCard->setObjectName("cardBox");
@@ -130,15 +131,15 @@ void CompanyPage::setupUI() {
         "   background-color: #FFFFFF;"
         "   border: 1px solid #ECE5DE;"
         "   border-radius: 12px;"
-        "   padding: 18px;"
+        "   padding: 16px;"
         "}"
     );
     latestApplicantsLayout = new QVBoxLayout(applicantsCard);
-    latestApplicantsLayout->setSpacing(14);
+    latestApplicantsLayout->setSpacing(12);
     rightCol->addWidget(applicantsCard);
     rightCol->addStretch();
 
-    dashboardLayout->addLayout(rightCol, 35);
+    dashboardLayout->addLayout(rightCol, 42);
 
     contentLayout->addLayout(dashboardLayout);
     scrollArea->setWidget(scrollContent);
@@ -185,12 +186,12 @@ void CompanyPage::buildCompanyProfileHeader() {
         "   background-color: #FFFFFF;"
         "   border: 1px solid #ECE5DE;"
         "   border-radius: 12px;"
-        "   padding: 16px 20px;"
+        "   padding: 12px 18px;"
         "}"
     );
 
     QHBoxLayout *mainLay = new QHBoxLayout(card);
-    mainLay->setSpacing(18);
+    mainLay->setSpacing(16);
     mainLay->setAlignment(Qt::AlignVCenter);
 
     // 1. Logo
@@ -201,33 +202,33 @@ void CompanyPage::buildCompanyProfileHeader() {
 
     companyLogoLabel = new QLabel(card);
     companyLogoLabel->setAlignment(Qt::AlignCenter);
-    companyLogoLabel->setFixedSize(68, 68);
+    companyLogoLabel->setFixedSize(56, 56);
     companyLogoLabel->setCursor(Qt::PointingHandCursor);
     companyLogoLabel->setToolTip("Nhấn để đổi logo công ty");
     companyLogoLabel->installEventFilter(this);
     QString logoPath = StyleHelper::getCompanyLogoPath(m_company.getIDcompany());
-    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 68, 14));
+    companyLogoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, initials, 56, 12));
 
     QVBoxLayout *logoCol = new QVBoxLayout();
-    logoCol->setSpacing(4);
+    logoCol->setSpacing(3);
     logoCol->setAlignment(Qt::AlignCenter);
     logoCol->addWidget(companyLogoLabel, 0, Qt::AlignCenter);
 
     QPushButton *changeLogoBtn = new QPushButton("📷 Đổi logo", card);
     changeLogoBtn->setCursor(Qt::PointingHandCursor);
-    changeLogoBtn->setStyleSheet("background-color: transparent; color: #B95334; font-size: 11px; font-weight: 600; border: none; padding: 2px;");
+    changeLogoBtn->setStyleSheet("background-color: transparent; color: #B95334; font-size: 10px; font-weight: 600; border: none; padding: 2px;");
     connect(changeLogoBtn, &QPushButton::clicked, this, &CompanyPage::onChangeLogoClicked);
     logoCol->addWidget(changeLogoBtn, 0, Qt::AlignCenter);
 
     // 2. Info column
     QVBoxLayout *infoCol = new QVBoxLayout();
-    infoCol->setSpacing(6);
+    infoCol->setSpacing(4);
 
     QLabel *nameLbl = new QLabel(qName, card);
-    nameLbl->setStyleSheet("font-size: 18px; font-weight: 800; color: #1E1E1E;");
+    nameLbl->setStyleSheet("font-size: 16px; font-weight: 800; color: #1E1E1E;");
 
     QHBoxLayout *metaRow = new QHBoxLayout();
-    metaRow->setSpacing(16);
+    metaRow->setSpacing(12);
 
     QString web = QString::fromStdString(m_company.getWebsite().empty() ? "Chưa có website" : m_company.getWebsite());
     QLabel *webLbl = new QLabel("🌐 " + web, card);
@@ -250,7 +251,7 @@ void CompanyPage::buildCompanyProfileHeader() {
     if (desc.isEmpty()) desc = "Doanh nghiệp công nghệ phát triển giải pháp phần mềm.";
     QLabel *descLbl = new QLabel(desc, card);
     descLbl->setWordWrap(true);
-    descLbl->setStyleSheet("font-size: 13px; color: #555555; line-height: 1.4;");
+    descLbl->setStyleSheet("font-size: 12px; color: #555555; line-height: 1.35;");
 
     infoCol->addWidget(nameLbl);
     infoCol->addLayout(metaRow);
@@ -265,18 +266,18 @@ void CompanyPage::buildCompanyProfileHeader() {
     editCompBtn->setCursor(Qt::PointingHandCursor);
     editCompBtn->setStyleSheet(
         "background-color: transparent; color: #B95334; border: 1px solid #B95334; "
-        "border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600;"
+        "border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600;"
     );
     connect(editCompBtn, &QPushButton::clicked, this, &CompanyPage::onEditCompanyProfileClicked);
 
     QHBoxLayout *statBadges = new QHBoxLayout();
-    statBadges->setSpacing(8);
+    statBadges->setSpacing(6);
 
     QLabel *jobCountBadge = new QLabel(QString("💼 %1 tin đang tuyển").arg(m_jobs.size()), card);
-    jobCountBadge->setStyleSheet("background-color: #F8F9FA; color: #4A4A4A; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 4px 8px; border: 1px solid #ECE5DE;");
+    jobCountBadge->setStyleSheet("background-color: #F8F9FA; color: #4A4A4A; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 3px 7px; border: 1px solid #ECE5DE;");
 
     QLabel *appCountBadge = new QLabel(QString("📄 %1 đơn ứng tuyển").arg(m_applications.size()), card);
-    appCountBadge->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 4px 8px;");
+    appCountBadge->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-size: 11px; font-weight: 600; border-radius: 6px; padding: 3px 7px;");
 
     statBadges->addWidget(jobCountBadge);
     statBadges->addWidget(appCountBadge);
@@ -424,33 +425,33 @@ void CompanyPage::buildJobsList() {
             "   background-color: #FFFFFF;"
             "   border: 1px solid #ECE5DE;"
             "   border-radius: 12px;"
-            "   padding: 16px 20px;"
+            "   padding: 12px 16px;"
             "}"
         );
 
         QVBoxLayout *cardLayout = new QVBoxLayout(card);
-        cardLayout->setSpacing(10);
+        cardLayout->setSpacing(8);
 
         // Hàng 1: Logo + Thông tin vị trí + Khối ứng viên / Thao tác
         QHBoxLayout *topRow = new QHBoxLayout();
-        topRow->setSpacing(16);
+        topRow->setSpacing(12);
         topRow->setAlignment(Qt::AlignVCenter);
 
         // Logo thương hiệu
         QLabel *logoLabel = new QLabel(card);
         logoLabel->setAlignment(Qt::AlignCenter);
-        logoLabel->setFixedSize(46, 46);
+        logoLabel->setFixedSize(42, 42);
         QString logoPath = StyleHelper::getCompanyLogoPath(m_company.getIDcompany());
         QString compInitials = StyleHelper::getInitials(QString::fromStdString(m_company.getNameCompany()), "DN");
-        logoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 46, 10));
+        logoLabel->setPixmap(StyleHelper::getRoundedBadge(logoPath, compInitials, 42, 10));
         topRow->addWidget(logoLabel, 0, Qt::AlignVCenter);
 
         // Thông tin công việc (Giữa)
         QVBoxLayout *infoLayout = new QVBoxLayout();
-        infoLayout->setSpacing(4);
+        infoLayout->setSpacing(3);
 
         QHBoxLayout *titleLine = new QHBoxLayout();
-        titleLine->setSpacing(10);
+        titleLine->setSpacing(8);
 
         QLabel *titleLabel = new QLabel(QString::fromStdString(job.getTitle()), card);
         titleLabel->setStyleSheet("font-size: 15px; font-weight: 700; color: #1E1E1E;");
@@ -469,7 +470,7 @@ void CompanyPage::buildJobsList() {
 
         // Metadata
         QHBoxLayout *metaLine = new QHBoxLayout();
-        metaLine->setSpacing(14);
+        metaLine->setSpacing(10);
         QString loc = QString::fromStdString(job.getLocation().empty() ? "Chưa cập nhật" : job.getLocation());
         QLabel *locLbl = new QLabel("📍 " + loc, card);
         locLbl->setStyleSheet("color: #6C757D; font-size: 12px;");
@@ -492,7 +493,7 @@ void CompanyPage::buildJobsList() {
 
         // Khối Ứng viên & Nút thao tác (Bên phải)
         QHBoxLayout *actionLayout = new QHBoxLayout();
-        actionLayout->setSpacing(16);
+        actionLayout->setSpacing(12);
 
         // Số lượng ứng viên
         QVBoxLayout *countLayout = new QVBoxLayout();
@@ -501,10 +502,10 @@ void CompanyPage::buildJobsList() {
 
         QLabel *countNum = new QLabel(QString::number(applicantCount), card);
         countNum->setAlignment(Qt::AlignCenter);
-        countNum->setStyleSheet("font-size: 18px; font-weight: 800; color: #B95334;");
+        countNum->setStyleSheet("font-size: 16px; font-weight: 800; color: #B95334;");
         QLabel *countText = new QLabel("ứng viên", card);
         countText->setAlignment(Qt::AlignCenter);
-        countText->setStyleSheet("font-size: 11px; color: #6C757D;");
+        countText->setStyleSheet("font-size: 10px; color: #6C757D;");
         countLayout->addWidget(countNum);
         countLayout->addWidget(countText);
         actionLayout->addLayout(countLayout);
@@ -514,7 +515,7 @@ void CompanyPage::buildJobsList() {
         viewCandidatesBtn->setCursor(Qt::PointingHandCursor);
         viewCandidatesBtn->setStyleSheet(
             "background-color: transparent; color: #B95334; border: 1px solid #B95334; "
-            "border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600;"
+            "border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600;"
         );
         int jobId = job.getIDjob();
         QString jobTitle = QString::fromStdString(job.getTitle());
@@ -620,35 +621,39 @@ void CompanyPage::buildLatestApplicantsCard() {
         row->setSpacing(10);
         row->setAlignment(Qt::AlignVCenter);
 
-        // Avatar viết tắt
+        // Avatar tròn gọn gàng 38x38
         QString qCandName = QString::fromStdString(candName).trimmed();
         QString initials = StyleHelper::getInitials(qCandName, "UV");
 
         QLabel *avatar = new QLabel(this);
         avatar->setAlignment(Qt::AlignCenter);
-        avatar->setFixedSize(44, 44);
+        avatar->setFixedSize(38, 38);
+        avatar->setStyleSheet("background: transparent; border: none; padding: 0px;");
         int candId = cand.getIDcandidate() > 0 ? cand.getIDcandidate() : app.getIDcandidate();
         QString avPath = StyleHelper::getCandidateAvatarPath(candId);
-        avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 44));
+        avatar->setPixmap(StyleHelper::getCircularAvatar(avPath, initials, 38));
 
         QVBoxLayout *textLayout = new QVBoxLayout();
         textLayout->setSpacing(2);
         textLayout->setAlignment(Qt::AlignVCenter);
         QLabel *nameLabel = new QLabel(qCandName, this);
-        nameLabel->setStyleSheet("font-size: 13px; font-weight: 600; color: #1E1E1E;");
-        QLabel *subLabel = new QLabel("Ứng tuyển: " + QString::fromStdString(jobTitle), this);
+        nameLabel->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E;");
+        
+        QString appDate = QString::fromStdString(app.getAppliedAt());
+        QString subText = QString::fromStdString(jobTitle);
+        if (!appDate.isEmpty()) {
+            subText += " • " + appDate;
+        }
+        QLabel *subLabel = new QLabel(subText, this);
         subLabel->setStyleSheet("font-size: 11px; color: #6C757D;");
         textLayout->addWidget(nameLabel);
         textLayout->addWidget(subLabel);
 
-        QLabel *timeLabel = new QLabel(QString::fromStdString(app.getAppliedAt()), this);
-        timeLabel->setStyleSheet("font-size: 11px; color: #6C757D;");
-
         QPushButton *viewProfileBtn = new QPushButton("Xem hồ sơ", this);
         viewProfileBtn->setCursor(Qt::PointingHandCursor);
         viewProfileBtn->setStyleSheet(
-            "background-color: transparent; color: #B95334; border: 1px solid #B95334; "
-            "border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600;"
+            "background-color: #FFF4ED; color: #B95334; border: 1px solid #F5D3C7; "
+            "border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600;"
         );
 
         int cId = app.getIDcandidate();
@@ -663,7 +668,6 @@ void CompanyPage::buildLatestApplicantsCard() {
 
         row->addWidget(avatar, 0, Qt::AlignVCenter);
         row->addLayout(textLayout, 1);
-        row->addWidget(timeLabel, 0, Qt::AlignVCenter);
         row->addWidget(viewProfileBtn, 0, Qt::AlignVCenter);
 
         latestApplicantsLayout->addLayout(row);

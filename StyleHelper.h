@@ -181,6 +181,59 @@ public:
                 p.setFont(f);
                 p.drawText(QRect(0, 0, renderSize, renderSize), Qt::AlignCenter, initials);
             }
+
+            // 2. Viền tròn mỏng tinh tế bao quanh
+            p.setClipping(false);
+            p.setPen(QPen(QColor("#ECE5DE"), 2));
+            p.drawEllipse(QRectF(1.0, 1.0, renderSize - 2.0, renderSize - 2.0));
+        }
+        out.setDevicePixelRatio(2.0);
+        return out;
+    }
+
+    static QPixmap getRoundedAvatar(const QString &imagePath, const QString &initials, int size, int radius = 12,
+                                    const QString &bgColorHex = "#EFE4DA",
+                                    const QString &textColorHex = "#8A4E36") {
+        int renderSize = size * 2; // Vẽ độ phân giải 2x cho màn hình Retina macOS siêu sắc nét
+        int renderRadius = radius * 2;
+        QPixmap out(renderSize, renderSize);
+        out.fill(Qt::transparent);
+        {
+            QPainter p(&out);
+            p.setRenderHint(QPainter::Antialiasing, true);
+            p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+            p.setRenderHint(QPainter::TextAntialiasing, true);
+
+            QPainterPath path;
+            path.addRoundedRect(0, 0, renderSize, renderSize, renderRadius, renderRadius);
+            p.setClipPath(path);
+
+            // 1. Luôn đổ màu nền đặc trước
+            p.fillPath(path, QColor(bgColorHex));
+
+            bool imageDrawn = false;
+            if (!imagePath.isEmpty() && QFile::exists(imagePath)) {
+                QPixmap src(imagePath);
+                if (!src.isNull() && src.width() > 0 && src.height() > 0) {
+                    QPixmap scaled = src.scaled(renderSize, renderSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+                    int x = (scaled.width() - renderSize) / 2;
+                    int y = (scaled.height() - renderSize) / 2;
+                    p.drawPixmap(0, 0, scaled.copy(x, y, renderSize, renderSize));
+                    imageDrawn = true;
+                }
+            }
+
+            if (!imageDrawn) {
+                p.setPen(QColor(textColorHex));
+                QFont f("Helvetica", renderSize * (initials.length() > 2 ? 0.30 : 0.36), QFont::Bold);
+                p.setFont(f);
+                p.drawText(QRect(0, 0, renderSize, renderSize), Qt::AlignCenter, initials);
+            }
+
+            // 2. Viền bo góc sắc nét chuẩn thiết kế
+            p.setClipping(false);
+            p.setPen(QPen(QColor("#ECE5DE"), 2));
+            p.drawRoundedRect(QRectF(1.0, 1.0, renderSize - 2.0, renderSize - 2.0), renderRadius, renderRadius);
         }
         out.setDevicePixelRatio(2.0);
         return out;

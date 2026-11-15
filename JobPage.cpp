@@ -147,51 +147,90 @@ void JobPage::setupUI() {
     QHBoxLayout *gridColsLayout = new QHBoxLayout();
     gridColsLayout->setSpacing(16);
 
-    // Left Column: Description & Company
+    // Left Column: Description & Hiring Process Timeline (Giải pháp 2)
     QVBoxLayout *leftCol = new QVBoxLayout();
     leftCol->setSpacing(16);
 
+    // 1. Thẻ Mô tả công việc
     QFrame *descCard = new QFrame(contentWidget);
-    descCard->setStyleSheet("background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px;");
+    descCard->setObjectName("descCard");
+    descCard->setStyleSheet("QFrame#descCard { background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px; }");
     QVBoxLayout *descCardLayout = new QVBoxLayout(descCard);
     descCardLayout->setSpacing(8);
 
-    QLabel *descTitle = new QLabel("Mô tả công việc", descCard);
-    descTitle->setStyleSheet("font-size: 15px; font-weight: 700; color: #1E1E1E;");
+    QLabel *descTitle = new QLabel("📋 Mô tả công việc & Trách nhiệm chính", descCard);
+    descTitle->setStyleSheet("font-size: 15px; font-weight: 700; color: #1E1E1E; border: none;");
     descLabel = new QLabel(descCard);
     descLabel->setWordWrap(true);
-    descLabel->setStyleSheet("color: #1E1E1E; line-height: 1.5; font-size: 13px;");
+    descLabel->setStyleSheet("color: #2B2B2B; line-height: 1.5; font-size: 13px; border: none;");
     descCardLayout->addWidget(descTitle);
     descCardLayout->addWidget(descLabel);
     leftCol->addWidget(descCard);
 
-    QFrame *companyCard = new QFrame(contentWidget);
-    companyCard->setStyleSheet("background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px;");
-    QVBoxLayout *companyCardLayout = new QVBoxLayout(companyCard);
-    companyCardLayout->setSpacing(8);
+    // 2. Thẻ Lộ trình Ứng tuyển & Tuyển dụng 4 bước (Giải pháp 2)
+    QFrame *processCard = new QFrame(contentWidget);
+    processCard->setObjectName("processCard");
+    processCard->setStyleSheet("QFrame#processCard { background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px; }");
+    QVBoxLayout *procLayout = new QVBoxLayout(processCard);
+    procLayout->setSpacing(12);
 
-    QLabel *compTitle = new QLabel("Thông tin doanh nghiệp", companyCard);
-    compTitle->setStyleSheet("font-size: 15px; font-weight: 700; color: #1E1E1E;");
-    companyInfoLabel = new QLabel(companyCard);
-    companyInfoLabel->setWordWrap(true);
-    companyInfoLabel->setStyleSheet("color: #6C757D; font-size: 13px;");
-    companyCardLayout->addWidget(compTitle);
-    companyCardLayout->addWidget(companyInfoLabel);
-    leftCol->addWidget(companyCard);
+    QLabel *procTitle = new QLabel("🚀 Lộ trình Ứng tuyển & Tuyển dụng", processCard);
+    procTitle->setStyleSheet("font-size: 15px; font-weight: 700; color: #1E1E1E; border: none;");
+    QLabel *procSub = new QLabel("Quy trình 4 bước tinh gọn, minh bạch và đảm bảo quyền lợi tối ưu cho ứng viên:", processCard);
+    procSub->setStyleSheet("font-size: 12px; color: #6C757D; border: none;");
+    procLayout->addWidget(procTitle);
+    procLayout->addWidget(procSub);
+
+    auto createStepRow = [&](const QString &stepNum, const QString &stepTitle, const QString &stepDesc) -> QWidget* {
+        QWidget *rowW = new QWidget(processCard);
+        rowW->setStyleSheet("background: #FAF7F4; border: 1px solid #EFE8E1; border-radius: 8px;");
+        QHBoxLayout *rowL = new QHBoxLayout(rowW);
+        rowL->setContentsMargins(12, 10, 14, 10);
+        rowL->setSpacing(12);
+
+        QLabel *numBadge = new QLabel(stepNum, rowW);
+        numBadge->setFixedSize(26, 26);
+        numBadge->setAlignment(Qt::AlignCenter);
+        numBadge->setStyleSheet("background-color: #B95334; color: #FFFFFF; font-size: 12px; font-weight: 800; border-radius: 13px; border: none;");
+
+        QVBoxLayout *textL = new QVBoxLayout();
+        textL->setSpacing(2);
+        QLabel *titleL = new QLabel(stepTitle, rowW);
+        titleL->setStyleSheet("font-size: 13px; font-weight: 700; color: #1E1E1E; border: none; background: transparent;");
+        QLabel *descL = new QLabel(stepDesc, rowW);
+        descL->setWordWrap(true);
+        descL->setStyleSheet("font-size: 12px; color: #555555; border: none; background: transparent; line-height: 1.4;");
+        textL->addWidget(titleL);
+        textL->addWidget(descL);
+
+        rowL->addWidget(numBadge, 0, Qt::AlignTop);
+        rowL->addLayout(textL, 1);
+        return rowW;
+    };
+
+    procLayout->addWidget(createStepRow("1", "1. Nộp hồ sơ trực tuyến", "Kiểm tra các tiêu chí phù hợp và nhấn 'Nộp hồ sơ ứng tuyển' để gửi trực tiếp thông tin đến Nhà tuyển dụng."));
+    procLayout->addWidget(createStepRow("2", "2. Sàng lọc & Matching tự động", "Hệ thống tự động đối soát GPA, chuyên ngành, kỹ năng và chứng chỉ để chấm điểm độ tương thích chuẩn xác."));
+    procLayout->addWidget(createStepRow("3", "3. Phỏng vấn & Đánh giá năng lực", "Doanh nghiệp duyệt hồ sơ và chủ động liên hệ phỏng vấn trực tiếp hoặc online qua email/SĐT đã cung cấp."));
+    procLayout->addWidget(createStepRow("4", "4. Nhận Offer & Bắt đầu làm việc", "Thống nhất chế độ đãi ngộ, ký kết hợp đồng lao động và chính thức gia nhập đội ngũ doanh nghiệp."));
+
+    leftCol->addWidget(processCard);
+    leftCol->addStretch();
 
     gridColsLayout->addLayout(leftCol, 3);
 
-    // Right Column: Requirements, Skills, Certificates
+    // Right Column: Requirements, Company Profile & Security Commitment (Giải pháp 4)
     QVBoxLayout *rightCol = new QVBoxLayout();
     rightCol->setSpacing(16);
 
+    // 1. Thẻ Yêu cầu ứng viên
     QFrame *reqCard = new QFrame(contentWidget);
-    reqCard->setStyleSheet("background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px;");
+    reqCard->setObjectName("reqCard");
+    reqCard->setStyleSheet("QFrame#reqCard { background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px; }");
     QVBoxLayout *reqCardLayout = new QVBoxLayout(reqCard);
     reqCardLayout->setSpacing(10);
 
-    QLabel *reqTitle = new QLabel("Yêu cầu ứng viên", reqCard);
-    reqTitle->setStyleSheet("font-size: 15px; font-weight: 700; color: #252525;");
+    QLabel *reqTitle = new QLabel("🎯 Tiêu chuẩn ứng viên", reqCard);
+    reqTitle->setStyleSheet("font-size: 15px; font-weight: 700; color: #252525; border: none;");
     reqCardLayout->addWidget(reqTitle);
 
     QFormLayout *reqForm = new QFormLayout();
@@ -207,7 +246,7 @@ void JobPage::setupUI() {
     reqCardLayout->addLayout(reqForm);
 
     QLabel *skillsHeader = new QLabel("⚡ Kỹ năng yêu cầu:", reqCard);
-    skillsHeader->setStyleSheet("font-weight: 700; font-size: 13px; color: #1E1E1E; margin-top: 8px;");
+    skillsHeader->setStyleSheet("font-weight: 700; font-size: 13px; color: #1E1E1E; margin-top: 8px; border: none;");
     reqCardLayout->addWidget(skillsHeader);
 
     skillsContainer = new QWidget(reqCard);
@@ -218,7 +257,7 @@ void JobPage::setupUI() {
     reqCardLayout->addWidget(skillsContainer);
 
     QLabel *certsHeader = new QLabel("📜 Chứng chỉ bắt buộc & ưu tiên:", reqCard);
-    certsHeader->setStyleSheet("font-weight: 700; font-size: 13px; color: #1E1E1E; margin-top: 8px;");
+    certsHeader->setStyleSheet("font-weight: 700; font-size: 13px; color: #1E1E1E; margin-top: 8px; border: none;");
     reqCardLayout->addWidget(certsHeader);
 
     certsContainer = new QWidget(reqCard);
@@ -229,6 +268,84 @@ void JobPage::setupUI() {
     reqCardLayout->addWidget(certsContainer);
 
     rightCol->addWidget(reqCard);
+
+    // 2. Thẻ Thông tin Doanh nghiệp nâng cấp (Giải pháp 4)
+    QFrame *companyCard = new QFrame(contentWidget);
+    companyCard->setObjectName("companyCard");
+    companyCard->setStyleSheet("QFrame#companyCard { background: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px; }");
+    QVBoxLayout *companyCardLayout = new QVBoxLayout(companyCard);
+    companyCardLayout->setSpacing(10);
+
+    QHBoxLayout *compTitleRow = new QHBoxLayout();
+    QLabel *compTitle = new QLabel("🏢 Doanh nghiệp tuyển dụng", companyCard);
+    compTitle->setStyleSheet("font-size: 15px; font-weight: 700; color: #1E1E1E; border: none;");
+    QLabel *verifiedBadge = new QLabel("✓ Đã xác thực", companyCard);
+    verifiedBadge->setStyleSheet("background-color: #E3F7EB; color: #1B7F49; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 3px 8px; border: 1px solid #C4EDD4;");
+    compTitleRow->addWidget(compTitle);
+    compTitleRow->addStretch();
+    compTitleRow->addWidget(verifiedBadge);
+    companyCardLayout->addLayout(compTitleRow);
+
+    companyDescLabel = new QLabel(companyCard);
+    companyDescLabel->setWordWrap(true);
+    companyDescLabel->setStyleSheet("color: #4A4A4A; font-size: 13px; line-height: 1.4; border: none;");
+    companyCardLayout->addWidget(companyDescLabel);
+
+    QVBoxLayout *compDetailsCol = new QVBoxLayout();
+    compDetailsCol->setSpacing(6);
+
+    companyAddressLabel = new QLabel(companyCard);
+    companyAddressLabel->setWordWrap(true);
+    companyAddressLabel->setStyleSheet("color: #555555; font-size: 12px; border: none;");
+
+    companyWebsiteLabel = new QLabel(companyCard);
+    companyWebsiteLabel->setWordWrap(true);
+    companyWebsiteLabel->setStyleSheet("color: #B95334; font-size: 12px; font-weight: 600; border: none;");
+
+    QLabel *ratingLabel = new QLabel("⭐ Tín nhiệm: 4.8 / 5.0 (Doanh nghiệp được đánh giá tích cực)", companyCard);
+    ratingLabel->setStyleSheet("color: #B76E00; font-size: 12px; font-weight: 600; border: none;");
+
+    compDetailsCol->addWidget(companyAddressLabel);
+    compDetailsCol->addWidget(companyWebsiteLabel);
+    compDetailsCol->addWidget(ratingLabel);
+    companyCardLayout->addLayout(compDetailsCol);
+
+    rightCol->addWidget(companyCard);
+
+    // 3. Thẻ Cam kết An toàn & Bảo mật JobMatch (Giải pháp 4)
+    QFrame *securityCard = new QFrame(contentWidget);
+    securityCard->setObjectName("securityCard");
+    securityCard->setStyleSheet(
+        "QFrame#securityCard { background: #F8FBF9; border: 1px solid #D6EFE0; border-radius: 12px; padding: 16px; }"
+    );
+    QVBoxLayout *secLayout = new QVBoxLayout(securityCard);
+    secLayout->setSpacing(8);
+
+    QHBoxLayout *secTitleRow = new QHBoxLayout();
+    secTitleRow->setSpacing(8);
+    QLabel *secIcon = new QLabel("🛡️", securityCard);
+    secIcon->setStyleSheet("font-size: 16px; border: none;");
+    QLabel *secTitle = new QLabel("Cam kết An toàn & Hỗ trợ JobMatch", securityCard);
+    secTitle->setStyleSheet("font-size: 13px; font-weight: 700; color: #1B7F49; border: none;");
+    secTitleRow->addWidget(secIcon);
+    secTitleRow->addWidget(secTitle);
+    secTitleRow->addStretch();
+    secLayout->addLayout(secTitleRow);
+
+    QLabel *sec1 = new QLabel("✓ Tin tuyển dụng đã được kiểm duyệt xác thực pháp nhân.", securityCard);
+    sec1->setStyleSheet("font-size: 12px; color: #2D5A3E; border: none;");
+    QLabel *sec2 = new QLabel("✓ Hồ sơ cá nhân & thông tin liên hệ được bảo vệ quyền riêng tư 100%.", securityCard);
+    sec2->setStyleSheet("font-size: 12px; color: #2D5A3E; border: none;");
+    QLabel *sec3 = new QLabel("✓ Miễn phí hoàn toàn — Không thu bất kỳ khoản phí nào từ ứng viên.", securityCard);
+    sec3->setStyleSheet("font-size: 12px; color: #2D5A3E; border: none;");
+
+    secLayout->addWidget(sec1);
+    secLayout->addWidget(sec2);
+    secLayout->addWidget(sec3);
+
+    rightCol->addWidget(securityCard);
+    rightCol->addStretch();
+
     gridColsLayout->addLayout(rightCol, 2);
 
     contentLayout->addLayout(gridColsLayout);
@@ -302,12 +419,16 @@ void JobPage::loadJob(const MockJobDetail &job) {
         job.isOpen ? "★ Nộp hồ sơ ứng tuyển" : "Công việc đã đóng"
         );
 
-    descLabel->setText(job.description);
-    QString compDesc = job.companyDesc.isEmpty() ? "Doanh nghiệp công nghệ phát triển giải pháp phần mềm." : job.companyDesc;
-    companyInfoLabel->setText(
-        QString("• Giới thiệu: %1\n• Địa chỉ: %2\n• Website: %3\n• Đánh giá uy tín: 4.8 / 5.0")
-        .arg(compDesc, job.companyAddress, job.companyWebsite)
-    );
+    descLabel->setText(job.description.isEmpty() ? "Chưa cập nhật mô tả chi tiết công việc." : job.description);
+
+    QString compDesc = job.companyDesc.isEmpty() ? "Doanh nghiệp công nghệ phát triển giải pháp phần mềm và giải pháp chuyển đổi số." : job.companyDesc;
+    companyDescLabel->setText(compDesc);
+
+    QString compAddr = job.companyAddress.isEmpty() ? "Đà Nẵng" : job.companyAddress;
+    companyAddressLabel->setText("📍 Trụ sở: " + compAddr);
+
+    QString compWeb = job.companyWebsite.isEmpty() ? "https://jobmatch.vn" : job.companyWebsite;
+    companyWebsiteLabel->setText("🌐 Website: " + compWeb);
 
     majorLabel->setText(job.major);
     gpaLabel->setText(QString::number(job.minGpa, 'f', 2));

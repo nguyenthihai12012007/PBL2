@@ -31,3 +31,6 @@
 11|Spark|2
 12|UML|3
 12|Requirements Analysis|3
+13|c++|4
+13|SQL|5
+13|j|3

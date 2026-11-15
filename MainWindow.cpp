@@ -43,8 +43,8 @@ MainWindow::MainWindow(Data &data, QWidget *parent)
     : QMainWindow(parent), m_data(data), currentUserId(0), previousPageIndex(0) {
     m_searchEngine.reload(m_data);
     setWindowTitle("JobMatch — Hệ thống Kết nối Tuyển dụng");
-    resize(1260, 780);
-    setMinimumSize(1024, 640);
+    resize(1200, 720);
+    setMinimumSize(960, 580);
     setupUI();
 }
 

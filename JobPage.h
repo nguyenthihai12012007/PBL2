@@ -72,7 +72,9 @@ private:
     QLabel *gpaLabel;
     QLabel *expLabel;
     QLabel *descLabel;
-    QLabel *companyInfoLabel;
+    QLabel *companyDescLabel;
+    QLabel *companyAddressLabel;
+    QLabel *companyWebsiteLabel;
 
     QWidget *skillsContainer;
     QVBoxLayout *skillsLayout;
