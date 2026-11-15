@@ -1046,9 +1046,37 @@ void CandidatePage::onEditProfileClicked() {
     dialog.setMinimumSize(840, 560);
     dialog.setStyleSheet("background-color: #FBF8F5;");
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(&dialog);
-    mainLayout->setContentsMargins(24, 20, 24, 20);
+    QVBoxLayout *dialogRootLayout = new QVBoxLayout(&dialog);
+    dialogRootLayout->setContentsMargins(0, 0, 0, 0);
+
+    QScrollArea *scrollArea = new QScrollArea(&dialog);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setStyleSheet("QScrollArea { background-color: transparent; border: none; }");
+
+    QWidget *scrollContent = new QWidget(scrollArea);
+    scrollContent->setStyleSheet("background-color: transparent;");
+
+    QHBoxLayout *centerLayout = new QHBoxLayout(scrollContent);
+    centerLayout->setContentsMargins(24, 20, 24, 24);
+    centerLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+    QWidget *cardWrapper = new QWidget(scrollContent);
+    cardWrapper->setMaximumWidth(940);
+    cardWrapper->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    cardWrapper->setStyleSheet("background-color: transparent;");
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(cardWrapper);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(16);
+
+    centerLayout->addStretch(1);
+    centerLayout->addWidget(cardWrapper, 100);
+    centerLayout->addStretch(1);
+
+    scrollArea->setWidget(scrollContent);
+    dialogRootLayout->addWidget(scrollArea);
 
     const auto &curP = m_candidate.getPersonalInfo();
     const auto &curProf = m_candidate.getProfessionalInfo();
@@ -1057,7 +1085,7 @@ void CandidatePage::onEditProfileClicked() {
     // =========================================================================
     // 1. HEADER BANNER CARD
     // =========================================================================
-    QFrame *headerBanner = new QFrame(&dialog);
+    QFrame *headerBanner = new QFrame(cardWrapper);
     headerBanner->setObjectName("candidateHeaderBanner");
     headerBanner->setStyleSheet("QFrame#candidateHeaderBanner { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; }");
     QHBoxLayout *headerLayout = new QHBoxLayout(headerBanner);
@@ -1110,47 +1138,98 @@ void CandidatePage::onEditProfileClicked() {
     mainLayout->addWidget(headerBanner);
 
     // =========================================================================
-    // 2. SCROLL AREA VÀ CONTAINER 2 CỘT
+    // 2. CONTAINER 2 CỘT (CÁ NHÂN & HỌC VẤN)
     // =========================================================================
-    QScrollArea *scrollArea = new QScrollArea(&dialog);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setFrameShape(QFrame::NoFrame);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollArea->setStyleSheet("background-color: transparent; border: none;");
-
-    QWidget *formContainer = new QWidget(scrollArea);
+    QWidget *formContainer = new QWidget(cardWrapper);
     formContainer->setStyleSheet("background-color: transparent;");
     QHBoxLayout *columnsLayout = new QHBoxLayout(formContainer);
     columnsLayout->setContentsMargins(0, 0, 0, 0);
     columnsLayout->setSpacing(18);
 
+    // Style mẫu đồng nhất cho các trường input để căn chỉnh chiều cao chuẩn tuyệt đối
+    const QString editStyle =
+        "QLineEdit {"
+        "   background-color: #FBF8F5;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 6px;"
+        "   padding: 0px 12px;"
+        "   font-size: 13px;"
+        "   color: #1E1E1E;"
+        "   min-height: 36px;"
+        "   max-height: 36px;"
+        "}"
+        "QLineEdit:focus {"
+        "   background-color: #FFFFFF;"
+        "   border: 1.5px solid #B95334;"
+        "}";
+
+    const QString comboStyle =
+        "QComboBox {"
+        "   background-color: #FBF8F5;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 6px;"
+        "   padding: 0px 10px;"
+        "   font-size: 13px;"
+        "   color: #1E1E1E;"
+        "   min-height: 36px;"
+        "   max-height: 36px;"
+        "}"
+        "QComboBox:focus {"
+        "   background-color: #FFFFFF;"
+        "   border: 1.5px solid #B95334;"
+        "}";
+
+    const QString spinStyle =
+        "QDoubleSpinBox {"
+        "   background-color: #FBF8F5;"
+        "   border: 1px solid #ECE5DE;"
+        "   border-radius: 6px;"
+        "   padding: 0px 8px;"
+        "   font-size: 13px;"
+        "   font-weight: 700;"
+        "   color: #B76E00;"
+        "   min-height: 36px;"
+        "   max-height: 36px;"
+        "}"
+        "QDoubleSpinBox:focus {"
+        "   background-color: #FFFFFF;"
+        "   border: 1.5px solid #B95334;"
+        "}";
+
+    auto makeFieldLabel = [&](const QString &text, QWidget *parent) -> QLabel* {
+        QLabel *lbl = new QLabel(text, parent);
+        lbl->setFixedHeight(36);
+        lbl->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        lbl->setStyleSheet("font-size: 13px; font-weight: 600; color: #1E1E1E; background: transparent; border: none; padding: 0px; margin: 0px;");
+        return lbl;
+    };
+
     // =========================================================================
     // CỘT 1 (TRÁI): THÔNG TIN CÁ NHÂN & LIÊN HỆ
     // =========================================================================
     QFrame *pCard = new QFrame(formContainer);
-    pCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px 20px;");
+    pCard->setObjectName("pCard");
+    pCard->setStyleSheet("QFrame#pCard { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; }");
     QVBoxLayout *pCardLay = new QVBoxLayout(pCard);
-    pCardLay->setSpacing(12);
+    pCardLay->setContentsMargins(20, 18, 20, 18);
+    pCardLay->setSpacing(14);
 
     QLabel *pSecTitle = new QLabel("👤 Thông tin định danh & Liên hệ", pCard);
-    pSecTitle->setStyleSheet("font-size: 14px; font-weight: 700; color: #B95334; border-bottom: 2px solid #FFF4ED; padding-bottom: 6px;");
+    pSecTitle->setStyleSheet("font-size: 14px; font-weight: 700; color: #B95334; border: none; border-bottom: 2px solid #FFF4ED; padding-bottom: 6px;");
     pCardLay->addWidget(pSecTitle);
 
     QFormLayout *pForm = new QFormLayout();
-    pForm->setSpacing(10);
-    pForm->setLabelAlignment(Qt::AlignLeft);
+    pForm->setSpacing(12);
+    pForm->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    pForm->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     QLineEdit *nameEdit = new QLineEdit(QString::fromStdString(curP.fullName), pCard);
     nameEdit->setPlaceholderText("VD: Nguyễn Văn An");
-    nameEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 8px 12px; font-size: 13px;");
-
-    // Hàng ghép: Ngày sinh + Giới tính
-    QHBoxLayout *bdayGenderRow = new QHBoxLayout();
-    bdayGenderRow->setSpacing(8);
+    nameEdit->setStyleSheet(editStyle);
 
     QLineEdit *bdayEdit = new QLineEdit(QString::fromStdString(formatDateDisplay(curP.birthday)), pCard);
     bdayEdit->setPlaceholderText("dd/MM/yyyy (VD: 18/05/2002)");
-    bdayEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 8px 12px; font-size: 13px;");
+    bdayEdit->setStyleSheet(editStyle);
 
     QComboBox *genderCombo = new QComboBox(pCard);
     genderCombo->addItem("Nam");
@@ -1160,38 +1239,37 @@ void CandidatePage::onEditProfileClicked() {
         int idx = genderCombo->findText(QString::fromStdString(curP.gender));
         if (idx >= 0) genderCombo->setCurrentIndex(idx);
     }
-    genderCombo->setFixedWidth(100);
-    genderCombo->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 7px 10px; font-size: 13px;");
-
-    bdayGenderRow->addWidget(bdayEdit, 1);
-    bdayGenderRow->addWidget(genderCombo, 0);
+    genderCombo->setStyleSheet(comboStyle);
 
     QLineEdit *phoneEdit = new QLineEdit(QString::fromStdString(curP.phoneCandidate), pCard);
     phoneEdit->setPlaceholderText("VD: 0905123456");
     phoneEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]{0,11}$"), phoneEdit));
-    phoneEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 8px 12px; font-size: 13px;");
+    phoneEdit->setStyleSheet(editStyle);
 
     QLineEdit *addrEdit = new QLineEdit(QString::fromStdString(curP.addressCandidate), pCard);
     addrEdit->setPlaceholderText("VD: Hải Châu, Đà Nẵng");
-    addrEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 8px 12px; font-size: 13px;");
+    addrEdit->setStyleSheet(editStyle);
 
-    pForm->addRow("Họ và tên *:", nameEdit);
-    pForm->addRow("Ngày sinh & Giới tính:", bdayGenderRow);
-    pForm->addRow("Số điện thoại:", phoneEdit);
-    pForm->addRow("Địa chỉ thường trú:", addrEdit);
+    pForm->addRow(makeFieldLabel("Họ và tên *:", pCard), nameEdit);
+    pForm->addRow(makeFieldLabel("Ngày sinh:", pCard), bdayEdit);
+    pForm->addRow(makeFieldLabel("Giới tính:", pCard), genderCombo);
+    pForm->addRow(makeFieldLabel("Số điện thoại:", pCard), phoneEdit);
+    pForm->addRow(makeFieldLabel("Địa chỉ thường trú:", pCard), addrEdit);
     pCardLay->addLayout(pForm);
 
     // Box thông tin tài khoản liên kết (Account Info Pill)
     QFrame *accInfoBox = new QFrame(pCard);
-    accInfoBox->setStyleSheet("background-color: #F8F4F0; border: 1px solid #ECE5DE; border-radius: 8px; padding: 10px 12px;");
+    accInfoBox->setObjectName("accInfoBox");
+    accInfoBox->setStyleSheet("QFrame#accInfoBox { background-color: #F8F4F0; border: 1px solid #ECE5DE; border-radius: 8px; }");
     QVBoxLayout *accLay = new QVBoxLayout(accInfoBox);
+    accLay->setContentsMargins(12, 10, 12, 10);
     accLay->setSpacing(4);
     QLabel *accTitle = new QLabel("🔒 Thông tin tài khoản hệ thống", accInfoBox);
-    accTitle->setStyleSheet("font-size: 11px; font-weight: 700; color: #754533;");
+    accTitle->setStyleSheet("font-size: 11px; font-weight: 700; color: #754533; border: none;");
     QLabel *accEmail = new QLabel("📧 Email: " + QString::fromStdString(m_candidate.getEmail()), accInfoBox);
-    accEmail->setStyleSheet("font-size: 12px; color: #555555;");
+    accEmail->setStyleSheet("font-size: 12px; color: #555555; border: none;");
     QLabel *accId = new QLabel("🆔 Mã ứng viên: #" + QString::number(m_candidate.getIDcandidate()), accInfoBox);
-    accId->setStyleSheet("font-size: 12px; color: #555555;");
+    accId->setStyleSheet("font-size: 12px; color: #555555; border: none;");
     accLay->addWidget(accTitle);
     accLay->addWidget(accEmail);
     accLay->addWidget(accId);
@@ -1204,29 +1282,37 @@ void CandidatePage::onEditProfileClicked() {
     // CỘT 2 (PHẢI): HỌC VẤN, CHUYÊN MÔN & MẸO TỐI ƯU
     // =========================================================================
     QFrame *eduCard = new QFrame(formContainer);
-    eduCard->setStyleSheet("background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; padding: 18px 20px;");
+    eduCard->setObjectName("eduCard");
+    eduCard->setStyleSheet("QFrame#eduCard { background-color: #FFFFFF; border: 1px solid #ECE5DE; border-radius: 12px; }");
     QVBoxLayout *eduCardLay = new QVBoxLayout(eduCard);
-    eduCardLay->setSpacing(12);
+    eduCardLay->setContentsMargins(20, 18, 20, 18);
+    eduCardLay->setSpacing(14);
 
     QLabel *eduSecTitle = new QLabel("🎓 Học vấn & Trình độ đào tạo", eduCard);
-    eduSecTitle->setStyleSheet("font-size: 14px; font-weight: 700; color: #B95334; border-bottom: 2px solid #FFF4ED; padding-bottom: 6px;");
+    eduSecTitle->setStyleSheet("font-size: 14px; font-weight: 700; color: #B95334; border: none; border-bottom: 2px solid #FFF4ED; padding-bottom: 6px;");
     eduCardLay->addWidget(eduSecTitle);
 
     QFormLayout *eduForm = new QFormLayout();
-    eduForm->setSpacing(10);
-    eduForm->setLabelAlignment(Qt::AlignLeft);
+    eduForm->setSpacing(12);
+    eduForm->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    eduForm->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     QLineEdit *schoolEdit = new QLineEdit(QString::fromStdString(curProf.school), eduCard);
     schoolEdit->setPlaceholderText("VD: Đại học Bách Khoa - ĐH Đà Nẵng");
-    schoolEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 8px 12px; font-size: 13px;");
+    schoolEdit->setStyleSheet(editStyle);
+    schoolEdit->setMinimumWidth(280);
+    schoolEdit->setCursorPosition(0);
+    schoolEdit->setToolTip(QString::fromStdString(curProf.school));
 
     QLineEdit *majorEdit = new QLineEdit(QString::fromStdString(curProf.major), eduCard);
     majorEdit->setPlaceholderText("VD: Công nghệ thông tin, Kỹ thuật phần mềm...");
-    majorEdit->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 8px 12px; font-size: 13px;");
+    majorEdit->setStyleSheet(editStyle);
 
     // Hàng ghép: Trình độ đào tạo + Điểm GPA
     QHBoxLayout *eduGpaRow = new QHBoxLayout();
+    eduGpaRow->setContentsMargins(0, 0, 0, 0);
     eduGpaRow->setSpacing(8);
+    eduGpaRow->setAlignment(Qt::AlignVCenter);
 
     QComboBox *eduCombo = new QComboBox(eduCard);
     eduCombo->addItem("Chưa chọn", "");
@@ -1239,7 +1325,7 @@ void CandidatePage::onEditProfileClicked() {
         int idx = eduCombo->findText(QString::fromStdString(curProf.educationLevel));
         if (idx >= 0) eduCombo->setCurrentIndex(idx);
     }
-    eduCombo->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 7px 10px; font-size: 13px;");
+    eduCombo->setStyleSheet(comboStyle);
 
     QDoubleSpinBox *gpaSpin = new QDoubleSpinBox(eduCard);
     gpaSpin->setRange(0.00, 4.00);
@@ -1247,32 +1333,39 @@ void CandidatePage::onEditProfileClicked() {
     gpaSpin->setDecimals(2);
     gpaSpin->setValue(curProf.GPA > 0.0f ? curProf.GPA : 0.0);
     gpaSpin->setFixedWidth(90);
-    gpaSpin->setStyleSheet("background-color: #FBF8F5; border: 1px solid #ECE5DE; border-radius: 6px; padding: 7px 10px; font-size: 13px; font-weight: 700; color: #B76E00;");
+    gpaSpin->setStyleSheet(spinStyle);
+
+    QLabel *gpaIconLbl = new QLabel("⭐ GPA:", eduCard);
+    gpaIconLbl->setFixedHeight(36);
+    gpaIconLbl->setAlignment(Qt::AlignCenter);
+    gpaIconLbl->setStyleSheet("font-size: 13px; font-weight: 600; color: #1E1E1E; background: transparent; border: none; padding: 0px;");
 
     eduGpaRow->addWidget(eduCombo, 1);
-    eduGpaRow->addWidget(new QLabel("⭐ GPA:", eduCard), 0);
+    eduGpaRow->addWidget(gpaIconLbl, 0);
     eduGpaRow->addWidget(gpaSpin, 0);
 
-    eduForm->addRow("Trường đào tạo:", schoolEdit);
-    eduForm->addRow("Chuyên ngành:", majorEdit);
-    eduForm->addRow("Trình độ & GPA:", eduGpaRow);
+    eduForm->addRow(makeFieldLabel("Trường đào tạo:", eduCard), schoolEdit);
+    eduForm->addRow(makeFieldLabel("Chuyên ngành:", eduCard), majorEdit);
+    eduForm->addRow(makeFieldLabel("Trình độ & GPA:", eduCard), eduGpaRow);
     eduCardLay->addLayout(eduForm);
 
     // Box mẹo hồ sơ tăng điểm Matching
     QFrame *tipsBox = new QFrame(eduCard);
-    tipsBox->setStyleSheet("background-color: #F0FDF4; border: 1px solid #DCFCE7; border-radius: 8px; padding: 10px 12px;");
+    tipsBox->setObjectName("tipsBox");
+    tipsBox->setStyleSheet("QFrame#tipsBox { background-color: #F0FDF4; border: 1px solid #DCFCE7; border-radius: 8px; }");
     QVBoxLayout *tipsLay = new QVBoxLayout(tipsBox);
+    tipsLay->setContentsMargins(12, 10, 12, 10);
     tipsLay->setSpacing(4);
     QLabel *tipsTitle = new QLabel("💡 Mẹo tăng điểm Matching cho ứng viên", tipsBox);
-    tipsTitle->setStyleSheet("font-size: 11px; font-weight: 700; color: #166534;");
+    tipsTitle->setStyleSheet("font-size: 11px; font-weight: 700; color: #166534; border: none;");
     QLabel *tip1 = new QLabel("• <b>Chuyên ngành:</b> Trùng khớp ngành yêu cầu là điều kiện tiên quyết để hồ sơ hợp lệ.", tipsBox);
-    tip1->setStyleSheet("font-size: 11px; color: #15803D;");
+    tip1->setStyleSheet("font-size: 11px; color: #15803D; border: none;");
     tip1->setWordWrap(true);
     QLabel *tip2 = new QLabel("• <b>Điểm GPA:</b> Đạt từ 3.0 trở lên sẽ được tính tối đa 10% điểm số phù hợp.", tipsBox);
-    tip2->setStyleSheet("font-size: 11px; color: #15803D;");
+    tip2->setStyleSheet("font-size: 11px; color: #15803D; border: none;");
     tip2->setWordWrap(true);
     QLabel *tip3 = new QLabel("• <b>Kỹ năng:</b> Sau khi lưu, bạn có thể bổ sung thêm kỹ năng & chứng chỉ ở màn hình chính.", tipsBox);
-    tip3->setStyleSheet("font-size: 11px; color: #15803D;");
+    tip3->setStyleSheet("font-size: 11px; color: #15803D; border: none;");
     tip3->setWordWrap(true);
     tipsLay->addWidget(tipsTitle);
     tipsLay->addWidget(tip1);
@@ -1282,9 +1375,7 @@ void CandidatePage::onEditProfileClicked() {
     eduCardLay->addStretch();
 
     columnsLayout->addWidget(eduCard, 1);
-
-    scrollArea->setWidget(formContainer);
-    mainLayout->addWidget(scrollArea, 1);
+    mainLayout->addWidget(formContainer);
 
     // =========================================================================
     // 3. FOOTER BUTTONS
@@ -1293,12 +1384,12 @@ void CandidatePage::onEditProfileClicked() {
     btnLayout->setSpacing(12);
     btnLayout->addStretch();
 
-    QPushButton *cancelBtn = new QPushButton("Hủy bỏ", &dialog);
+    QPushButton *cancelBtn = new QPushButton("Hủy bỏ", cardWrapper);
     cancelBtn->setCursor(Qt::PointingHandCursor);
     cancelBtn->setStyleSheet("background-color: #ECE5DE; color: #1E1E1E; border: none; border-radius: 8px; padding: 9px 22px; font-weight: 600; font-size: 13px;");
     connect(cancelBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
 
-    QPushButton *saveBtn = new QPushButton("✓ Lưu thay đổi", &dialog);
+    QPushButton *saveBtn = new QPushButton("✓ Lưu thay đổi", cardWrapper);
     saveBtn->setCursor(Qt::PointingHandCursor);
     saveBtn->setStyleSheet("background-color: #B95334; color: #FFFFFF; border: none; border-radius: 8px; padding: 9px 28px; font-weight: 700; font-size: 13px;");
 

@@ -160,6 +160,22 @@ bool Data::getCandidateByUserID(int userID, Candidate& candidate) {
             candidate.setIDuser(savedUserID);
             candidate.setRole("CANDIDATE");
 
+            vector<string> uLines;
+            if (readFile("users.txt", uLines)) {
+                for (const string& ul : uLines) {
+                    if (ul.empty() || ul[0] == '#') continue;
+                    vector<string> uFields = splitLine(ul);
+                    if (uFields.size() >= 2) {
+                        try {
+                            if (stoi(uFields[0]) == savedUserID) {
+                                candidate.setEmail(uFields[1]);
+                                break;
+                            }
+                        } catch (...) {}
+                    }
+                }
+            }
+
             candidate.personal.fullName = fields[2];
             candidate.personal.birthday = fields[3];
             candidate.personal.gender = fields[4];
