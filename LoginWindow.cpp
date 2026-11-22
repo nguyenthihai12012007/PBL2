@@ -10,95 +10,183 @@
 #include <QComboBox>
 #include <QStackedWidget>
 #include <QFrame>
+#include <QListView>
+#include <QScrollArea>
+#include <QResizeEvent>
+#include <QKeyEvent>
+#include <QPainter>
+#include <QPaintEvent>
+#include <QPainterPath>
+#include <QLinearGradient>
+#include <QRadialGradient>
+#include <QGraphicsDropShadowEffect>
+#include <QDir>
+#include <QFile>
+
+namespace {
+// StackedWidget that dynamically sizes itself to the currently active page
+class CompactStackedWidget : public QStackedWidget {
+public:
+    explicit CompactStackedWidget(QWidget *parent = nullptr) : QStackedWidget(parent) {}
+    QSize sizeHint() const override {
+        if (currentWidget()) {
+            return currentWidget()->sizeHint();
+        }
+        return QStackedWidget::sizeHint();
+    }
+    QSize minimumSizeHint() const override {
+        if (currentWidget()) {
+            return currentWidget()->minimumSizeHint();
+        }
+        return QStackedWidget::minimumSizeHint();
+    }
+};
+}
 
 LoginWindow::LoginWindow(Data &data, QWidget *parent)
-    : QWidget(parent), m_data(data) {
+    : QWidget(parent), m_data(data), m_currentTheme(ThemeStyle::HiringWorkspace),
+      illustrationLabel(nullptr), rightContainer(nullptr), cardFrame(nullptr), cardShadow(nullptr),
+      logoLabel(nullptr), subtitleLabel(nullptr),
+      emailLabel(nullptr), pwdLabel(nullptr), loginEmailEdit(nullptr), loginPasswordEdit(nullptr),
+      loginStatusLabel(nullptr), loginButton(nullptr), noAccountLabel(nullptr), switchToRegBtn(nullptr),
+      regEmailLbl(nullptr), regPwdLbl(nullptr), regConfirmLbl(nullptr), regRoleLbl(nullptr),
+      regEmailEdit(nullptr), regPasswordEdit(nullptr), regConfirmPasswordEdit(nullptr), regRoleCombo(nullptr),
+      regStatusLabel(nullptr), regButton(nullptr), hasAccountLabel(nullptr), switchToLoginBtn(nullptr),
+      formStackedWidget(nullptr) {
     setWindowTitle("JobMatch — Đăng nhập");
-    setFixedSize(460, 560);
+    resize(1080, 630);
+    setMinimumSize(920, 540);
     setupUI();
+    applyTheme(m_currentTheme);
 }
 
 void LoginWindow::setupUI() {
-    // Root layout centering the card
-    QVBoxLayout *rootLayout = new QVBoxLayout(this);
-    rootLayout->setContentsMargins(30, 30, 30, 30);
-    rootLayout->setAlignment(Qt::AlignCenter);
+    // Root Layout: Ảnh minh hoạ phóng to toàn bộ chiều cao cửa sổ làm nền,
+    // khung đăng nhập nổi bật đè lên phía bên phải ảnh minh họa
+    QHBoxLayout *rootLayout = new QHBoxLayout(this);
+    rootLayout->setContentsMargins(0, 0, 32, 0);
+    rootLayout->setSpacing(0);
 
-    // Card frame
-    QFrame *cardFrame = new QFrame(this);
+    // Khoảng co giãn bên trái để đẩy khung đăng nhập sang phải, đè lên phần bên phải của ảnh
+    rootLayout->addStretch(1);
+
+    // =========================================================================
+    // PHẦN ĐĂNG NHẬP HỆ THỐNG CHÍNH (ĐÈ NỔI BẬT LÊN TRÊN HÌNH ẢNH MINH HỌA)
+    // =========================================================================
+    rightContainer = new QWidget(this);
+    rightContainer->setFixedWidth(560);
+    rightContainer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    rightContainer->setStyleSheet("background-color: transparent; border: none;");
+
+    QVBoxLayout *rightRootLayout = new QVBoxLayout(rightContainer);
+    rightRootLayout->setContentsMargins(0, 0, 0, 0);
+
+    QScrollArea *scrollArea = new QScrollArea(rightContainer);
+    scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setStyleSheet("background-color: transparent; border: none;");
+
+    QWidget *scrollContent = new QWidget(scrollArea);
+    scrollContent->setStyleSheet("background-color: transparent;");
+
+    QVBoxLayout *centerVLayout = new QVBoxLayout(scrollContent);
+    centerVLayout->setContentsMargins(16, 12, 16, 12);
+    centerVLayout->setAlignment(Qt::AlignCenter);
+
+    // Card frame chính: Chiều ngang 510px, đè nổi khối sang trọng và bề thế trên ảnh nền
+    cardFrame = new QFrame(scrollContent);
     cardFrame->setObjectName("cardFrame");
-    cardFrame->setStyleSheet(
-        "#cardFrame {"
-        "   background-color: #FFFFFF;"
-        "   border: 1px solid #ECE5DE;"
-        "   border-radius: 12px;"
-        "   padding: 24px;"
-        "}"
-    );
+    cardFrame->setFixedWidth(510);
+
+    // Hiệu ứng đổ bóng mềm mại giúp khung đăng nhập nổi khối rõ nét trên ảnh nền
+    cardShadow = new QGraphicsDropShadowEffect(cardFrame);
+    cardFrame->setGraphicsEffect(cardShadow);
 
     QVBoxLayout *cardLayout = new QVBoxLayout(cardFrame);
+    cardLayout->setContentsMargins(0, 0, 0, 0);
     cardLayout->setSpacing(16);
 
-    // Header Branding
+    // Header Branding chính: Chữ to rõ, nổi bật và cân đối
     QVBoxLayout *headerLayout = new QVBoxLayout();
+    headerLayout->setContentsMargins(0, 0, 0, 0);
     headerLayout->setSpacing(4);
 
-    QLabel *logoLabel = new QLabel("JobMatch", this);
+    logoLabel = new QLabel("JobMatch", this);
     logoLabel->setAlignment(Qt::AlignCenter);
-    logoLabel->setStyleSheet("font-size: 24px; font-weight: 800; color: #B95334; letter-spacing: 0.5px;");
 
-    QLabel *subtitleLabel = new QLabel("Kết nối tài năng với cơ hội việc làm", this);
+    subtitleLabel = new QLabel("Kết nối tài năng với cơ hội việc làm", this);
     subtitleLabel->setAlignment(Qt::AlignCenter);
-    subtitleLabel->setStyleSheet("font-size: 13px; color: #6C757D;");
 
     headerLayout->addWidget(logoLabel);
     headerLayout->addWidget(subtitleLabel);
     cardLayout->addLayout(headerLayout);
 
-    // Form Stacked Widget (Page 0: Login, Page 1: Register)
-    formStackedWidget = new QStackedWidget(this);
+    // Form Stacked Widget tự động co giãn chiều cao theo trang đang hiển thị
+    formStackedWidget = new CompactStackedWidget(cardFrame);
+    formStackedWidget->setFixedWidth(450);
+    formStackedWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Maximum);
 
     // ==========================================
-    // PAGE 0: LOGIN FORM
+    // PAGE 0: LOGIN FORM (Chữ to rõ, các ô cao ráo)
     // ==========================================
-    QWidget *loginPage = new QWidget(this);
+    QWidget *loginPage = new QWidget(formStackedWidget);
+    loginPage->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     QVBoxLayout *loginPageLayout = new QVBoxLayout(loginPage);
-    loginPageLayout->setContentsMargins(0, 10, 0, 0);
-    loginPageLayout->setSpacing(14);
+    loginPageLayout->setContentsMargins(0, 4, 0, 0);
+    loginPageLayout->setSpacing(16);
+    loginPageLayout->setAlignment(Qt::AlignTop);
 
     QFormLayout *loginForm = new QFormLayout();
+    loginForm->setContentsMargins(0, 0, 0, 0);
     loginForm->setLabelAlignment(Qt::AlignLeft);
-    loginForm->setSpacing(12);
+    loginForm->setVerticalSpacing(16);
+    loginForm->setHorizontalSpacing(16);
 
-    loginEmailEdit = new QLineEdit(this);
+    loginEmailEdit = new QLineEdit(loginPage);
     loginEmailEdit->setPlaceholderText("Nhập email tài khoản đã có");
+    loginEmailEdit->setFixedHeight(56);
 
-    loginPasswordEdit = new QLineEdit(this);
+    loginPasswordEdit = new QLineEdit(loginPage);
     loginPasswordEdit->setPlaceholderText("Nhập mật khẩu");
     loginPasswordEdit->setEchoMode(QLineEdit::Password);
+    loginPasswordEdit->setFixedHeight(56);
 
-    loginForm->addRow("Email:", loginEmailEdit);
-    loginForm->addRow("Mật khẩu:", loginPasswordEdit);
+    emailLabel = new QLabel("Email:", loginPage);
+    pwdLabel = new QLabel("Mật khẩu:", loginPage);
+
+    loginForm->addRow(emailLabel, loginEmailEdit);
+    loginForm->addRow(pwdLabel, loginPasswordEdit);
     loginPageLayout->addLayout(loginForm);
 
-    loginStatusLabel = new QLabel(this);
-    loginStatusLabel->setStyleSheet("color: #DC2626; font-size: 12px; font-weight: 600; padding: 4px;");
+    loginStatusLabel = new QLabel(loginPage);
+    loginStatusLabel->setStyleSheet("color: #DC2626; font-size: 16px; font-weight: 600; padding: 2px;");
     loginStatusLabel->setAlignment(Qt::AlignCenter);
     loginStatusLabel->setWordWrap(true);
     loginStatusLabel->setVisible(false);
     loginPageLayout->addWidget(loginStatusLabel);
 
-    loginButton = new QPushButton("Đăng nhập hệ thống", this);
-    loginButton->setProperty("class", "primaryButton");
+    // Nút đăng nhập hệ thống được tinh chỉnh kích thước to rõ 22px
+    loginButton = new QPushButton("Đăng nhập hệ thống", loginPage);
+    loginButton->setObjectName("loginButton");
     loginButton->setCursor(Qt::PointingHandCursor);
-    loginPageLayout->addWidget(loginButton);
+    loginButton->setFixedWidth(360);
+
+    QHBoxLayout *loginBtnLayout = new QHBoxLayout();
+    loginBtnLayout->setContentsMargins(0, 6, 0, 6);
+    loginBtnLayout->setAlignment(Qt::AlignCenter);
+    loginBtnLayout->addWidget(loginButton);
+    loginPageLayout->addLayout(loginBtnLayout);
 
     QHBoxLayout *switchRegLayout = new QHBoxLayout();
+    switchRegLayout->setContentsMargins(0, 8, 0, 0);
+    switchRegLayout->setSpacing(8);
     switchRegLayout->setAlignment(Qt::AlignCenter);
-    QLabel *noAccountLabel = new QLabel("Chưa có tài khoản?", this);
-    noAccountLabel->setStyleSheet("color: #6A625A; font-size: 12px;");
-    QPushButton *switchToRegBtn = new QPushButton("Đăng ký ngay", this);
-    switchToRegBtn->setStyleSheet("background: transparent; border: none; color: #B95334; font-weight: 700; font-size: 12px;");
+    noAccountLabel = new QLabel("Chưa có tài khoản?", loginPage);
+    switchToRegBtn = new QPushButton("Đăng ký ngay", loginPage);
+    switchToRegBtn->setObjectName("switchToRegBtn");
     switchToRegBtn->setCursor(Qt::PointingHandCursor);
     switchRegLayout->addWidget(noAccountLabel);
     switchRegLayout->addWidget(switchToRegBtn);
@@ -107,56 +195,123 @@ void LoginWindow::setupUI() {
     formStackedWidget->addWidget(loginPage);
 
     // ==========================================
-    // PAGE 1: REGISTER FORM
+    // PAGE 1: REGISTER FORM (Chữ to rõ, các ô cao ráo)
     // ==========================================
-    QWidget *regPage = new QWidget(this);
+    QWidget *regPage = new QWidget(formStackedWidget);
+    regPage->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     QVBoxLayout *regPageLayout = new QVBoxLayout(regPage);
-    regPageLayout->setContentsMargins(0, 10, 0, 0);
+    regPageLayout->setContentsMargins(0, 4, 0, 0);
     regPageLayout->setSpacing(12);
+    regPageLayout->setAlignment(Qt::AlignTop);
 
     QFormLayout *regForm = new QFormLayout();
+    regForm->setContentsMargins(0, 0, 0, 0);
     regForm->setLabelAlignment(Qt::AlignLeft);
-    regForm->setSpacing(10);
+    regForm->setVerticalSpacing(12);
+    regForm->setHorizontalSpacing(16);
 
-    regEmailEdit = new QLineEdit(this);
+    regEmailEdit = new QLineEdit(regPage);
     regEmailEdit->setPlaceholderText("Nhập địa chỉ email mới");
+    regEmailEdit->setFixedHeight(52);
 
-    regPasswordEdit = new QLineEdit(this);
+    regPasswordEdit = new QLineEdit(regPage);
     regPasswordEdit->setPlaceholderText("Tối thiểu 6 ký tự");
     regPasswordEdit->setEchoMode(QLineEdit::Password);
+    regPasswordEdit->setFixedHeight(52);
 
-    regConfirmPasswordEdit = new QLineEdit(this);
+    regConfirmPasswordEdit = new QLineEdit(regPage);
     regConfirmPasswordEdit->setPlaceholderText("Nhập lại mật khẩu");
     regConfirmPasswordEdit->setEchoMode(QLineEdit::Password);
+    regConfirmPasswordEdit->setFixedHeight(52);
 
-    regRoleCombo = new QComboBox(this);
+    regRoleCombo = new QComboBox(regPage);
+    regRoleCombo->setObjectName("regRoleCombo");
+
+    // Khóa QListView với nền trắng tinh khôi và độ tương phản cao, loại bỏ lỗi tối màu trên macOS
+    QListView *roleListView = new QListView(regRoleCombo);
+    roleListView->setObjectName("roleComboListView");
+
+    QPalette pal = roleListView->palette();
+    pal.setColor(QPalette::Base, Qt::white);
+    pal.setColor(QPalette::Window, Qt::white);
+    pal.setColor(QPalette::Text, QColor("#1E293B"));
+    pal.setColor(QPalette::Highlight, QColor("#B95334"));
+    pal.setColor(QPalette::HighlightedText, Qt::white);
+    roleListView->setPalette(pal);
+
+    roleListView->setStyleSheet(
+        "QListView#roleComboListView {"
+        "   background-color: #FFFFFF;"
+        "   color: #1E293B;"
+        "   border: 2px solid #B95334;"
+        "   border-radius: 12px;"
+        "   padding: 6px;"
+        "   outline: none;"
+        "   selection-background-color: #F8EBE6;"
+        "   selection-color: #B95334;"
+        "}"
+        "QListView#roleComboListView::item {"
+        "   min-height: 48px;"
+        "   padding: 10px 16px;"
+        "   border-radius: 8px;"
+        "   color: #1E293B;"
+        "   background-color: #FFFFFF;"
+        "   font-size: 20px;"
+        "   font-weight: 600;"
+        "}"
+        "QListView#roleComboListView::item:hover {"
+        "   background-color: #F8EBE6;"
+        "   color: #B95334;"
+        "}"
+        "QListView#roleComboListView::item:selected {"
+        "   background-color: #B95334;"
+        "   color: #FFFFFF;"
+        "   font-weight: 700;"
+        "}"
+    );
+    regRoleCombo->setView(roleListView);
+
     regRoleCombo->addItem("Ứng viên tìm việc", "CANDIDATE");
-    regRoleCombo->addItem("Doanh nghiệp tuyển dụng", "COMPANY");
+    regRoleCombo->addItem("Doanh nghiệp", "COMPANY");
+    regRoleCombo->setFixedHeight(52);
 
-    regForm->addRow("Email:", regEmailEdit);
-    regForm->addRow("Mật khẩu:", regPasswordEdit);
-    regForm->addRow("Xác nhận MK:", regConfirmPasswordEdit);
-    regForm->addRow("Loại tài khoản:", regRoleCombo);
+    regEmailLbl = new QLabel("Email:", regPage);
+    regPwdLbl = new QLabel("Mật khẩu:", regPage);
+    regConfirmLbl = new QLabel("Xác nhận MK:", regPage);
+    regRoleLbl = new QLabel("Loại tài khoản:", regPage);
+
+    regForm->addRow(regEmailLbl, regEmailEdit);
+    regForm->addRow(regPwdLbl, regPasswordEdit);
+    regForm->addRow(regConfirmLbl, regConfirmPasswordEdit);
+    regForm->addRow(regRoleLbl, regRoleCombo);
     regPageLayout->addLayout(regForm);
 
-    regStatusLabel = new QLabel(this);
-    regStatusLabel->setStyleSheet("color: #DC2626; font-size: 12px; font-weight: 600;");
+    regStatusLabel = new QLabel(regPage);
+    regStatusLabel->setStyleSheet("color: #DC2626; font-size: 16px; font-weight: 600; padding: 2px;");
     regStatusLabel->setAlignment(Qt::AlignCenter);
     regStatusLabel->setWordWrap(true);
     regStatusLabel->setVisible(false);
     regPageLayout->addWidget(regStatusLabel);
 
-    regButton = new QPushButton("Đăng ký tài khoản", this);
-    regButton->setProperty("class", "primaryButton");
+    // Nút đăng ký tài khoản được tinh chỉnh kích thước chữ to 22px
+    regButton = new QPushButton("Đăng ký tài khoản", regPage);
+    regButton->setObjectName("regButton");
     regButton->setCursor(Qt::PointingHandCursor);
-    regPageLayout->addWidget(regButton);
+    regButton->setFixedWidth(360);
+
+    QHBoxLayout *regBtnLayout = new QHBoxLayout();
+    regBtnLayout->setContentsMargins(0, 6, 0, 6);
+    regBtnLayout->setAlignment(Qt::AlignCenter);
+    regBtnLayout->addWidget(regButton);
+    regPageLayout->addLayout(regBtnLayout);
 
     QHBoxLayout *switchLoginLayout = new QHBoxLayout();
+    switchLoginLayout->setContentsMargins(0, 8, 0, 0);
+    switchLoginLayout->setSpacing(8);
     switchLoginLayout->setAlignment(Qt::AlignCenter);
-    QLabel *hasAccountLabel = new QLabel("Đã có tài khoản?", this);
-    hasAccountLabel->setStyleSheet("color: #6A625A; font-size: 12px;");
-    QPushButton *switchToLoginBtn = new QPushButton("Đăng nhập", this);
-    switchToLoginBtn->setStyleSheet("background: transparent; border: none; color: #B95334; font-weight: 700; font-size: 12px;");
+    hasAccountLabel = new QLabel("Đã có tài khoản?", regPage);
+    switchToLoginBtn = new QPushButton("Đăng nhập", regPage);
+    switchToLoginBtn->setObjectName("switchToLoginBtn");
     switchToLoginBtn->setCursor(Qt::PointingHandCursor);
     switchLoginLayout->addWidget(hasAccountLabel);
     switchLoginLayout->addWidget(switchToLoginBtn);
@@ -165,26 +320,344 @@ void LoginWindow::setupUI() {
     formStackedWidget->addWidget(regPage);
 
     cardLayout->addWidget(formStackedWidget);
-    rootLayout->addWidget(cardFrame);
 
-    // Connections
+    centerVLayout->addStretch(1);
+    centerVLayout->addWidget(cardFrame, 0, Qt::AlignCenter);
+    centerVLayout->addStretch(1);
+
+    scrollArea->setWidget(scrollContent);
+    rightRootLayout->addWidget(scrollArea);
+
+    rootLayout->addWidget(rightContainer, 0, Qt::AlignRight);
+
+    // Connections (Chính xác như ban đầu)
     connect(loginButton, &QPushButton::clicked, this, &LoginWindow::onLoginClicked);
     connect(switchToRegBtn, &QPushButton::clicked, this, &LoginWindow::onSwitchToRegister);
     connect(regButton, &QPushButton::clicked, this, &LoginWindow::onRegisterClicked);
     connect(switchToLoginBtn, &QPushButton::clicked, this, &LoginWindow::onSwitchToLogin);
     connect(loginPasswordEdit, &QLineEdit::returnPressed, this, &LoginWindow::onLoginClicked);
     connect(loginEmailEdit, &QLineEdit::returnPressed, this, &LoginWindow::onLoginClicked);
+    connect(regConfirmPasswordEdit, &QLineEdit::returnPressed, this, &LoginWindow::onRegisterClicked);
+}
+
+void LoginWindow::applyTheme(ThemeStyle style) {
+    m_currentTheme = style;
+
+    // Tải hình ảnh minh hoạ chính thức của Mẫu 3 (Bàn làm việc tuyển dụng & Laptop)
+    QString illPath = "avatars/recruiter_workspace_no_people.png";
+
+    if (!QFile::exists(illPath)) {
+        illPath = QDir(StyleHelper::getProjectRootDir()).filePath(illPath);
+    }
+    if (!QFile::exists(illPath)) {
+        illPath = "avatars/login_illustration.png";
+        if (!QFile::exists(illPath)) {
+            illPath = QDir(StyleHelper::getProjectRootDir()).filePath("avatars/login_illustration.png");
+        }
+    }
+    if (QFile::exists(illPath)) {
+        m_illustrationPixmap.load(illPath);
+    }
+
+    // Định nghĩa phong cách thống nhất hoàn hảo theo TONE MÀU CAM ĐẤT (#B95334)
+    // Cỡ chữ to rõ vượt trội, nổi bật và sắc nét, không bị chìm so với hình ảnh minh họa
+    const QString cardStyle =
+        "#cardFrame {"
+        "   background-color: rgba(255, 255, 255, 0.95);"
+        "   border: 1.5px solid rgba(220, 205, 192, 0.90);"
+        "   border-radius: 24px;"
+        "   padding: 32px 30px;"
+        "}";
+
+    if (cardFrame) cardFrame->setStyleSheet(cardStyle);
+
+    if (cardShadow) {
+        cardShadow->setColor(QColor(80, 50, 30, 80));
+        cardShadow->setBlurRadius(42);
+        cardShadow->setOffset(0, 10);
+    }
+
+    if (logoLabel) {
+        logoLabel->setStyleSheet("font-size: 52px; font-weight: 800; color: #B95334; letter-spacing: 0.5px;");
+    }
+
+    if (subtitleLabel) {
+        subtitleLabel->setStyleSheet("font-size: 21px; font-weight: 600; color: #5A626A; margin-top: 4px;");
+    }
+
+    const QString lblStyle = "font-size: 22px; font-weight: 700; color: #1E293B;";
+    if (emailLabel) emailLabel->setStyleSheet(lblStyle);
+    if (pwdLabel) pwdLabel->setStyleSheet(lblStyle);
+    if (regEmailLbl) regEmailLbl->setStyleSheet(lblStyle);
+    if (regPwdLbl) regPwdLbl->setStyleSheet(lblStyle);
+    if (regConfirmLbl) regConfirmLbl->setStyleSheet(lblStyle);
+    if (regRoleLbl) regRoleLbl->setStyleSheet(lblStyle);
+
+    const QString inputStyle =
+        "QLineEdit {"
+        "   background-color: #FFFFFF;"
+        "   border: 2px solid #C4B9AD;"
+        "   border-radius: 11px;"
+        "   padding: 0px 18px;"
+        "   font-size: 21px;"
+        "   color: #1E1E1E;"
+        "}"
+        "QLineEdit:focus {"
+        "   border: 2.5px solid #B95334;"
+        "}";
+
+    QString arrowNormalPath = QDir(StyleHelper::getProjectRootDir()).filePath("avatars/chevron_down.png");
+    arrowNormalPath.replace("\\", "/");
+    QString arrowHoverPath = QDir(StyleHelper::getProjectRootDir()).filePath("avatars/chevron_down_hover.png");
+    arrowHoverPath.replace("\\", "/");
+
+    const QString comboStyle = QString(
+        "QComboBox {"
+        "   background-color: #FFFFFF;"
+        "   border: 2px solid #C4B9AD;"
+        "   border-radius: 11px;"
+        "   padding-left: 14px;"
+        "   padding-right: 32px;"
+        "   font-size: 20px;"
+        "   font-weight: 600;"
+        "   color: #1E1E1E;"
+        "}"
+        "QComboBox:hover {"
+        "   border: 2px solid #B95334;"
+        "}"
+        "QComboBox:focus {"
+        "   border: 2.5px solid #B95334;"
+        "}"
+        "QComboBox::drop-down {"
+        "   subcontrol-origin: padding;"
+        "   subcontrol-position: center right;"
+        "   width: 30px;"
+        "   border: none;"
+        "   background: transparent;"
+        "}"
+        "QComboBox::down-arrow {"
+        "   image: url(%1);"
+        "   width: 14px;"
+        "   height: 14px;"
+        "}"
+        "QComboBox::down-arrow:hover {"
+        "   image: url(%2);"
+        "}"
+        "QComboBox QAbstractItemView {"
+        "   background-color: #FFFFFF;"
+        "   color: #1E293B;"
+        "   border: 2px solid #B95334;"
+        "   border-radius: 12px;"
+        "   padding: 6px;"
+        "   outline: none;"
+        "   selection-background-color: #F8EBE6;"
+        "   selection-color: #B95334;"
+        "   font-size: 20px;"
+        "   font-weight: 600;"
+        "}"
+        "QComboBox QAbstractItemView::item {"
+        "   min-height: 48px;"
+        "   padding: 10px 16px;"
+        "   border-radius: 8px;"
+        "   color: #1E293B;"
+        "   background-color: #FFFFFF;"
+        "}"
+        "QComboBox QAbstractItemView::item:hover {"
+        "   background-color: #F8EBE6;"
+        "   color: #B95334;"
+        "}"
+        "QComboBox QAbstractItemView::item:selected {"
+        "   background-color: #B95334;"
+        "   color: #FFFFFF;"
+        "   font-weight: 700;"
+        "}"
+    ).arg(arrowNormalPath, arrowHoverPath);
+
+    const QString buttonStyle =
+        "QPushButton {"
+        "   background-color: #B95334;"
+        "   color: #FFFFFF;"
+        "   border: none;"
+        "   border-radius: 11px;"
+        "   font-size: 22px;"
+        "   font-weight: 800;"
+        "   min-height: 54px;"
+        "   max-height: 54px;"
+        "   padding: 0px 28px;"
+        "}"
+        "QPushButton:hover { background-color: #A3462A; }"
+        "QPushButton:pressed { background-color: #8C3920; }";
+
+    if (loginEmailEdit) loginEmailEdit->setStyleSheet(inputStyle);
+    if (loginPasswordEdit) loginPasswordEdit->setStyleSheet(inputStyle);
+    if (regEmailEdit) regEmailEdit->setStyleSheet(inputStyle);
+    if (regPasswordEdit) regPasswordEdit->setStyleSheet(inputStyle);
+    if (regConfirmPasswordEdit) regConfirmPasswordEdit->setStyleSheet(inputStyle);
+    if (regRoleCombo) regRoleCombo->setStyleSheet(comboStyle);
+
+    if (loginButton) loginButton->setStyleSheet(buttonStyle);
+    if (regButton) regButton->setStyleSheet(buttonStyle);
+
+    if (noAccountLabel) noAccountLabel->setStyleSheet("color: #5A626A; font-size: 20px;");
+    if (switchToRegBtn) switchToRegBtn->setStyleSheet("background: transparent; border: none; color: #B95334; font-weight: 700; font-size: 20px;");
+    if (hasAccountLabel) hasAccountLabel->setStyleSheet("color: #5A626A; font-size: 20px;");
+    if (switchToLoginBtn) switchToLoginBtn->setStyleSheet("background: transparent; border: none; color: #B95334; font-weight: 700; font-size: 20px;");
+
+    update();
+}
+
+void LoginWindow::updateIllustration() {
+    update();
+}
+
+void LoginWindow::paintEvent(QPaintEvent *event) {
+    Q_UNUSED(event);
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
+
+    const int w = width();
+    const int h = height();
+
+    // =========================================================================
+    // MẪU 3: GIAO THOA SÓNG (CANVAS CHUYỂN SẮC TRẮNG ẤM VỚI DẢI SÓNG LƯỢN ĐÔI)
+    // =========================================================================
+
+    // 1. Nền canvas chuyển sắc màu ấm (#F8F4EB đồng bộ tranh minh họa cam đất)
+    QLinearGradient bgGrad(0, 0, w, 0);
+    bgGrad.setColorAt(0.00, QColor("#F8F4EB"));
+    bgGrad.setColorAt(0.40, QColor("#F8F4EB"));
+    bgGrad.setColorAt(0.70, QColor("#FAF4EB"));
+    bgGrad.setColorAt(1.00, QColor("#FFFFFF"));
+    painter.fillRect(rect(), bgGrad);
+
+    // 2. Phóng to hình ảnh minh họa vừa vặn chiều cao cửa sổ
+    if (!m_illustrationPixmap.isNull()) {
+        int illH = qMax(h, int(h * 1.14));
+        int illW = (m_illustrationPixmap.width() * illH) / m_illustrationPixmap.height();
+        int illY = (h - illH) / 2;
+        int illX = 0;
+
+        painter.drawPixmap(illX, illY, illW, illH, m_illustrationPixmap);
+    }
+
+    // 3. Phần giao thoa (Layer 1): Dải sóng chuyển tiếp mở rộng lượn sâu sang phía khung đăng nhập
+    const qreal midX = w - 550;
+    QPainterPath wave1;
+    wave1.moveTo(midX - 80, 0);
+    wave1.cubicTo(midX + 90, h * 0.32, midX - 60, h * 0.68, midX + 80, h);
+    wave1.lineTo(w, h);
+    wave1.lineTo(w, 0);
+    wave1.closeSubpath();
+
+    QLinearGradient waveGrad1(midX - 80, 0, w, 0);
+    waveGrad1.setColorAt(0.00, QColor(255, 255, 255, 90));
+    waveGrad1.setColorAt(0.35, QColor(255, 255, 255, 185));
+    waveGrad1.setColorAt(1.00, QColor(255, 255, 255, 245));
+    painter.fillPath(wave1, waveGrad1);
+
+    // 4. Phần giao thoa (Layer 2): Dải sóng chính mềm mại ôm lấy mép khung đăng nhập
+    QPainterPath wave2;
+    wave2.moveTo(midX, 0);
+    wave2.cubicTo(midX + 75, h * 0.36, midX - 30, h * 0.65, midX + 50, h);
+    wave2.lineTo(w, h);
+    wave2.lineTo(w, 0);
+    wave2.closeSubpath();
+
+    QLinearGradient waveGrad2(midX, 0, w, 0);
+    waveGrad2.setColorAt(0.00, QColor(255, 255, 255, 125));
+    waveGrad2.setColorAt(0.30, QColor(255, 255, 255, 225));
+    waveGrad2.setColorAt(1.00, QColor(255, 255, 255, 255));
+    painter.fillPath(wave2, waveGrad2);
+
+    // 5. Phần giao thoa (Layer 3): Đường lượn viền mềm nhấn màu đất nung (#B95334)
+    QPainterPath contour;
+    contour.moveTo(midX, 0);
+    contour.cubicTo(midX + 75, h * 0.36, midX - 30, h * 0.65, midX + 50, h);
+    QPen contourPen(QColor(185, 83, 52, 45));
+    contourPen.setWidthF(1.5);
+    painter.strokePath(contour, contourPen);
+
+    // 6. Phần giao thoa (Layer 4): Ánh sáng nhẹ ấm áp (radial glow) lan tỏa ở vùng giao thoa
+    QRadialGradient glow(midX + 20, h * 0.35, 280);
+    glow.setColorAt(0.0, QColor(245, 220, 205, 60));
+    glow.setColorAt(1.0, QColor(245, 220, 205, 0));
+    painter.fillRect(rect(), glow);
+
+    // 7. Phần giao thoa (Layer 5): Các nút mạng kết nối mảnh mai (Network Nodes)
+    const QColor nodeColor(185, 83, 52, 60);
+    QPen netPen(QColor(185, 83, 52, 35), 1.2, Qt::DashLine);
+    painter.setPen(netPen);
+
+    QPointF p1(midX - 25, h * 0.16);
+    QPointF p2(midX + 35, h * 0.26);
+    QPointF p3(midX - 5, h * 0.40);
+    QPointF p4(midX + 45, h * 0.70);
+    QPointF p5(midX - 15, h * 0.82);
+
+    painter.drawLine(p1, p2);
+    painter.drawLine(p2, p3);
+    painter.drawLine(p3, p4);
+    painter.drawLine(p4, p5);
+
+    // Nút mạng giao thoa
+    painter.setPen(Qt::NoPen);
+    auto drawNode = [&](const QPointF &pt, qreal r, const QColor &c) {
+        painter.setBrush(QColor(255, 255, 255, 220));
+        painter.drawEllipse(pt, r, r);
+        painter.setBrush(c);
+        painter.drawEllipse(pt, r * 0.5, r * 0.5);
+    };
+
+    drawNode(p1, 5.0, nodeColor);
+    drawNode(p2, 6.5, QColor(185, 83, 52, 90));
+    drawNode(p3, 4.5, nodeColor);
+    drawNode(p4, 6.0, QColor(70, 95, 120, 80));
+    drawNode(p5, 5.0, nodeColor);
+}
+
+void LoginWindow::resizeEvent(QResizeEvent *event) {
+    QWidget::resizeEvent(event);
+    updateIllustration();
+}
+
+void LoginWindow::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_F11) {
+        if (isFullScreen()) {
+            showMaximized();
+        } else {
+            showFullScreen();
+        }
+        event->accept();
+        return;
+    }
+    if (event->key() == Qt::Key_Escape && isFullScreen()) {
+        showMaximized();
+        event->accept();
+        return;
+    }
+    QWidget::keyPressEvent(event);
 }
 
 void LoginWindow::onSwitchToRegister() {
     loginStatusLabel->setVisible(false);
     formStackedWidget->setCurrentIndex(1);
+    formStackedWidget->updateGeometry();
+    if (cardFrame) {
+        cardFrame->updateGeometry();
+        cardFrame->adjustSize();
+    }
     setWindowTitle("JobMatch — Đăng ký tài khoản");
 }
 
 void LoginWindow::onSwitchToLogin() {
     regStatusLabel->setVisible(false);
     formStackedWidget->setCurrentIndex(0);
+    formStackedWidget->updateGeometry();
+    if (cardFrame) {
+        cardFrame->updateGeometry();
+        cardFrame->adjustSize();
+    }
     setWindowTitle("JobMatch — Đăng nhập");
 }
 
@@ -300,10 +773,11 @@ void LoginWindow::onRegisterClicked() {
 }
 
 void LoginWindow::clearInputs() {
-    loginPasswordEdit->clear();
-    loginStatusLabel->setVisible(false);
-    regEmailEdit->clear();
-    regPasswordEdit->clear();
-    regConfirmPasswordEdit->clear();
-    regStatusLabel->setVisible(false);
+    if (loginPasswordEdit) loginPasswordEdit->clear();
+    if (loginStatusLabel) loginStatusLabel->setVisible(false);
+    if (regEmailEdit) regEmailEdit->clear();
+    if (regPasswordEdit) regPasswordEdit->clear();
+    if (regConfirmPasswordEdit) regConfirmPasswordEdit->clear();
+    if (regRoleCombo) regRoleCombo->setCurrentIndex(0);
+    if (regStatusLabel) regStatusLabel->setVisible(false);
 }
