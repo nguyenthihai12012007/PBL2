@@ -24,7 +24,6 @@
 #include <QFile>
 
 namespace {
-// StackedWidget that dynamically sizes itself to the currently active page
 class CompactStackedWidget : public QStackedWidget {
 public:
     explicit CompactStackedWidget(QWidget *parent = nullptr) : QStackedWidget(parent) {}
@@ -39,6 +38,31 @@ public:
             return currentWidget()->minimumSizeHint();
         }
         return QStackedWidget::minimumSizeHint();
+    }
+};
+
+class ChevronComboBox : public QComboBox {
+public:
+    explicit ChevronComboBox(QWidget *parent = nullptr) : QComboBox(parent) {}
+protected:
+    void paintEvent(QPaintEvent *event) override {
+        QComboBox::paintEvent(event);
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+
+        const int arrowX = width() - 18;
+        const int arrowY = height() / 2;
+        const QColor color = (underMouse() || hasFocus()) ? QColor("#B95334") : QColor("#718096");
+
+        QPen pen(color, 2.2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+        p.setPen(pen);
+
+        const QPointF points[3] = {
+            QPointF(arrowX - 5.5, arrowY - 3.0),
+            QPointF(arrowX, arrowY + 3.0),
+            QPointF(arrowX + 5.5, arrowY - 3.0)
+        };
+        p.drawPolyline(points, 3);
     }
 };
 }
@@ -61,18 +85,12 @@ LoginWindow::LoginWindow(Data &data, QWidget *parent)
 }
 
 void LoginWindow::setupUI() {
-    // Root Layout: Ảnh minh hoạ phóng to toàn bộ chiều cao cửa sổ làm nền,
-    // khung đăng nhập nổi bật đè lên phía bên phải ảnh minh họa
     QHBoxLayout *rootLayout = new QHBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 32, 0);
     rootLayout->setSpacing(0);
 
-    // Khoảng co giãn bên trái để đẩy khung đăng nhập sang phải, đè lên phần bên phải của ảnh
     rootLayout->addStretch(1);
 
-    // =========================================================================
-    // PHẦN ĐĂNG NHẬP HỆ THỐNG CHÍNH (ĐÈ NỔI BẬT LÊN TRÊN HÌNH ẢNH MINH HỌA)
-    // =========================================================================
     rightContainer = new QWidget(this);
     rightContainer->setFixedWidth(560);
     rightContainer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -96,12 +114,10 @@ void LoginWindow::setupUI() {
     centerVLayout->setContentsMargins(16, 12, 16, 12);
     centerVLayout->setAlignment(Qt::AlignCenter);
 
-    // Card frame chính: Chiều ngang 510px, đè nổi khối sang trọng và bề thế trên ảnh nền
     cardFrame = new QFrame(scrollContent);
     cardFrame->setObjectName("cardFrame");
     cardFrame->setFixedWidth(510);
 
-    // Hiệu ứng đổ bóng mềm mại giúp khung đăng nhập nổi khối rõ nét trên ảnh nền
     cardShadow = new QGraphicsDropShadowEffect(cardFrame);
     cardFrame->setGraphicsEffect(cardShadow);
 
@@ -109,7 +125,6 @@ void LoginWindow::setupUI() {
     cardLayout->setContentsMargins(0, 0, 0, 0);
     cardLayout->setSpacing(16);
 
-    // Header Branding chính: Chữ to rõ, nổi bật và cân đối
     QVBoxLayout *headerLayout = new QVBoxLayout();
     headerLayout->setContentsMargins(0, 0, 0, 0);
     headerLayout->setSpacing(4);
@@ -124,14 +139,10 @@ void LoginWindow::setupUI() {
     headerLayout->addWidget(subtitleLabel);
     cardLayout->addLayout(headerLayout);
 
-    // Form Stacked Widget tự động co giãn chiều cao theo trang đang hiển thị
     formStackedWidget = new CompactStackedWidget(cardFrame);
     formStackedWidget->setFixedWidth(450);
     formStackedWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Maximum);
 
-    // ==========================================
-    // PAGE 0: LOGIN FORM (Chữ to rõ, các ô cao ráo)
-    // ==========================================
     QWidget *loginPage = new QWidget(formStackedWidget);
     loginPage->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     QVBoxLayout *loginPageLayout = new QVBoxLayout(loginPage);
@@ -168,7 +179,6 @@ void LoginWindow::setupUI() {
     loginStatusLabel->setVisible(false);
     loginPageLayout->addWidget(loginStatusLabel);
 
-    // Nút đăng nhập hệ thống được tinh chỉnh kích thước to rõ 22px
     loginButton = new QPushButton("Đăng nhập hệ thống", loginPage);
     loginButton->setObjectName("loginButton");
     loginButton->setCursor(Qt::PointingHandCursor);
@@ -194,9 +204,6 @@ void LoginWindow::setupUI() {
 
     formStackedWidget->addWidget(loginPage);
 
-    // ==========================================
-    // PAGE 1: REGISTER FORM (Chữ to rõ, các ô cao ráo)
-    // ==========================================
     QWidget *regPage = new QWidget(formStackedWidget);
     regPage->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     QVBoxLayout *regPageLayout = new QVBoxLayout(regPage);
@@ -224,10 +231,9 @@ void LoginWindow::setupUI() {
     regConfirmPasswordEdit->setEchoMode(QLineEdit::Password);
     regConfirmPasswordEdit->setFixedHeight(52);
 
-    regRoleCombo = new QComboBox(regPage);
+    regRoleCombo = new ChevronComboBox(regPage);
     regRoleCombo->setObjectName("regRoleCombo");
 
-    // Khóa QListView với nền trắng tinh khôi và độ tương phản cao, loại bỏ lỗi tối màu trên macOS
     QListView *roleListView = new QListView(regRoleCombo);
     roleListView->setObjectName("roleComboListView");
 
@@ -274,6 +280,7 @@ void LoginWindow::setupUI() {
     regRoleCombo->addItem("Ứng viên tìm việc", "CANDIDATE");
     regRoleCombo->addItem("Doanh nghiệp", "COMPANY");
     regRoleCombo->setFixedHeight(52);
+    regRoleCombo->setFixedWidth(248);
 
     regEmailLbl = new QLabel("Email:", regPage);
     regPwdLbl = new QLabel("Mật khẩu:", regPage);
@@ -293,7 +300,6 @@ void LoginWindow::setupUI() {
     regStatusLabel->setVisible(false);
     regPageLayout->addWidget(regStatusLabel);
 
-    // Nút đăng ký tài khoản được tinh chỉnh kích thước chữ to 22px
     regButton = new QPushButton("Đăng ký tài khoản", regPage);
     regButton->setObjectName("regButton");
     regButton->setCursor(Qt::PointingHandCursor);
@@ -330,7 +336,6 @@ void LoginWindow::setupUI() {
 
     rootLayout->addWidget(rightContainer, 0, Qt::AlignRight);
 
-    // Connections (Chính xác như ban đầu)
     connect(loginButton, &QPushButton::clicked, this, &LoginWindow::onLoginClicked);
     connect(switchToRegBtn, &QPushButton::clicked, this, &LoginWindow::onSwitchToRegister);
     connect(regButton, &QPushButton::clicked, this, &LoginWindow::onRegisterClicked);
@@ -343,8 +348,7 @@ void LoginWindow::setupUI() {
 void LoginWindow::applyTheme(ThemeStyle style) {
     m_currentTheme = style;
 
-    // Tải hình ảnh minh hoạ chính thức của Mẫu 3 (Bàn làm việc tuyển dụng & Laptop)
-    QString illPath = "avatars/recruiter_workspace_no_people.png";
+    QString illPath = "avatars/login_bg.png";
 
     if (!QFile::exists(illPath)) {
         illPath = QDir(StyleHelper::getProjectRootDir()).filePath(illPath);
@@ -359,8 +363,6 @@ void LoginWindow::applyTheme(ThemeStyle style) {
         m_illustrationPixmap.load(illPath);
     }
 
-    // Định nghĩa phong cách thống nhất hoàn hảo theo TONE MÀU CAM ĐẤT (#B95334)
-    // Cỡ chữ to rõ vượt trội, nổi bật và sắc nét, không bị chìm so với hình ảnh minh họa
     const QString cardStyle =
         "#cardFrame {"
         "   background-color: rgba(255, 255, 255, 0.95);"
@@ -406,18 +408,13 @@ void LoginWindow::applyTheme(ThemeStyle style) {
         "   border: 2.5px solid #B95334;"
         "}";
 
-    QString arrowNormalPath = QDir(StyleHelper::getProjectRootDir()).filePath("avatars/chevron_down.png");
-    arrowNormalPath.replace("\\", "/");
-    QString arrowHoverPath = QDir(StyleHelper::getProjectRootDir()).filePath("avatars/chevron_down_hover.png");
-    arrowHoverPath.replace("\\", "/");
-
-    const QString comboStyle = QString(
+    const QString comboStyle =
         "QComboBox {"
         "   background-color: #FFFFFF;"
         "   border: 2px solid #C4B9AD;"
         "   border-radius: 11px;"
-        "   padding-left: 16px;"
-        "   padding-right: 38px;"
+        "   padding-left: 14px;"
+        "   padding-right: 32px;"
         "   font-size: 21px;"
         "   color: #1E1E1E;"
         "}"
@@ -430,17 +427,14 @@ void LoginWindow::applyTheme(ThemeStyle style) {
         "QComboBox::drop-down {"
         "   subcontrol-origin: padding;"
         "   subcontrol-position: center right;"
-        "   width: 34px;"
+        "   width: 32px;"
         "   border: none;"
         "   background: transparent;"
         "}"
         "QComboBox::down-arrow {"
-        "   image: url(%1);"
-        "   width: 14px;"
-        "   height: 14px;"
-        "}"
-        "QComboBox::down-arrow:hover {"
-        "   image: url(%2);"
+        "   image: none;"
+        "   width: 0px;"
+        "   height: 0px;"
         "}"
         "QComboBox QAbstractItemView {"
         "   background-color: #FFFFFF;"
@@ -469,8 +463,7 @@ void LoginWindow::applyTheme(ThemeStyle style) {
         "   background-color: #B95334;"
         "   color: #FFFFFF;"
         "   font-weight: 700;"
-        "}"
-    ).arg(arrowNormalPath, arrowHoverPath);
+        "}";
 
     const QString buttonStyle =
         "QPushButton {"
@@ -518,11 +511,6 @@ void LoginWindow::paintEvent(QPaintEvent *event) {
     const int w = width();
     const int h = height();
 
-    // =========================================================================
-    // MẪU 3: GIAO THOA SÓNG (CANVAS CHUYỂN SẮC TRẮNG ẤM VỚI DẢI SÓNG LƯỢN ĐÔI)
-    // =========================================================================
-
-    // 1. Nền canvas chuyển sắc màu ấm (#F8F4EB đồng bộ tranh minh họa cam đất)
     QLinearGradient bgGrad(0, 0, w, 0);
     bgGrad.setColorAt(0.00, QColor("#F8F4EB"));
     bgGrad.setColorAt(0.40, QColor("#F8F4EB"));
@@ -530,7 +518,6 @@ void LoginWindow::paintEvent(QPaintEvent *event) {
     bgGrad.setColorAt(1.00, QColor("#FFFFFF"));
     painter.fillRect(rect(), bgGrad);
 
-    // 2. Phóng to hình ảnh minh họa vừa vặn chiều cao cửa sổ
     if (!m_illustrationPixmap.isNull()) {
         int illH = qMax(h, int(h * 1.14));
         int illW = (m_illustrationPixmap.width() * illH) / m_illustrationPixmap.height();
@@ -540,7 +527,6 @@ void LoginWindow::paintEvent(QPaintEvent *event) {
         painter.drawPixmap(illX, illY, illW, illH, m_illustrationPixmap);
     }
 
-    // 3. Phần giao thoa (Layer 1): Dải sóng chuyển tiếp mở rộng lượn sâu sang phía khung đăng nhập
     const qreal midX = w - 550;
     QPainterPath wave1;
     wave1.moveTo(midX - 80, 0);
@@ -555,7 +541,6 @@ void LoginWindow::paintEvent(QPaintEvent *event) {
     waveGrad1.setColorAt(1.00, QColor(255, 255, 255, 245));
     painter.fillPath(wave1, waveGrad1);
 
-    // 4. Phần giao thoa (Layer 2): Dải sóng chính mềm mại ôm lấy mép khung đăng nhập
     QPainterPath wave2;
     wave2.moveTo(midX, 0);
     wave2.cubicTo(midX + 75, h * 0.36, midX - 30, h * 0.65, midX + 50, h);
@@ -569,7 +554,6 @@ void LoginWindow::paintEvent(QPaintEvent *event) {
     waveGrad2.setColorAt(1.00, QColor(255, 255, 255, 255));
     painter.fillPath(wave2, waveGrad2);
 
-    // 5. Phần giao thoa (Layer 3): Đường lượn viền mềm nhấn màu đất nung (#B95334)
     QPainterPath contour;
     contour.moveTo(midX, 0);
     contour.cubicTo(midX + 75, h * 0.36, midX - 30, h * 0.65, midX + 50, h);
@@ -577,13 +561,11 @@ void LoginWindow::paintEvent(QPaintEvent *event) {
     contourPen.setWidthF(1.5);
     painter.strokePath(contour, contourPen);
 
-    // 6. Phần giao thoa (Layer 4): Ánh sáng nhẹ ấm áp (radial glow) lan tỏa ở vùng giao thoa
     QRadialGradient glow(midX + 20, h * 0.35, 280);
     glow.setColorAt(0.0, QColor(245, 220, 205, 60));
     glow.setColorAt(1.0, QColor(245, 220, 205, 0));
     painter.fillRect(rect(), glow);
 
-    // 7. Phần giao thoa (Layer 5): Các nút mạng kết nối mảnh mai (Network Nodes)
     const QColor nodeColor(185, 83, 52, 60);
     QPen netPen(QColor(185, 83, 52, 35), 1.2, Qt::DashLine);
     painter.setPen(netPen);
@@ -599,7 +581,6 @@ void LoginWindow::paintEvent(QPaintEvent *event) {
     painter.drawLine(p3, p4);
     painter.drawLine(p4, p5);
 
-    // Nút mạng giao thoa
     painter.setPen(Qt::NoPen);
     auto drawNode = [&](const QPointF &pt, qreal r, const QColor &c) {
         painter.setBrush(QColor(255, 255, 255, 220));
@@ -664,7 +645,6 @@ void LoginWindow::onLoginClicked() {
     std::string email = loginEmailEdit->text().trimmed().toStdString();
     std::string password = loginPasswordEdit->text().toStdString();
 
-    // Input validation
     if (email.empty()) {
         loginStatusLabel->setText("Vui lòng nhập địa chỉ email!");
         loginStatusLabel->setVisible(true);
@@ -679,7 +659,6 @@ void LoginWindow::onLoginClicked() {
         return;
     }
 
-    // Authenticate with real data via Data::findUserByEmail
     User user;
     if (!m_data.findUserByEmail(email, user)) {
         loginStatusLabel->setText("Tài khoản email không tồn tại trong hệ thống!");
@@ -702,7 +681,6 @@ void LoginWindow::onLoginClicked() {
     QString userEmail = QString::fromStdString(user.getEmail());
     QString userRole = QString::fromStdString(user.getRole());
 
-    // Emit authenticated signal with real user information
     emit loginSuccess(userId, userEmail, userRole);
 }
 
@@ -740,7 +718,6 @@ void LoginWindow::onRegisterClicked() {
         return;
     }
 
-    // Check if email already exists in users.txt
     if (m_data.emailExists(email)) {
         regStatusLabel->setText("Email này đã được sử dụng. Vui lòng chọn email khác!");
         regStatusLabel->setVisible(true);

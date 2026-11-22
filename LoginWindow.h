@@ -16,7 +16,7 @@ class QResizeEvent;
 class QKeyEvent;
 
 enum class ThemeStyle {
-    HiringWorkspace = 3        // Mẫu 3: Bàn làm việc tuyển dụng & Laptop (Giao diện chính thức duy nhất)
+    HiringWorkspace = 3       
 };
 
 class LoginWindow : public QWidget {
@@ -51,20 +51,16 @@ private:
     Data &m_data;
     ThemeStyle m_currentTheme;
 
-    // Illustration
     QLabel *illustrationLabel;
     QPixmap m_illustrationPixmap;
 
-    // Card frame & effect
     QWidget *rightContainer;
     QFrame *cardFrame;
     QGraphicsDropShadowEffect *cardShadow;
 
-    // Branding labels
     QLabel *logoLabel;
     QLabel *subtitleLabel;
 
-    // Login Form widgets
     QLabel *emailLabel;
     QLabel *pwdLabel;
     QLineEdit *loginEmailEdit;
@@ -74,7 +70,6 @@ private:
     QLabel *noAccountLabel;
     QPushButton *switchToRegBtn;
 
-    // Register Form widgets
     QLabel *regEmailLbl;
     QLabel *regPwdLbl;
     QLabel *regConfirmLbl;
@@ -88,8 +83,7 @@ private:
     QLabel *hasAccountLabel;
     QPushButton *switchToLoginBtn;
 
-    // Container stacked widget for smooth switching
     QStackedWidget *formStackedWidget;
 };
 
-#endif // LOGIN_WINDOW_H
+#endif 
